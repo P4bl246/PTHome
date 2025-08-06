@@ -9,8 +9,13 @@
 /// * [`NumLines::remove_num_lines`] - Removes line numbers from a file.
 /// * [`NumLines::skip_num_line`] - Skips the line number in a file.
 /// * [`NumLines::get_num_line`] - Gets the current line number from a file
+/// * [`NumLines::get_input_file`] - Gets the input file path.
+/// * [`NumLines::get_delimiter`] - Gets the delimiter.
+/// * [`NumLines::set_input_file`] - Sets the input file path.
+/// * [`NumLines::set_delimiter`] - Sets the delimiter.
 /// * [`all_appears_index`] - Finds all occurrences of a string in a file and returns their indices.
 pub mod general{
+  #![allow(unused)]
     use std::fs;
     use std::io::Write;
     /// ## `remove_empty_lines`
@@ -51,17 +56,20 @@ pub mod general{
    }
 //------------------------------------------------------------------------------------------
     /// ## `num_lines`
-    /// A struct to hold the configuration for the `numerate_lines` function and his metods.
+    /// A struct to hold the configuration for the `NumLines` instance and his metods.
      pub struct NumLines {
-         input_file: &'static str,
-         delimiter: &'static str,
+          input_file: &'static str,
+          delimiter: &'static str,
     }
     
-     
-//---------------------------------------------------------------------
     /// ## `impl num_lines`
-    /// This implementation provides metods to handle line numbers in a file.
+    /// This implementation provides methods to handle line numbers in a file.
     /// It includes functions to push and remove line numbers, skip line numbers, and get the current line number.
+    /// Include setters an getters
+    /// * `get_input_file`
+    /// * `get_delimiter`
+    /// * `set_input_file`
+    /// * `set_delimiter`
     impl NumLines{
     /// ## `new`
     /// Creates a new instance of `NumLines`.
@@ -81,7 +89,7 @@ pub mod general{
     /// Returns a new instance of `NumLines` with the specified input file and delimiter.
     /// ### IMPORTANT
     /// If don't want use a delimiter just use an empty string `""`.
-    /// **NOTE:** The default delimiter is an space`' '`
+    /// **NOTE:** The default delimiter is an space `' '`
     pub fn new(input_file: &'static str, delimiter: &'static str) -> Self{
       Self {
         input_file,
@@ -90,9 +98,7 @@ pub mod general{
     }
 //---------------------------------------------------------------------
        /// ### `numerate_lines`
-       /// Numerates the lines of a file and rewrites it.
-       /// #### Arguments
-       /// * `&self` - The configuration in the `num_lines` struct.
+       /// Numerates the lines of a file and rewrites it
        /// #### Example
        /// ```rust
        /// mod main_code;
@@ -131,10 +137,8 @@ pub mod general{
         println!("LINES NUMERATED FROM FILE: {}", self.input_file);
     }
 //---------------------------------------------------------------------
-        /// ### remove_num_lines
-        /// Removes line numbers from a file. Recomended use this, just if before you use the function `numerate_lines`.
-        /// #### Arguments
-        /// * `&self` - The configuration in the `num_lines` struct.
+        /// ### `remove_num_lines`
+        /// Removes line numbers from a file. Recomended use this just if you use before the function `numerate_lines`.
         /// #### Example
         /// ```rust
         /// mod main_code;
@@ -172,7 +176,7 @@ pub mod general{
         }
 //---------------------------------------------------------------------
         /// ### `skip_num_line`
-        /// Skips the line number in a file. Use this just if before you use the function `numerate_lines`.
+        /// Skips the line number in a file. Use this just if you use before the function `numerate_lines`.
         /// #### Arguments
         /// * `line: &str` - The line from which the line number will be skipped.
         /// #### Example
@@ -244,6 +248,55 @@ pub mod general{
             }
             return new_content.parse().expect(&format!("Error trying to parse the line number from '{}'", new_content));
         }
+//---------------------------------------------------------------------   
+       /// ## `get_input_file`
+       /// Gets the input file path.
+       /// ### Return
+       /// Returns the input file path as a `String`.
+       pub fn get_input_file(&self) -> String{
+            self.input_file.to_string()
+        }
+//---------------------------------------------------------------------
+       /// ## `get_delimiter`
+       /// Gets the delimiter used for line numbering.
+       /// ### Return
+       /// Returns the delimiter as a `String`.
+       pub fn get_delimiter(&self) -> String{
+            self.delimiter.to_string()
+        }
+//---------------------------------------------------------------------
+       /// ## `set_input_file`
+       /// Sets the input file path.
+       /// ### Arguments
+       /// * `input_file: &'static str` - The new input file path to be set.
+       /// ### Example
+       /// ```rust
+       /// mod main_code;
+       /// fn main (){
+       /// use crate::main_code::utilities::general;
+       /// let mut input_file = general::NumLines::new("example.txt", " - ");
+       /// input_file.set_input_file("new_example.txt");
+       /// ```
+       pub fn set_input_file(&mut self, new_value:&'static str){
+            self.input_file = new_value;
+        }
+//---------------------------------------------------------------------
+       /// ## `set_delimiter`
+       /// Sets the delimiter
+       /// ## Arguments 
+       /// * `delimiter: &'static str` - The new delimiter to be set.
+       /// ### Example  
+       /// ```rust
+       /// mod main_code;
+       /// fn main (){
+       /// use crate::main_code::utilities::general;
+       /// let mut input_file = general::NumLines::new("example.txt", " - ");
+       /// input_file.set_delimiter(" | ");
+       /// ```
+       pub fn set_delimiter(&mut self, new_value:&'static str){
+            self.delimiter = new_value;
+       }
+       
     }
 //------------------------------------------------------------------------------------------
     /// ## `all_appears_index`
@@ -297,10 +350,11 @@ pub mod general{
 /// * [`remove_comments::remove_simple_comments`] - Removes simple comments from the file.
 /// * [`remove_comments::remove_block_comments`] - Removes block comments from the file.
 pub mod remove_comments{
+  #![allow(unused)]
     use std::fs;
     use std::io::Write;
 
-    /// ## `remove_simple_comments`
+    /// ## `simple_comments`
     /// Removes simple comments from a file and rewrites it.
     /// ### Arguments
     /// * `input_file: &str` - The path to the file from which simple comments will be removed.
@@ -321,7 +375,7 @@ pub mod remove_comments{
     /// ### Note
     /// The function will remove everything after the first occurrence of the delimiter in each line.
     
-    pub fn remove_simple_comments(input_file: &str, delimiter: &str){
+    pub fn simple_comments(input_file: &str, delimiter: &str){
         println!("REMOVING SIMPLE COMMENTS FROM FILE: {}", input_file);
       let mut new_content = String::new();
       {
@@ -352,7 +406,7 @@ pub mod remove_comments{
         Nested,
         Single
      }
-    /// ## `remove_block_comments`
+    /// ## `block_comments`
     /// Removes block comments from a file and rewrites it. 
     /// ### Arguments
     /// * `input_file: &str` - The path to the file from which block comments will be removed.
@@ -376,18 +430,15 @@ pub mod remove_comments{
     /// * `-1` - If there is a block comment without an end delimiter.
     /// * `0` - If the block comments were successfully removed.
     
-    pub fn remove_block_comments(input_file: &str, start_delimiter: &str, end_delimiter: &str, mode: ModeBlock) -> i32{
+    pub fn block_comments(input_file: &str, start_delimiter: &str, end_delimiter: &str, mode: ModeBlock) -> i32{
+      println!("REMOVING BLOCK COMMENTS FROM FILE: {}", input_file);
       let mut new_content = String::new();
-        println!("REMOVING BLOCK COMMENTS FROM FILE: {}", input_file);
       match mode{
       ModeBlock::Single =>{
         let file_content = fs::read_to_string(input_file).expect(&format!("Failed to read the file '{}'", input_file));
-        let mut in_block_comment = false;
-        let lines: Vec<&str> = file_content.lines().collect();
-        let mut start_delimiter_line  = String::new();
-        let mut line_num = 0;
-        for (i, line) in lines.iter().enumerate() {
-           
+        match single_mode(&file_content, start_delimiter, end_delimiter){
+            Ok(content) =>  new_content.push_str(&content) ,
+            Err(_) => return -1
         }
        }
        ModeBlock::Nested =>{
@@ -414,15 +465,16 @@ pub mod remove_comments{
     /// * `content: &Vec<&str>` - A vector of lines from content from which block comments will be removed.
     /// * `delimiter_end: &str` - The ending delimiter of the block comment.
     /// * `delimiter_start: &str` - The starting delimiter of the block comment.
-    /// * **NOTE:** This is use in his API [`remove_block_comments::remove_block_comments`] fuction.
+    /// * **NOTE:** This is use in his API [`remove_comments::remove_block_comments`] fuction.
     /// ### Return
     /// Returns a `Result<String, i32>`:
     /// * `Ok(String)` - If the block comments were successfully removed, returns a `String` with the content without block comments.
     /// * `Err(i32)` - If there is an error, returns an `i32` error code:
     ///   - `-1` - If the start and end delimiters are the same or content vector is empty.
-    ///   - `2` - If the block comment are not closed and arrive to the end of content vector.
+    ///   - `2` - If the block comment are not closed and arrive to the end of content vector, with an error message indicating the line number and content of the line.
     
- fn single_mode(content: &Vec<&str>, delimiter_end: &str, delimiter_start: &str) -> Result<String, i32>{
+ fn single_mode(content: &str, delimiter_start: &str, delimiter_end: &str) -> Result<String, i32>{
+        use crate::main_code::utilities::general;
         if delimiter_start == delimiter_end{
             println!("Error: The start and end delimiters are the same.");
             return Err(-1);
@@ -431,14 +483,27 @@ pub mod remove_comments{
             println!("Error: The content vector is empty");
             return Err(-1);
         }
+       
+          
+         let mut line_content = String::new();
+         let mut index = 0;
          let mut block_open = false;
          let mut new_content = String::new();
-         for (i, line) in content.iter().enumerate() {
+         let mut counter = 0;
+         let mut line_num = 0;
+         for line in content.lines() {
+          counter += 1;
            let mut line_copy= line.to_string();
-           if line_copy.contains(delimiter_start){
+           
+           if line_copy.contains(delimiter_start){ 
+              index = counter;
                while line_copy.contains(delimiter_start){
+                if !block_open{
+                  line_num = counter;
+                  line_content = line.to_string();
+                }
                if let Some(start_pos) = line_copy.find(delimiter_start){
-                if !block_open{new_content.push_str(&line_copy[..start_pos]); block_open = true;}
+                if !block_open {new_content.push_str(&line_copy[..start_pos]); block_open = true;}
                 if let Some(end_pos) = line_copy.find(delimiter_end){
                     //for preserved code between comments, but no inside of any of them, and other words, code between, start and end block comments delimiters.
                     if start_pos > end_pos+delimiter_end.len() && !block_open{
@@ -464,13 +529,14 @@ pub mod remove_comments{
                 continue;
               }
              }
-            else{
+            else if !block_open{
              new_content.push_str(&line_copy);
              new_content.push('\n');
            }
           
          }
          if block_open {
+            println!("Error: Block comment without end delimiter in line '{}': '{}'", line_num, line_content);
             return Err(2);
            }
          return Ok(new_content);                
