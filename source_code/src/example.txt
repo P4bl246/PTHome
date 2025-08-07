@@ -5,12 +5,12 @@
 5 djls s sjd
 6 djsl
 1/*This is a line comment*/s
-2/*this/**/
+2/*this/**/*/
 F/*This is a/*other/*chars/*/**/22
 F/*this is*/in/*ishodk*/blocks/*dhsin/*sijd/**/12
 F/*This is
 Multiline
 jump
 /*jump
-*/
+*/ss
 HELLO

@@ -443,12 +443,9 @@ pub mod remove_comments{
        }
        ModeBlock::Nested =>{
         let file_content = fs::read_to_string(input_file).expect(&format!("Failed to read the file '{}'", input_file));
-        let mut in_block_comment = false;
-        let lines: Vec<&str> = file_content.lines().collect();
-        let mut start_delimiter_line  = String::new();
-        let mut line_num = 0;
-        for (i, line) in lines.iter().enumerate() {
-           
+        match nested_mode(&file_content, start_delimiter, end_delimiter){
+          Ok(content) => new_content.push_str(&content),
+          Err(_) => return -1
         }
        }
       }
@@ -472,9 +469,7 @@ pub mod remove_comments{
     /// * `Err(i32)` - If there is an error, returns an `i32` error code:
     ///   - `-1` - If the start and end delimiters are the same or content vector is empty.
     ///   - `2` - If the block comment are not closed and arrive to the end of content vector, with an error message indicating the line number and content of the line.
-    
  fn single_mode(content: &str, delimiter_start: &str, delimiter_end: &str) -> Result<String, i32>{
-        use crate::main_code::utilities::general;
         if delimiter_start == delimiter_end{
             println!("Error: The start and end delimiters are the same.");
             return Err(-1);
@@ -485,56 +480,75 @@ pub mod remove_comments{
         }
        
           
-         let mut line_content = String::new();
-         let mut index = 0;
-         let mut block_open = false;
-         let mut new_content = String::new();
-         let mut counter = 0;
-         let mut line_num = 0;
+         let mut line_content = String::new();//buffer for store the line when start the block comment
+         let mut block_open = false; // flag to indicate if a block comment is open
+         let mut new_content = String::new(); // buffer for store the new content without block comments
+         let mut counter = 0;// counter for the line number
+         let mut line_num = 0;// line number where the block comment starts
+         let mut multi_line = false; // flag to indicate if the block comment is multi-line
+         // Iterate through each line in the content
+         // This is a single mode, so we don't need to handle nested comments
          for line in content.lines() {
-          counter += 1;
-           let mut line_copy= line.to_string();
-           
-           if line_copy.contains(delimiter_start){ 
-              index = counter;
+          counter += 1; // Increment the line counter
+           let mut line_copy= line.to_string(); // copy the line for handle his content
+           // Check if the line contains the start delimiter or if a block comment is already open
+           if line_copy.contains(delimiter_start) || block_open{ 
+              // While the line contains the start delimiter
                while line_copy.contains(delimiter_start){
+                // If a block comment isn't already open, set the line number and content
+                // This made for take and store the data for the error message if the block comment isn't closed
                 if !block_open{
                   line_num = counter;
                   line_content = line.to_string();
                 }
+                // Find the position of the start delimiter in the line
                if let Some(start_pos) = line_copy.find(delimiter_start){
+                // If the start delimiter is found, check if a block comment is already open
+                // If not, push the content before the start delimiter to the new content
                 if !block_open {new_content.push_str(&line_copy[..start_pos]); block_open = true;}
+                // If the start delimiter is found, check if the end delimiter is also present in the line
                 if let Some(end_pos) = line_copy.find(delimiter_end){
-                    //for preserved code between comments, but no inside of any of them, and other words, code between, start and end block comments delimiters.
-                    if start_pos > end_pos+delimiter_end.len() && !block_open{
+                    // For preserved code between comments, but no inside of any of them, in other words, code between start and end block comments delimiters.
+                    // The comp its this, becuase the code between comments, is in the start and end of comment, like this '/*thi*/between/*other*/', like we look here, the start delimiter have a greater index than end delimiter
+                    //and the content "between" starts after the end delimiter, so we can push en_pos+delimiter_end.len(), and need been not multi-line, because the while loop and all this flux into the for-loop trate with a single line, 
+                    //so we need have a way to indicate the comment in some line where open a block comment, is not close, therefore, all after this start must be skiped and ignored.
+                    if start_pos > end_pos+delimiter_end.len() && !multi_line{
                     new_content.push_str(&line_copy[end_pos+delimiter_end.len()..start_pos]);
+                    // Remove the end delimiter from the line copy to continuing process the next start block comment in the line
+                    line_copy.replace_range(end_pos..end_pos+delimiter_end.len(), "");
                     block_open = true;
-                    continue;
                      }
                     }
+                    // Remove the start delimiter from the line copy, for not process this again, and avoid problems
                     line_copy.replace_range(start_pos..start_pos+delimiter_start.len(), "");
                 }
                 
               }
              //pass here when the line hasn't more start delimiters
               if let Some(end_pos) = line_copy.find(delimiter_end){
-                if !block_open{new_content.push_str(&line_copy[end_pos+delimiter_end.len()..]);}
-                new_content.push('\n');
+                // If a block comment is open and the end delimiter is found, push the content after the end delimiter to the new content
+                // and close the block comment
+                if block_open{
                 new_content.push_str(&line_copy[end_pos+delimiter_end.len()..]);
+                new_content.push('\n');
                 block_open = false;
+                }
               }
               //indicate its a multi-line block comment
             else{
                 block_open = true;
+                multi_line = true;
                 continue;
               }
              }
+             // If the line doesn't contain the start delimiter and a block comment is not open, push the line to the new content
             else if !block_open{
              new_content.push_str(&line_copy);
              new_content.push('\n');
            }
           
          }
+          // If a block comment is open at the end of the content, return an error
          if block_open {
             println!("Error: Block comment without end delimiter in line '{}': '{}'", line_num, line_content);
             return Err(2);
@@ -542,8 +556,158 @@ pub mod remove_comments{
          return Ok(new_content);                
     }
 
+//------------------------------------------------------------------------------------------
+    /// ## `nested_mode`
+    /// Removes block comments in nested mode from a line.
+    /// ### Arguments
+    /// * `content: &str` - A string containing the content from which block comments will be removed.
+    /// * `delimiter_start: &str` - The starting delimiter of the block comment.
+    /// * `delimiter_end: &str` - The ending delimiter of the block comment.
+    /// * **NOTE:** This is use in his API [`remove_comments::remove_block_comments`] fuction.
+    /// ### Return
+    /// Returns a `Result<String, i32>`:
+    /// * `Ok(String)` - If the block comments were successfully removed, returns a `String` with the content without block comments.
+    /// * `Err(i32)` - If there is an error, returns an `i32` error code:
+    ///   - `-1` - If the start and end delimiters are the same or content vector is empty.
+    ///   - `2` - If the block comment are not closed and arrive to the
+    fn nested_mode(content: &str, delimiter_start: &str, delimiter_end: &str)-> Result<String, i32>{
+       use crate::main_code::utilities::general;
+       if content.is_empty(){
+        println!("Error: The content vector is empty");
+        return Err(-1);
+       }
+       if delimiter_start == delimiter_end{
+        println!("Error: The start and end delimiters are the same.");
+        return Err(-1);
+       }
+       let mut new_content = String::new();
+       let mut in_block_comment = false;
+       let mut is_multiline = false;
+       let mut block_comment_level:usize = 0;
+       let mut end = 0;
+       let mut start = 0;
+        let mut line_num = 0;
+        let mut line_content = String::new();
+        let mut counter = 0;
+        let mut indexes:Vec<usize> = Vec::new();
+        let mut indexes_end: Vec<usize> = Vec::new();
+        // Iterate through each line in the content
+        // This is a nested mode, so we must to handle nested comments
+        for line in content.lines(){
+         counter += 1;
+          let mut line_copy = line.to_string();
+          // Check if the line contains the start or end delimiter
+        if line_copy.contains(delimiter_end) || line_copy.contains(delimiter_start){
+          // If the line contains the end delimiter, find all occurrences of it
+          // and store their indexes in the indexes_end vector
+          if line_copy.contains(delimiter_end){
+          indexes_end = general::all_appears_index(&line_copy, delimiter_end);
+          }
+          // If the line contains the start delimiter, find all occurrences of it
+          // and store their indexes in the indexes vector
+           if line_copy.contains(delimiter_start){
+             start = line_copy.find(delimiter_start).unwrap();
+            line_num = counter;
+            line_content = line.to_string();
+            // If a block comment is not already open, push the content before the start delimiter to the new content
+            if !in_block_comment{
+              new_content.push_str(&line_copy[..start]);
+              in_block_comment = true;
+            }
+            indexes = general::all_appears_index(&line_copy, delimiter_start);
+          }
+         }
+         // Next, we check if the line is not empty and if it contains the start delimiter
+         // If it does because we need to handle the block comment
+        if !indexes.is_empty(){
+          let mut indexes_to_delete:Vec<usize> = Vec::new();
+          // We need to check if the indexes_end are in the indexes vector
+          // If it does because we need to handle conflicts between, end delimiter and start delimter
+          // its occurs when the end delimiter and start delimiter superpose, like this '/*/', 
+          //in this example the start delimiter are in the first and second character ('/*'), but the end delimiter
+          // are in the second and third character ('*/'), so, for avoid this problems the code priorize the end delimiter
+          // and remove the start delimiter from the vector indexes, therefore, this '/*/' are interpreting like a end delimiter
+          // and the case when the end delimiter has the same index than the start delimiter can't appear.
+          // The index to remove in the indexes vector is store into the vector indexes_to_delete
+          for(i, value) in indexes.iter().enumerate(){
+            if indexes_end.contains(&(value+delimiter_start.len())){
+              indexes_to_delete.push(i);
+            }
+          }
+          // Here remove them index from the vector indexes
+          for i in indexes_to_delete.iter(){
+            indexes.remove(*i);
+          }
+          let i = 0;// We need to use this index for the while loop
+         block_comment_level += indexes.len();// This is the number of block comments intialize in the line
+         // If the block comment level is greater than 0, we need to handle the block
+         if block_comment_level > 0 || in_block_comment{
+          // We need to handle the end delimiter, because we need to remove the block comment
+          // We need to check if the end delimiter is in the indexes_end vector
+          while !indexes_end.is_empty(){
+            // If the end delimiter is in the indexes_end vector, we need to handle the block comment
+            // We need to check if the end delimiter is grether than the start delimiter at the first time or index[0] for both vectors
+             if indexes_end[i] > indexes[i]+delimiter_start.len(){
+              // If the end delimiter is greater than the start delimiter, we need to handle the block comment
+              if indexes.len() > i+1{
+                // If the end delimiter is less than the next start delimiter, and not its a nested block comment, or we are not be in a block comment
+                // We need to push the content between the end delimiter and the next start delimiter to the new content
+                // And remove this level, from the vectors and block_comment_level counter
+               if indexes_end[i] < indexes[i+1] && !in_block_comment{
+                 new_content.push_str(&line_copy[indexes_end[i]+delimiter_end.len()..indexes[i+1]]);
+                 indexes_end.remove(i);
+                 indexes.remove(i);
+                  block_comment_level -= 1;
+                 
+                }
+                // If the end delimiter is greater than the next start delimiter
+                // we mark this as a in_block_comment, because we are in a nested block comment
+                // and in this iteration that end delimiter were the end delimiter for this nested block comment, 
+                //and now we can remove this, because this are be closed, and up to next leve of block comment.
+                else{
+                  in_block_comment = true;
+                  indexes_end.remove(i);
+                   indexes.remove(i);
+                   block_comment_level -= 1;
+                 }
+               }
+               // If the indexes are equal 1 or i+1 but i is even 0, 
+               // that means that we are in the last layer of the block comments or the first block comment
+               // therefore, the end delimiter is the end of the block comment, and can copy the value after this
+               else if indexes.len() == 1 && indexes_end.len() >= 1{
+                 new_content.push_str(&line_copy[indexes_end[i]+delimiter_end.len()..]);
+                 indexes_end.remove(i);
+                 indexes.remove(i);
+                 block_comment_level -= 1;
+               }
+               // if not has more end delimiters this level of block comment its multi-line
+               else{
+                  in_block_comment = true;
+                  is_multiline = true;
+                 break;
+               }
+
+             }
+             
+          }
+        }
+        // If is just a normal line
+         if !in_block_comment{
+           new_content.push_str(&line_copy);
+           new_content.push('\n');
+        }
         
-}
+       }
+      }
+        if in_block_comment || block_comment_level > 0{
+          println!("Error: Block comment without end delimiter in line '{}': '{}'", line_num, line_content);
+          return Err(2);
+        }
+        return Ok(new_content);
+    
+        
+  }
+
 //------------------------------------------------------------------------------------------
 
-
+}
