@@ -347,8 +347,8 @@ pub mod general{
 /// # Mod `remove_comments` from `utilities.rs`
 /// This module provides functions to remove comments from files.   
 /// # FUNCTIONS
-/// * [`remove_comments::remove_simple_comments`] - Removes simple comments from the file.
-/// * [`remove_comments::remove_block_comments`] - Removes block comments from the file.
+/// * [`remove_comments::simple_comments`] - Removes simple comments from the file.
+/// * [`remove_comments::block_comments`] - Removes block comments from the file.
 pub mod remove_comments{
   #![allow(unused)]
     use std::fs;
@@ -408,11 +408,12 @@ pub mod remove_comments{
      }
     /// ## `block_comments`
     /// Removes block comments from a file and rewrites it. 
+    /// * This function is an API for the functions [`single_mode`] and [`nested_mode`].
     /// ### Arguments
     /// * `input_file: &str` - The path to the file from which block comments will be removed.
     /// * `start_delimiter: &str` - The starting delimiter of the block comment.
     /// * `end_delimiter: &str` - The ending delimiter of the block comment.
-    /// * `mode: ModeBlock` - The mode of block comment removal, either [`ModeBlock::Nested`] or [`ModeBlock::Single`].
+    /// * `mode: ModeBlock` - The mode of block comment removal, either [`ModeBlock::Nested`] or [`ModeBlock::Single`]
     /// ### Example
     /// ```rust
     /// mod main_code;
@@ -590,6 +591,7 @@ pub mod remove_comments{
         let mut line_content = String::new();
         let mut counter = 0;
         let mut indexes:Vec<usize> = Vec::new();
+        let mut processed = false; 
         let mut indexes_end: Vec<usize> = Vec::new();
         // Iterate through each line in the content
         // This is a nested mode, so we must to handle nested comments
@@ -614,8 +616,15 @@ pub mod remove_comments{
               new_content.push_str(&line_copy[..start]);
               in_block_comment = true;
             }
-            indexes = general::all_appears_index(&line_copy, delimiter_start);
+            let indexes_start_in_line = general::all_appears_index(&line_copy, delimiter_start);
+            for i in indexes_start_in_line.iter(){
+              // Store the indexes of the start delimiters in the indexes vector
+              indexes.push(*i);
+            }
           }
+         } 
+         else{
+          processed = false;
          }
          // Next, we check if the line is not empty and if it contains the start delimiter
          // If it does because we need to handle the block comment
@@ -630,7 +639,7 @@ pub mod remove_comments{
           // and the case when the end delimiter has the same index than the start delimiter can't appear.
           // The index to remove in the indexes vector is store into the vector indexes_to_delete
           for(i, value) in indexes.iter().enumerate(){
-            if indexes_end.contains(&(value+delimiter_start.len())){
+            if indexes_end.contains(&(value+delimiter_start.len()-1)){
               indexes_to_delete.push(i);
             }
           }
@@ -644,10 +653,10 @@ pub mod remove_comments{
          if block_comment_level > 0 || in_block_comment{
           // We need to handle the end delimiter, because we need to remove the block comment
           // We need to check if the end delimiter is in the indexes_end vector
-          while !indexes_end.is_empty(){
+          while !indexes_end.is_empty() && !(indexes_end.len() <= 0){
             // If the end delimiter is in the indexes_end vector, we need to handle the block comment
             // We need to check if the end delimiter is grether than the start delimiter at the first time or index[0] for both vectors
-             if indexes_end[i] > indexes[i]+delimiter_start.len(){
+             if indexes_end[i] > indexes[i]+delimiter_start.len()-1{
               // If the end delimiter is greater than the start delimiter, we need to handle the block comment
               if indexes.len() > i+1{
                 // If the end delimiter is less than the next start delimiter, and not its a nested block comment, or we are not be in a block comment
@@ -670,15 +679,19 @@ pub mod remove_comments{
                    indexes.remove(i);
                    block_comment_level -= 1;
                  }
+                 continue;
                }
                // If the indexes are equal 1 or i+1 but i is even 0, 
                // that means that we are in the last layer of the block comments or the first block comment
                // therefore, the end delimiter is the end of the block comment, and can copy the value after this
-               else if indexes.len() == 1 && indexes_end.len() >= 1{
+               else if indexes.len() == 1 && indexes_end.len() >= 1 && block_comment_level == 1{
                  new_content.push_str(&line_copy[indexes_end[i]+delimiter_end.len()..]);
                  indexes_end.remove(i);
                  indexes.remove(i);
                  block_comment_level -= 1;
+                 in_block_comment = false;
+                 is_multiline = false;
+                 processed = true;
                }
                // if not has more end delimiters this level of block comment its multi-line
                else{
@@ -691,12 +704,10 @@ pub mod remove_comments{
              
           }
         }
-        // If is just a normal line
-         if !in_block_comment{
-           new_content.push_str(&line_copy);
-           new_content.push('\n');
-        }
-        
+       }
+       if !in_block_comment && !processed{
+         new_content.push_str(&line_copy);
+         new_content.push('\n');
        }
       }
         if in_block_comment || block_comment_level > 0{
