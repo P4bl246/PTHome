@@ -564,7 +564,7 @@ pub mod remove_comments{
     /// * `content: &str` - A string containing the content from which block comments will be removed.
     /// * `delimiter_start: &str` - The starting delimiter of the block comment.
     /// * `delimiter_end: &str` - The ending delimiter of the block comment.
-    /// * **NOTE:** This is use in his API [`remove_comments::remove_block_comments`] fuction.
+    /// * **NOTE:** This is use in his API [`remove_comments::block_comments`] fuction.
     /// ### Return
     /// Returns a `Result<String, i32>`:
     /// * `Ok(String)` - If the block comments were successfully removed, returns a `String` with the content without block comments.
@@ -593,6 +593,8 @@ pub mod remove_comments{
         let mut indexes:Vec<usize> = Vec::new();
         let mut processed = false; 
         let mut indexes_end: Vec<usize> = Vec::new();
+        let mut line_indexes_end: usize = 0;
+        let mut line_indexes_start: Vec<usize> = Vec::new();
         // Iterate through each line in the content
         // This is a nested mode, so we must to handle nested comments
         for line in content.lines(){
@@ -604,7 +606,8 @@ pub mod remove_comments{
           // and store their indexes in the indexes_end vector
           if line_copy.contains(delimiter_end){
           indexes_end = general::all_appears_index(&line_copy, delimiter_end);
-          }
+          line_indexes_end = counter;
+          } else{ indexes_end.clear();}
           // If the line contains the start delimiter, find all occurrences of it
           // and store their indexes in the indexes vector
            if line_copy.contains(delimiter_start){
@@ -614,12 +617,12 @@ pub mod remove_comments{
             // If a block comment is not already open, push the content before the start delimiter to the new content
             if !in_block_comment{
               new_content.push_str(&line_copy[..start]);
-              in_block_comment = true;
             }
             let indexes_start_in_line = general::all_appears_index(&line_copy, delimiter_start);
             for i in indexes_start_in_line.iter(){
               // Store the indexes of the start delimiters in the indexes vector
               indexes.push(*i);
+              line_indexes_start.push(counter);
             }
           }
          } 
@@ -632,20 +635,29 @@ pub mod remove_comments{
           let mut indexes_to_delete:Vec<usize> = Vec::new();
           // We need to check if the indexes_end are in the indexes vector
           // If it does because we need to handle conflicts between, end delimiter and start delimter
-          // its occurs when the end delimiter and start delimiter superpose, like this '/*/', 
+          // its occurs when the end delimiter and start delimiter superpose, like this '/*/' or this '*/*', 
           //in this example the start delimiter are in the first and second character ('/*'), but the end delimiter
           // are in the second and third character ('*/'), so, for avoid this problems the code priorize the end delimiter
           // and remove the start delimiter from the vector indexes, therefore, this '/*/' are interpreting like a end delimiter
           // and the case when the end delimiter has the same index than the start delimiter can't appear.
           // The index to remove in the indexes vector is store into the vector indexes_to_delete
+          // And the line_indexes_start vector ensure this made until on indexes at the same line
           for(i, value) in indexes.iter().enumerate(){
-            if indexes_end.contains(&(value+delimiter_start.len()-1)){
-              indexes_to_delete.push(i);
+            if line_indexes_start[i] == line_indexes_end{
+            if indexes_end.contains(&(*value+delimiter_start.len()-1))|| indexes_end.contains(&(*value-(delimiter_end.len()-1))){
+              
+                indexes_to_delete.push(i);
+              }
             }
+
           }
+          //This is use for remove the indexes that are in the indexes_to_delete vector
+          // We need to have this variable because in each remove the index decrement, so we need consider this decrement
+          let mut decr_index = 0;
           // Here remove them index from the vector indexes
           for i in indexes_to_delete.iter(){
-            indexes.remove(*i);
+            indexes.remove(*i-decr_index);
+            decr_index += 1;
           }
           let i = 0;// We need to use this index for the while loop
          block_comment_level += indexes.len();// This is the number of block comments intialize in the line
@@ -653,7 +665,7 @@ pub mod remove_comments{
          if block_comment_level > 0 || in_block_comment{
           // We need to handle the end delimiter, because we need to remove the block comment
           // We need to check if the end delimiter is in the indexes_end vector
-          while !indexes_end.is_empty() && !(indexes_end.len() <= 0){
+          while !indexes_end.is_empty() && !(indexes_end.len() <= 0) && indexes.len() > 0{
             // If the end delimiter is in the indexes_end vector, we need to handle the block comment
             // We need to check if the end delimiter is grether than the start delimiter at the first time or index[0] for both vectors
              if indexes_end[i] > indexes[i]+delimiter_start.len()-1{
@@ -666,6 +678,7 @@ pub mod remove_comments{
                  new_content.push_str(&line_copy[indexes_end[i]+delimiter_end.len()..indexes[i+1]]);
                  indexes_end.remove(i);
                  indexes.remove(i);
+                 line_indexes_start.remove(i);
                   block_comment_level -= 1;
                  
                 }
@@ -677,17 +690,19 @@ pub mod remove_comments{
                   in_block_comment = true;
                   indexes_end.remove(i);
                    indexes.remove(i);
+                   line_indexes_start.remove(i);
                    block_comment_level -= 1;
                  }
-                 continue;
                }
                // If the indexes are equal 1 or i+1 but i is even 0, 
                // that means that we are in the last layer of the block comments or the first block comment
                // therefore, the end delimiter is the end of the block comment, and can copy the value after this
                else if indexes.len() == 1 && indexes_end.len() >= 1 && block_comment_level == 1{
                  new_content.push_str(&line_copy[indexes_end[i]+delimiter_end.len()..]);
+                 new_content.push('\n');
                  indexes_end.remove(i);
                  indexes.remove(i);
+                  line_indexes_start.remove(i);
                  block_comment_level -= 1;
                  in_block_comment = false;
                  is_multiline = false;
@@ -711,7 +726,7 @@ pub mod remove_comments{
        }
       }
         if in_block_comment || block_comment_level > 0{
-          println!("Error: Block comment without end delimiter in line '{}': '{}'", line_num, line_content);
+          println!("Error: Block comment without end delimiter in line '{}': '{}'\n MISSING COMMENTS TO CLOSE: {}", line_num, line_content, block_comment_level);
           return Err(2);
         }
         return Ok(new_content);
