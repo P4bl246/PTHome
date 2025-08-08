@@ -631,7 +631,7 @@ pub mod remove_comments{
          }
          // Next, we check if the line is not empty and if it contains the start delimiter
          // If it does because we need to handle the block comment
-        if !indexes.is_empty(){
+        if !indexes.is_empty() && indexes_end.len() > 0{
           let mut indexes_to_delete:Vec<usize> = Vec::new();
           // We need to check if the indexes_end are in the indexes vector
           // If it does because we need to handle conflicts between, end delimiter and start delimter
