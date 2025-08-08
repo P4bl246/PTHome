@@ -1,4 +1,5 @@
 6 djsl
+
 1/*This is a line comment*/s
 2/*this/**/*/
 F/*This is a/*other/*chars/*/**/22*/ */N
@@ -14,4 +15,5 @@ Multiline
 djksl+
 */
 */M
+J*/
 HELLO

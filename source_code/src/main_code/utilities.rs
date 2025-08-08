@@ -597,7 +597,7 @@ pub mod remove_comments{
         let mut line_indexes_start: Vec<usize> = Vec::new();
         // Iterate through each line in the content
         // This is a nested mode, so we must to handle nested comments
-        for line in content.lines(){
+    for line in content.lines(){
          counter += 1;
           let mut line_copy = line.to_string();
           // Check if the line contains the start or end delimiter
@@ -617,6 +617,13 @@ pub mod remove_comments{
             // If a block comment is not already open, push the content before the start delimiter to the new content
             if !in_block_comment{
               new_content.push_str(&line_copy[..start]);
+              let index_end = general::all_appears_index(&line_copy[..start], delimiter_end);
+              let mut i = 0;
+              // If the end delimiter is found before the start delimiter, remove the end delimiters from the indexes_end vector
+              while i < index_end.len(){
+                 indexes_end.remove(i);
+                 i += 1;
+              }
             }
             let indexes_start_in_line = general::all_appears_index(&line_copy, delimiter_start);
             for i in indexes_start_in_line.iter(){
@@ -631,7 +638,7 @@ pub mod remove_comments{
          }
          // Next, we check if the line is not empty and if it contains the start delimiter
          // If it does because we need to handle the block comment
-        if !indexes.is_empty() && indexes_end.len() > 0{
+        if indexes.len() > 0 && indexes_end.len() > 0{
           let mut indexes_to_delete:Vec<usize> = Vec::new();
           // We need to check if the indexes_end are in the indexes vector
           // If it does because we need to handle conflicts between, end delimiter and start delimter
@@ -661,21 +668,19 @@ pub mod remove_comments{
             decr_index += 1;
           }
           let i = 0;// We need to use this index for the while loop
-         block_comment_level += indexes.len();// This is the number of block comments intialize in the line
+         block_comment_level = indexes.len();// This is the number of block comments intialize in the line
          // If the block comment level is greater than 0, we need to handle the block
          if block_comment_level > 0 || in_block_comment{
           // We need to handle the end delimiter, because we need to remove the block comment
           // We need to check if the end delimiter is in the indexes_end vector
-          while !indexes_end.is_empty() && !(indexes_end.len() <= 0) && indexes.len() > 0{
-            // If the end delimiter is in the indexes_end vector, we need to handle the block comment
-            // We need to check if the end delimiter is grether than the start delimiter at the first time or index[0] for both vectors
-             if indexes_end[i] > indexes[i]+delimiter_start.len()-1{
+          while indexes_end.len() > 0 && indexes.len() > 0{
+
               // If the end delimiter is greater than the start delimiter, we need to handle the block comment
               if indexes.len() > i+1{
                 // If the end delimiter is less than the next start delimiter, and not its a nested block comment, or we are not be in a block comment
                 // We need to push the content between the end delimiter and the next start delimiter to the new content
                 // And remove this level, from the vectors and block_comment_level counter
-               if indexes_end[i] < indexes[i+1] && !in_block_comment{
+               if indexes_end[i] < indexes[i+1] && !in_block_comment && line_indexes_start[i+1] == line_indexes_end{
                  new_content.push_str(&line_copy[indexes_end[i]+delimiter_end.len()..indexes[i+1]]);
                  indexes_end.remove(i);
                  indexes.remove(i);
@@ -716,16 +721,14 @@ pub mod remove_comments{
                  break;
                }
 
-             }
-             
+            }
           }
         }
-       }
-       if !in_block_comment && !processed{
+        if !in_block_comment && !processed{
          new_content.push_str(&line_copy);
          new_content.push('\n');
        }
-      }
+     }
         if in_block_comment || block_comment_level > 0{
           println!("Error: Block comment without end delimiter in line '{}': '{}'\n MISSING COMMENTS TO CLOSE: {}", line_num, line_content, block_comment_level);
           return Err(2);
