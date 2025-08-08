@@ -657,6 +657,7 @@ pub mod remove_comments{
           // Here remove them index from the vector indexes
           for i in indexes_to_delete.iter(){
             indexes.remove(*i-decr_index);
+            line_indexes_start.remove(*i-decr_index);
             decr_index += 1;
           }
           let i = 0;// We need to use this index for the while loop
