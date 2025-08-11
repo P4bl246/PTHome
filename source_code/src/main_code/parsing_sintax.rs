@@ -1,8 +1,8 @@
-/// This module provide functions to normalize files
-/// It usees [`crate::main_code::utilities::{general, remove_comments}`] for the actual implementations. 
-/// Contains the API for the user.
+// This module provide functions to normalize files
+// It usees [`crate::main_code::utilities::{general, remove_comments}`] for the actual implementations. 
+// Contains the API for the user.
 
-pub mod normalize_file{
+/*pub mod normalize_file{
     use crate::main_code::utilities::{general, remove_comments};
     pub fn normalize_file(path: &str) -> Result<(), String> {
         general::remove_empty_lines(path);
@@ -18,4 +18,4 @@ pub mod normalize_file{
         }
         
     }
-} 
+} */

@@ -1,4 +1,8 @@
 6 djsl
+HELLO'thisis' "hielo"
+Hello //hiejos lakjdfk
+hiejos
+dklsjd 'thisis2' "asd//this is all"//shidms"this tohenr"
 
 1/*This is a line comment*/s
 2/*this/**/*/
