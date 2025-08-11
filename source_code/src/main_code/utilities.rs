@@ -522,6 +522,19 @@ pub mod remove_comments{
         return Some(true);
     }
 //------------------------------------------------------------------
+    /// # `content_between`
+    /// Procces the line with comment delimiters, management the secuence
+    /// # Arguments
+    /// * `delimiters_array_char: &Vec<char>` - Array of chars to indicate pairs that indicate a start and end delimiter of a conent must be are ignored
+    /// * `delimiters_array_str: &Vec<&str>` - Array of Strings to indicate pairs that indicate a start and end delimiter of a conent must be are ignored
+    /// * `delimiter:&str` - comment delimiter
+    /// * `line: &str` - line to procces
+    /// # Return
+    /// A tuple with 3 elements 
+    /// * Elements:
+    /// - `0:String`. Is a void string if the start delimiter ignore are correctly closely in the same line, else is the start delimiter ignore not closed
+    /// - `1:bool`. Is `true` if the some ignore pair are be open but not closely, else its `false`
+    /// - `2:String`. Is the string result to the procces
     fn content_between(delimiters_array_char: &Vec<char>, delimiters_array_str: &Vec<&str>, delimiter: &str, line: &str) -> (String, bool, String){
        let mut with_delimiter = false;
        let mut i:usize = 0;
@@ -559,11 +572,31 @@ pub mod remove_comments{
              }
             }
           }
-          //if the line contains some comment delimiter return de content before this
+          //if the line not contains some comment delimiter return the line
           return("".to_string(), false, line.to_string());
       
     }
 //---------------------------------------------------------
+    /// # `procces`
+    /// Procces a string for identify the content to ignore and identify the comments in this string
+    /// # Arguments
+    /// * `i:usize` - For store temporary values
+    /// * `j:usize` - For store temporary values
+    /// * `in_ignore:bool` - Flag to indicate if are be in ignore content
+    /// * `with_delimiter:bool` - Flag to inicate if the line contains a delimiter
+    /// * `delimiters_array:&Vec<String>` - Array that contains the delimiters to indicate when the content are must be ignored
+    /// * `line:&str` - Line to procces
+    /// * `pos:usize` - Position of the comment delimiter in the line
+    /// * `delimiter:&str` - Comment delimiter 
+    /// # Return 
+    /// A tuple with 3 elements 
+    /// * Elements:
+    /// - `0:String`. Is a void string if the start delimiter ignore are correctly closely in the same line, else is the start delimiter ignore not closed
+    /// - `1:bool`. Is `true` if the some ignore pair are be open but not closely, else its `false`
+    /// - `2:String`. Is the string result to the procces
+    /// # Note 
+    /// This is use in the function [`content_between`] 
+  
     fn procces(mut i:usize, mut j:usize, mut in_ignore:bool, mut with_delimiter:bool, delimiters_array:&Vec<String>, line:&str, pos:usize, delimiter:&str)->(String, bool, String){
       // iterate in each pair of the array for search this in the content before the delimiter
             use crate::main_code::utilities::general;
