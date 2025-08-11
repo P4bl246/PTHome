@@ -1,8 +1,11 @@
 6 djsl
 HELLO'thisis' "hielo"
-Hello //hiejos lakjdfk
+//Hello
 hiejos
-dklsjd 'thisis2' "asd//this is all"//shidms"this tohenr"
+Hello//this is 'tinot' "other"
+'Hello' "//into //done" //Other 
+Hellot 'hi//' 'hi' hi' some "his" "//"
+
 
 1/*This is a line comment*/s
 2/*this/**/*/

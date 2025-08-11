@@ -490,6 +490,7 @@ pub mod remove_comments{
             }
           }
           if copy.contains(delimiter) && !in_ignore{
+            if !ignore_content_between.0.is_empty() || !ignore_content_between.1.is_empty(){
             let result = content_between(ignore_content_between.0, ignore_content_between.1, delimiter, &copy);
             delimiter_ignore = result.0;
             in_ignore = result.1;
@@ -499,6 +500,12 @@ pub mod remove_comments{
               num_line = counter;
               line_start = copy;
             }
+          }else{
+            if let Some(del_pos) = copy.find(delimiter){
+               new_content.push_str(&copy[..del_pos]);
+               new_content.push('\n');
+            }
+          }
           }
           else{
             new_content.push_str(&line);
@@ -509,9 +516,9 @@ pub mod remove_comments{
          
          
         }
-        // if some ignore are open after procces all the file, print an error
+        // if some ignore are open after process all the file, print an error
         if in_ignore && manage_close{
-           println!("Error in the line: '{}': '{}'. missing close delimiter for the start delimiter ignore : {}", num_line, line_start, delimiter_ignore);
+           println!("Error in the line: '{}': '{}'. missing close delimiter: {}", num_line, line_start, delimiter_ignore);
            return None;
         }
        
@@ -523,18 +530,18 @@ pub mod remove_comments{
     }
 //------------------------------------------------------------------
     /// # `content_between`
-    /// Procces the line with comment delimiters, management the secuence
+    /// process the line with comment delimiters, management the secuence
     /// # Arguments
     /// * `delimiters_array_char: &Vec<char>` - Array of chars to indicate pairs that indicate a start and end delimiter of a conent must be are ignored
     /// * `delimiters_array_str: &Vec<&str>` - Array of Strings to indicate pairs that indicate a start and end delimiter of a conent must be are ignored
     /// * `delimiter:&str` - comment delimiter
-    /// * `line: &str` - line to procces
+    /// * `line: &str` - line to process
     /// # Return
     /// A tuple with 3 elements 
     /// * Elements:
     /// - `0:String`. Is a void string if the start delimiter ignore are correctly closely in the same line, else is the start delimiter ignore not closed
     /// - `1:bool`. Is `true` if the some ignore pair are be open but not closely, else its `false`
-    /// - `2:String`. Is the string result to the procces
+    /// - `2:String`. Is the string result to the process
     /// # Note 
     /// This is use in the function [`simple_comments`] 
     fn content_between(delimiters_array_char: &Vec<char>, delimiters_array_str: &Vec<&str>, delimiter: &str, line: &str) -> (String, bool, String){
@@ -543,78 +550,128 @@ pub mod remove_comments{
        let mut new_line2 = String::new();
        let mut copy = line.to_string();
        let mut in_ignore = false;
+       let mut result:(String, bool, String);
        // If the line contains a comment delimiter start to check this
        if copy.contains(delimiter){
             let pos = copy.find(delimiter).unwrap(); //position of the comment delimiter
              new_line2 = copy[..pos].to_string(); //content before the comment delimiter
             with_delimiter = true;
             let mut delimiters_array:Vec<String> = Vec::new();
+          if !delimiters_array_char.is_empty() && !delimiters_array_str.is_empty(){
             for element in delimiters_array_char{
               delimiters_array.push(element.to_string());
             }
-            // Get the num of pairs in the array.
+            // process the char array.
             i = delimiters_array.len()/2;
             let mut j:usize = 0;
-            let result1 = procces(i, j, in_ignore, with_delimiter, &delimiters_array, line, pos, delimiter);
+            let result1 = process(i, j, in_ignore, with_delimiter, &delimiters_array, line, pos, delimiter);
             if !result1.1{
-              //Same procces for the &str vector
+              //Same process for the &str vector
             i = delimiters_array_str.len()/2;
             j = 0;
             for element in delimiters_array_str{
               delimiters_array.push(element.to_string());
             }
-             let result2 = procces(i, j, in_ignore, with_delimiter, &delimiters_array, line, pos, delimiter);
+             let result2 = process(i, j, in_ignore, with_delimiter, &delimiters_array, line, pos, delimiter);
              if !result2.1{
                   //if the line contains some comment delimiter return de content before this
                   new_line2 = result2.2;
-                 return("".to_string(), false, new_line2.to_string());
+                  result = ("".to_string(), false, new_line2.to_string());
+                 return result;
              }
              else{
-              return(result2.0, result2.1, result2.2);
+              result = (result2.0, result2.1, result2.2);
+              return result;
              }
             }
+            else{
+              result = (result1.0, result1.1, result1.2);
+              return result;
+            }
+           }
+           else if !delimiters_array_char.is_empty(){
+            for element in delimiters_array_char{
+              delimiters_array.push(element.to_string());
+            }
+            // process the char array.
+            i = delimiters_array.len()/2;
+            let mut j:usize = 0;
+            let result1 = process(i, j, in_ignore, with_delimiter, &delimiters_array, line, pos, delimiter);
+            if !result1.1{
+                  //if the line contains some comment delimiter return de content before this
+                  new_line2 = result1.2;
+                  result = ("".to_string(), false, new_line2.to_string());
+                 return result;
+             }
+            else{
+              result = (result1.0, result1.1, result1.2);
+            return result;
+             }
+           }
+           else if !delimiters_array_str.is_empty(){
+            i = delimiters_array_str.len()/2;
+            let mut j:usize = 0;
+            for element in delimiters_array_str{
+              delimiters_array.push(element.to_string());
+            }
+             let result2 = process(i, j, in_ignore, with_delimiter, &delimiters_array, line, pos, delimiter);
+             if !result2.1{
+                  //if the line contains some comment delimiter return de content before this
+                  new_line2 = result2.2;
+                  result = ("".to_string(), false, new_line2.to_string());
+                 return result;
+             }
+             else{
+              result = (result2.0, result2.1, result2.2);
+              return result;
+             }
+           }
           }
           //if the line not contains some comment delimiter return the line
-          return("".to_string(), false, line.to_string());
+          result = ("".to_string(), false, line.to_string());
+          return result;
       
     }
 //---------------------------------------------------------
-    /// # `procces`
-    /// Procces a string for identify the content to ignore and identify the comments in this string
+    /// # `process`
+    /// process a string for identify the content to ignore and identify the comments in this string
     /// # Arguments
     /// * `i:usize` - For store temporary values
     /// * `j:usize` - For store temporary values
     /// * `in_ignore:bool` - Flag to indicate if are be in ignore content
     /// * `with_delimiter:bool` - Flag to inicate if the line contains a delimiter
     /// * `delimiters_array:&Vec<String>` - Array that contains the delimiters to indicate when the content are must be ignored
-    /// * `line:&str` - Line to procces
+    /// * `line:&str` - Line to process
     /// * `pos:usize` - Position of the comment delimiter in the line
     /// * `delimiter:&str` - Comment delimiter 
     /// # Return 
     /// A tuple with 3 elements 
     /// * Elements:
-    /// - `0:String`. Is a void string if the start delimiter ignore are correctly closely in the same line, else is the start delimiter ignore not closed
+    /// - `0:String`. Is a void string if the start delimiter ignore are correctly closely in the same line, else is the end delimiter expected for the close
     /// - `1:bool`. Is `true` if the some ignore pair are be open but not closely, else its `false`
-    /// - `2:String`. Is the string result to the procces
+    /// - `2:String`. Is the string result to the process
     /// # Note 
     /// This is use in the function [`content_between`] 
   
-    fn procces(mut i:usize, mut j:usize, mut in_ignore:bool, mut with_delimiter:bool, delimiters_array:&Vec<String>, line:&str, pos:usize, delimiter:&str)->(String, bool, String){
+    fn process(mut i:usize, mut j:usize, mut in_ignore:bool, mut with_delimiter:bool, delimiters_array:&Vec<String>, line:&str, pos:usize, delimiter:&str)->(String, bool, String){
       // iterate in each pair of the array for search this in the content before the delimiter
             use crate::main_code::utilities::general;
 
       let mut copy = line.to_string();
+      let mut copy2 = String::new();
       let mut each_two:Vec<String> = Vec::new();
       let mut in_comment = false;
       let mut comment_removed:usize = 0;
       let mut new_line2 = String::new();
       let mut new_line = String::new();
+      let mut result:(String, bool, String);
             // while we isn't in a content between ignore delimiters, and the content still contains some comment delimiter, and the array is not empty.
             while i > 0 && !in_ignore && with_delimiter && !delimiters_array.is_empty() && j <= delimiters_array.len()-1{
+              copy2 = copy.to_string();
             let each_two_str = general::sub_vec(delimiters_array, 2, j);
             //paste sub char array to String
             for n in each_two_str{
-              each_two.push(n.to_string());
+              each_two.push(n);
             }
               // Check if the line contains any ignore characters or strings
                 if let Some(start_ignore_pos) = new_line.find(&each_two[0]){
@@ -623,10 +680,12 @@ pub mod remove_comments{
                   if start_ignore_pos < pos{
                     in_ignore = true; 
                     // remove that character from the line, for avoid process them again, and avoid others problems
-                    new_line.to_string().replace_range(start_ignore_pos..start_ignore_pos, "");
+                    new_line.replace_range(start_ignore_pos..start_ignore_pos+each_two[0].len()-1, "");
+                    copy2.replace_range(start_ignore_pos..start_ignore_pos+each_two[0].len()-1, "");
+                    comment_removed += each_two[0].len();
                     // Check if we find an ignore character, we need to check if there is an end ignore character in the same line
                     // Chekc if we find an end ignore character, we must to reset j and i and in_ignore flag
-                    if let Some(end_ignore_pos) = line.find(&each_two[1]){
+                    if let Some(end_ignore_pos) = copy2.find(&each_two[1]){
                       // Check if the content to ignore ends before the comment delimiter like this "asdf'dkjs'//"
                       // if thats occurs the delimiter is considerate a comment delimiter
                       if end_ignore_pos < pos{
@@ -634,45 +693,54 @@ pub mod remove_comments{
                         in_comment = true; 
                         // mark the line contains a comment delimiter, for check this with the remaining of the pairs
                         with_delimiter = true; 
-                       //reset j, i and remove the character ends delimiter for avoid procces that again
+                       //reset j, i and remove the character ends delimiter for avoid process that again
                        j = 0;
                        i = delimiters_array.len()/2;
-                       new_line.to_string().replace_range(end_ignore_pos..end_ignore_pos, "");
-                       new_line2 = line[..pos+comment_removed].to_string();
+                       new_line.replace_range(end_ignore_pos..end_ignore_pos+each_two[1].len()-1, "");
+                       //remove the content to between delimiters to ignore and his delimiters for avoid process this again
+                       comment_removed += copy[start_ignore_pos..end_ignore_pos+each_two[1].len()].len();
+                       copy.replace_range(start_ignore_pos..end_ignore_pos+each_two[1].len()+each_two[0].len(), "");
+                       new_line2 = line[..copy.len()+comment_removed].to_string();
                        }
                        // else if the end ignore end delimiter is greather than the comment delimiter
                       else{
                        in_ignore = false;
-                       // mark false the comment flag because that are into the content to ignore, so that never are be proccesed
+                       // mark false the comment flag because that are into the content to ignore, so that never are be processed
                        in_comment = false;
                        //reset j and i, and remove the end delimiter
                        j = 0;
                        i = delimiters_array.len()/2;
-                       new_line.to_string().replace_range(end_ignore_pos..end_ignore_pos, "");
-                       //remove the delimiter proccesed, for avoid procces this again
-                       copy.replace_range(pos..delimiter.len(), "");
-                       comment_removed+=delimiter.len();
-                       // search a new comment delimiter appear for proccess
+                       new_line.replace_range(end_ignore_pos..end_ignore_pos+each_two[1].len()-1, "");
+                       //remove the delimiter processed, for avoid process this again
+                       comment_removed+=copy[start_ignore_pos..end_ignore_pos+each_two[1].len()].len();
+                       copy.replace_range(start_ignore_pos..end_ignore_pos+each_two[1].len()+each_two[0].len(), "");
+                       
+                       // search a new comment delimiter appear for processs
                        if let Some(pos) = copy.find(delimiter){
                         new_line = copy[..pos].to_string();
                         with_delimiter = true;
                         continue;
                        }
                        else{
-                        return (each_two[1].to_string(), true, line.to_string())
-                      }
+                        result = (each_two[1].to_string(), true, line.to_string());
+                        return result;
+                         }
                        }
-                    }
+                     }
                     //else if not found the end ignore delimiter in the line,
                     // return the end delimiter from the ignore vector delimiters, mark we still in ignore content and the completely line
-                    else {return (each_two[1].to_string(), true, line.to_string())}
+                    else {
+                      result = (each_two[1].to_string(), true, line.to_string());
+                      return result;
+                    }
                   }
                 }
                 //if the start delimiter from this pair of ignore delimiters are not found go to the next pair, if the main vector chars contains more pairs
                 i -= 1;
                 j += 2;
               }
-           return("".to_string(), false, new_line2.to_string());
+              result = ("".to_string(), false, new_line2.to_string());
+           return result;
     }
 //------------------------------------------------------------------
     /// # `ModeBlock`
