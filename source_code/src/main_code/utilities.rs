@@ -535,6 +535,8 @@ pub mod remove_comments{
     /// - `0:String`. Is a void string if the start delimiter ignore are correctly closely in the same line, else is the start delimiter ignore not closed
     /// - `1:bool`. Is `true` if the some ignore pair are be open but not closely, else its `false`
     /// - `2:String`. Is the string result to the procces
+    /// # Note 
+    /// This is use in the function [`simple_comments`] 
     fn content_between(delimiters_array_char: &Vec<char>, delimiters_array_str: &Vec<&str>, delimiter: &str, line: &str) -> (String, bool, String){
        let mut with_delimiter = false;
        let mut i:usize = 0;
