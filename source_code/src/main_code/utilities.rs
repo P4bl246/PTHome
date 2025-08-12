@@ -378,7 +378,7 @@ pub mod general{
 /// This module provides functions to remove comments from files.   
 pub mod remove_comments{
   #![allow(unused)]
-    use std::fs;
+    use std::fs::{self, remove_dir_all};
     use std::io::Write;
 
     /// # `simple_comments`
@@ -475,7 +475,8 @@ pub mod remove_comments{
         let file_content = fs::read_to_string(input_file).expect(&format!("Failed to read the file '{}'", input_file));
         let mut removed = 0;
         let mut contains = false;
-        for line in file_content.lines() {        
+        for line in file_content.lines() {    
+          contains = false;    
           counter += 1;
           removed = 0;
           let mut copy = line.to_string();
@@ -639,7 +640,183 @@ pub mod remove_comments{
     /// This is use in the function [`content_between`] 
   
     fn process(mut in_ignore:bool, delimiters_array:&Vec<String>, line:&str, mut pos:usize, delimiter:&str)->(String, bool, String){
-      // iterate in each pair of the array for search this in the content before the delimiter
+      use crate::main_code::utilities::general;
+      let mut copy = line.to_string();
+      let mut j = 0;
+      let mut start_ignore_index:Vec<usize> = Vec::new();
+      let mut end_ignore_index:Vec<usize> = Vec::new();
+      let mut content_out_of_comment = line[..pos].to_string();
+      let mut with_comment = true;
+      let mut some_start_ignore: Vec<String> = Vec::new();
+      let mut removed = 0;
+      let mut with_ignore = false;
+      let mut without_end: Vec<usize> = Vec::new();
+      let mut expected: Vec<String> = Vec::new();
+      
+      if !in_ignore{
+        while j<= delimiters_array.len()-1{
+          let mut sub_vec = general::sub_vec(delimiters_array, 2, j);
+        some_start_ignore.push(sub_vec[0].to_string());
+        sub_vec.clear();
+        j+=2;
+        }
+         j= 0;
+         {
+          let mut copy2 = copy.to_string();
+         while true{
+           for 
+          }
+         }
+         let mut index = 0;
+         while j != 0 && with_comment {
+          if (index<=ignore_order.len()-1){j= ignore_order[index];}
+          else{j == 0; continue;}
+          let sub_vec = general::sub_vec(delimiters_array, 2, j);
+          if copy.contains(&sub_vec[0]) && with_comment{
+            let mut for_remove_delimiters = copy.to_string();
+            if let Some(start) = copy.find(&sub_vec[0]){
+             for_remove_delimiters = for_remove_delimiters.replacen(&sub_vec[0], "", 1);
+             
+             if let Some(end) = for_remove_delimiters.find(&sub_vec[1]){
+              start_ignore_index.push(start+removed);
+              end_ignore_index.push(end+removed);
+              removed += copy[start..end+sub_vec[1].len()+sub_vec[0].len()].len();
+              copy.replace_range(start..end+sub_vec[0].len()+sub_vec[1].len(), "");
+             }
+             else{
+              
+              without_end.push(start+removed);
+              expected.push(sub_vec[1].clone());
+              copy = copy.replacen(&sub_vec[0],"",1); //remove for avoid process again
+              removed += sub_vec[0].len();
+             }
+            } 
+          }
+          index+=1;
+         }
+        }
+        let mut comment_appears:Vec<usize> = Vec::new();     
+        {   
+        let mut i = 0;
+        let mut comment_appears_first = general::all_appears_index(&copy, delimiter);
+        let mut copy_start = start_ignore_index.to_vec();
+        let mut copy_end = end_ignore_index.to_vec();
+        let mut index_remove_comment: Vec<usize> = Vec::new();
+        //remove comments into ignore content
+        while !comment_appears_first.is_empty() && i<comment_appears_first.len()-1{
+          let mut index_removed = 0;
+          //if the comment are be into an ignore content
+           for (l, n) in comment_appears_first.iter().enumerate(){
+            if n+removed  > copy_start[0] && n+removed  < copy_end[0]{
+              index_remove_comment.push(l);
+            }
+            else{
+              comment_appears.push(*n);
+              }
+            }
+            i += 1;
+           if !index_remove_comment.is_empty(){
+            for n in &index_remove_comment{
+              comment_appears_first.remove((*n)-index_removed);
+              index_removed += 1;
+            }
+           }
+            
+            copy_start.remove(0);
+            copy_end.remove(0);
+         }
+        }
+        // If the line contains all his comments delimiters into ignore content
+       if comment_appears.is_empty(){
+        let mut copy2= copy.to_string();
+           let mut contains = false;
+            for n in &some_start_ignore{
+                  if copy2.contains(n){
+                  contains = true;
+                  break;
+               }
+            }
+            //process the rest of the ignore delimiters pairs for identify if some are not closely
+            let mut sub_vec2:Vec<String> = Vec::new();
+
+            if contains{
+              let mut sub_vec_start = 0;
+              //search all remaining ignore delimiter pairs
+              while sub_vec_start <= delimiters_array.len()-1 && !in_ignore{
+                  copy2 = copy.to_string();
+                  sub_vec2 = general::sub_vec(&delimiters_array, 2, sub_vec_start);
+                  //search the start ignore delimiter and remove themm
+                  if let Some(ignore_start) = copy.find(&sub_vec2[0]){
+                      in_ignore=true;
+                      copy2 = copy2.replacen(&sub_vec2[0], "", 1);
+                      //search the end ignore delimiter and remove the content and the delimiters for the line copy
+                      if let Some(ignore_end) = copy2.find(&sub_vec2[1]){
+                      sub_vec_start = 0;
+                      in_ignore = false;
+                      copy.replace_range(ignore_start..ignore_end+sub_vec2[1].len()+sub_vec2[0].len(), "");
+                      }
+                    }
+                    else{
+                      sub_vec_start += 2;
+                    }
+                  }
+                let result = (sub_vec2[1].to_string(), in_ignore, line.to_string());
+                return result;
+              }
+              else{
+                let result = ("".to_string(), in_ignore, line.to_string());
+                return result;
+              }
+          }
+        else{
+          // Check if the first start comment are into ignore content
+          for (i, n) in without_end.iter().enumerate(){
+            if *n < comment_appears[0]+removed{
+              let result = (expected[i].to_string(), true, line.to_string()); 
+              return result;
+            }
+          }
+          // Check if start delimiter ignore are into a comment or after of them
+          while !comment_appears.is_empty(){
+            let mut index_rmv = 0;
+            let mut remove:Vec<usize> = Vec::new();
+            for (s, r) in start_ignore_index.iter().enumerate(){
+             if comment_appears[0]+removed < *r{
+              remove.push(s);
+             }
+            }
+            comment_appears.remove(0);
+            for n in remove{
+              index_rmv+=1;
+              start_ignore_index.remove(n-index_rmv);
+              end_ignore_index.remove(n-index_rmv);
+            }
+          }
+        }
+
+        //remove the indexes after comment delimiter
+        let mut remove_indexes:Vec<usize> = Vec::new();
+        for (i, value) in start_ignore_index.iter().enumerate(){
+           if *value > pos+removed{
+             remove_indexes.push(i);
+           }
+        }
+        let mut indexes_removed = 0;
+        let mut indexes_end_removed = 0;
+        for value in remove_indexes{
+          start_ignore_index.remove(value-indexes_removed);
+          if value <= end_ignore_index.len()-1{end_ignore_index.remove(value-indexes_end_removed); indexes_end_removed += 1}
+          indexes_removed += 1;
+        }
+ 
+            //upload the index of the pos
+            if !comment_appears.is_empty(){content_out_of_comment = line[..comment_appears[0]+removed].to_string();}
+
+        let result = ("".to_string(), false, content_out_of_comment.to_string());
+        return result;
+        
+   }
+      /*// iterate in each pair of the array for search this in the content before the delimiter
             use crate::main_code::utilities::general;
       let mut j = 0;
       let mut i = delimiters_array.len()/2; 
@@ -781,7 +958,7 @@ pub mod remove_comments{
               }
               result = ("".to_string(), false, new_line2.to_string());
            return result;
-    }
+    }*/
 //------------------------------------------------------------------
     /// # `ModeBlock`
     /// An enum to specify the mode of block comment removal.
