@@ -410,7 +410,7 @@ pub mod remove_comments{
     /// # Note
     /// The function will remove everything after the first occurrence of the delimiter in each line.
     
-    pub fn simple_comments(input_file: &str, delimiter: &str, ignore_content_between: (&Vec<char>, &Vec<&str>), manage_close: bool)-> Option<bool>{
+     pub fn simple_comments(input_file: &str, delimiter: &str, ignore_content_between: (&Vec<char>, &Vec<&str>), manage_close: bool)-> Option<bool>{
         println!("REMOVING SIMPLE COMMENTS FROM FILE: {}", input_file);
         if delimiter.is_empty(){
             panic!("Error: The delimiter cannot be an empty string.");
@@ -470,23 +470,16 @@ pub mod remove_comments{
 
       {
         let file_content = fs::read_to_string(input_file).expect(&format!("Failed to read the file '{}'", input_file));
-        let mut with_delimiter = false;
         let mut removed = 0;
-        let mut i = 0;
-        let mut each_two: Vec<String> = Vec::new();
         for line in file_content.lines() {        
           counter += 1;
           removed = 0;
           let mut copy = line.to_string();
           if in_ignore{
-            if let Some(end) = copy.find(&each_two[1]){
+            if let Some(end) = copy.find(&delimiter_ignore){
               in_ignore = false;
-              copy.replace_range(end..end, "");
-              removed += each_two[1].len();
-            }else{
-              new_content.push_str(&line);
-              new_content.push('\n');
-              continue;
+              copy = copy.replacen(&delimiter_ignore, "",1);
+              removed += delimiter_ignore.len();
             }
           }
           if copy.contains(delimiter) && !in_ignore{
@@ -510,11 +503,8 @@ pub mod remove_comments{
           else{
             new_content.push_str(&line);
             new_content.push('\n');
-          }
-            
-         }
-         
-         
+           }
+          }  
         }
         // if some ignore are open after process all the file, print an error
         if in_ignore && manage_close{
@@ -545,16 +535,12 @@ pub mod remove_comments{
     /// # Note 
     /// This is use in the function [`simple_comments`] 
     fn content_between(delimiters_array_char: &Vec<char>, delimiters_array_str: &Vec<&str>, delimiter: &str, line: &str) -> (String, bool, String){
-       let mut with_delimiter = false;
-       let mut i:usize = 0;
        let mut new_line2 = String::new();
-       let mut copy = line.to_string();
        let mut in_ignore = false;
        let mut result:(String, bool, String);
        // If the line contains a comment delimiter start to check this
-            let pos = copy.find(delimiter).unwrap(); //position of the comment delimiter
-             new_line2 = copy[..pos].to_string(); //content before the comment delimiter
-            with_delimiter = true;
+            let pos = line.find(delimiter).unwrap(); //position of the comment delimiter
+             new_line2 = line[..pos].to_string(); //content before the comment delimiter
             let mut delimiters_array:Vec<String> = Vec::new();
             if !delimiters_array_char.is_empty(){
             for element in delimiters_array_char{
@@ -567,9 +553,7 @@ pub mod remove_comments{
              }
             }
             // process the char array.
-            i = delimiters_array.len()/2;
-            let mut j:usize = 0;
-            let result1 = process(i, j, in_ignore, with_delimiter, &delimiters_array, line, pos, delimiter);
+            let result1 = process(in_ignore, &delimiters_array, line, pos, delimiter);
             if !result1.1{
                 new_line2 = result1.2;
                   result = ("".to_string(), false, new_line2.to_string());
@@ -588,10 +572,7 @@ pub mod remove_comments{
     /// # `process`
     /// process a string for identify the content to ignore and identify the comments in this string
     /// # Arguments
-    /// * `i:usize` - For store temporary values
-    /// * `j:usize` - For store temporary values
     /// * `in_ignore:bool` - Flag to indicate if are be in ignore content
-    /// * `with_delimiter:bool` - Flag to inicate if the line contains a delimiter
     /// * `delimiters_array:&Vec<String>` - Array that contains the delimiters to indicate when the content are must be ignored
     /// * `line:&str` - Line to process
     /// * `pos:usize` - Position of the comment delimiter in the line
@@ -605,10 +586,12 @@ pub mod remove_comments{
     /// # Note 
     /// This is use in the function [`content_between`] 
   
-    fn process(mut i:usize, mut j:usize, mut in_ignore:bool, mut with_delimiter:bool, delimiters_array:&Vec<String>, line:&str, mut pos:usize, delimiter:&str)->(String, bool, String){
+    fn process(mut in_ignore:bool, delimiters_array:&Vec<String>, line:&str, mut pos:usize, delimiter:&str)->(String, bool, String){
       // iterate in each pair of the array for search this in the content before the delimiter
             use crate::main_code::utilities::general;
-
+      let mut j = 0;
+      let mut i = delimiters_array.len()/2; 
+      let mut with_delimiter = true;
       let mut copy = line.to_string();
       let mut copy2 = String::new();
       let mut each_two:Vec<String> = Vec::new();
@@ -617,6 +600,14 @@ pub mod remove_comments{
       let mut new_line2 = line[..pos].to_string();
       let mut new_line = String::new();
       let mut result:(String, bool, String);
+      let mut some_start_ignore:Vec<String> = Vec::new();
+      while j <= delimiters_array.len()-1{
+        let mut sub_vec = general::sub_vec(delimiters_array, 2, j);
+        some_start_ignore.push(sub_vec[0].to_string());
+        sub_vec.clear();
+        j+=2;
+      }
+      j = 0;
             // while we isn't in a content between ignore delimiters, and the content still contains some comment delimiter, and the array is not empty.
             while i > 0 && !in_ignore && with_delimiter && !delimiters_array.is_empty() && j <= delimiters_array.len()-1{
               copy2 = copy.to_string();
@@ -677,9 +668,46 @@ pub mod remove_comments{
                         new_line = copy[..pos].to_string();
                         with_delimiter = true;
                        }
+                       // If not found more comment delimiters
                        else{
-                        result = (each_two[1].to_string(), in_ignore, line.to_string());
-                        return result;
+                        copy2 = copy.to_string();
+                        let mut contains = false;
+                        for n in some_start_ignore{
+                          if copy2.contains(&n){
+                            contains = true;
+                            break;
+                          }
+                        }
+                        //process the rest of the ignore delimiters pairs for identify if some are not closely
+                        let mut sub_vec2:Vec<String> = Vec::new();
+
+                        if contains{
+                           let mut sub_vec_start = 0;
+                           //search all remaining ignore delimiter pairs
+                           while sub_vec_start <= delimiters_array.len()-1 && !in_ignore{
+                            copy2 = copy.to_string();
+                            sub_vec2 = general::sub_vec(&delimiters_array, 2, sub_vec_start);
+                            //search the start ignore delimiter and remove themm
+                            if let Some(ignore_start) = copy.find(&sub_vec2[0]){
+                                in_ignore=true;
+                                copy2 = copy2.replacen(&sub_vec2[0], "", 1);
+                                //search the end ignore delimiter and remove the content and the delimiters for the line copy
+                                if let Some(ignore_end) = copy2.find(&sub_vec2[1]){
+                                  sub_vec_start = 0;
+                                  in_ignore = false;
+                                  copy.replace_range(ignore_start..ignore_end+sub_vec2[1].len()+sub_vec2[0].len(), "");
+                                    }
+                                 }else{
+                                   sub_vec_start += 2;
+                                 }
+                              }
+                              result = (sub_vec2[1].to_string(), in_ignore, line.to_string());
+                            return result;
+                             }
+                             else{
+                              result = (each_two[1].to_string(), in_ignore, line.to_string());
+                              return result;
+                            }
                          }
                        }
                      }
