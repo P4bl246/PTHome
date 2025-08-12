@@ -552,54 +552,26 @@ pub mod remove_comments{
        let mut in_ignore = false;
        let mut result:(String, bool, String);
        // If the line contains a comment delimiter start to check this
-       if copy.contains(delimiter){
             let pos = copy.find(delimiter).unwrap(); //position of the comment delimiter
              new_line2 = copy[..pos].to_string(); //content before the comment delimiter
             with_delimiter = true;
             let mut delimiters_array:Vec<String> = Vec::new();
-          if !delimiters_array_char.is_empty() && !delimiters_array_str.is_empty(){
+            if !delimiters_array_char.is_empty(){
             for element in delimiters_array_char{
               delimiters_array.push(element.to_string());
+             }
+            }
+            if !delimiters_array_str.is_empty(){
+              for element in delimiters_array_str{
+              delimiters_array.push(element.to_string());
+             }
             }
             // process the char array.
             i = delimiters_array.len()/2;
             let mut j:usize = 0;
             let result1 = process(i, j, in_ignore, with_delimiter, &delimiters_array, line, pos, delimiter);
             if !result1.1{
-              //Same process for the &str vector
-            i = delimiters_array_str.len()/2;
-            j = 0;
-            for element in delimiters_array_str{
-              delimiters_array.push(element.to_string());
-            }
-             let result2 = process(i, j, in_ignore, with_delimiter, &delimiters_array, line, pos, delimiter);
-             if !result2.1{
-                  //if the line contains some comment delimiter return de content before this
-                  new_line2 = result2.2;
-                  result = ("".to_string(), false, new_line2.to_string());
-                 return result;
-             }
-             else{
-              result = (result2.0, result2.1, result2.2);
-              return result;
-             }
-            }
-            else{
-              result = (result1.0, result1.1, result1.2);
-              return result;
-            }
-           }
-           else if !delimiters_array_char.is_empty(){
-            for element in delimiters_array_char{
-              delimiters_array.push(element.to_string());
-            }
-            // process the char array.
-            i = delimiters_array.len()/2;
-            let mut j:usize = 0;
-            let result1 = process(i, j, in_ignore, with_delimiter, &delimiters_array, line, pos, delimiter);
-            if !result1.1{
-                  //if the line contains some comment delimiter return de content before this
-                  new_line2 = result1.2;
+                new_line2 = result1.2;
                   result = ("".to_string(), false, new_line2.to_string());
                  return result;
              }
@@ -607,26 +579,6 @@ pub mod remove_comments{
               result = (result1.0, result1.1, result1.2);
             return result;
              }
-           }
-           else if !delimiters_array_str.is_empty(){
-            i = delimiters_array_str.len()/2;
-            let mut j:usize = 0;
-            for element in delimiters_array_str{
-              delimiters_array.push(element.to_string());
-            }
-             let result2 = process(i, j, in_ignore, with_delimiter, &delimiters_array, line, pos, delimiter);
-             if !result2.1{
-                  //if the line contains some comment delimiter return de content before this
-                  new_line2 = result2.2;
-                  result = ("".to_string(), false, new_line2.to_string());
-                 return result;
-             }
-             else{
-              result = (result2.0, result2.1, result2.2);
-              return result;
-             }
-           }
-          }
           //if the line not contains some comment delimiter return the line
           result = ("".to_string(), false, line.to_string());
           return result;
@@ -653,7 +605,7 @@ pub mod remove_comments{
     /// # Note 
     /// This is use in the function [`content_between`] 
   
-    fn process(mut i:usize, mut j:usize, mut in_ignore:bool, mut with_delimiter:bool, delimiters_array:&Vec<String>, line:&str, pos:usize, delimiter:&str)->(String, bool, String){
+    fn process(mut i:usize, mut j:usize, mut in_ignore:bool, mut with_delimiter:bool, delimiters_array:&Vec<String>, line:&str, mut pos:usize, delimiter:&str)->(String, bool, String){
       // iterate in each pair of the array for search this in the content before the delimiter
             use crate::main_code::utilities::general;
 
@@ -662,7 +614,7 @@ pub mod remove_comments{
       let mut each_two:Vec<String> = Vec::new();
       let mut in_comment = false;
       let mut comment_removed:usize = 0;
-      let mut new_line2 = String::new();
+      let mut new_line2 = line[..pos].to_string();
       let mut new_line = String::new();
       let mut result:(String, bool, String);
             // while we isn't in a content between ignore delimiters, and the content still contains some comment delimiter, and the array is not empty.
@@ -673,6 +625,7 @@ pub mod remove_comments{
             for n in each_two_str{
               each_two.push(n);
             }
+            new_line = copy2[..pos].to_string();
               // Check if the line contains any ignore characters or strings
                 if let Some(start_ignore_pos) = new_line.find(&each_two[0]){
                   //Check if the ignore delimiter is before delimiter, like this "as ' //  '" here the ignore pair delimiters are ' and ' so the "//"" delimiter for comment
@@ -680,9 +633,8 @@ pub mod remove_comments{
                   if start_ignore_pos < pos{
                     in_ignore = true; 
                     // remove that character from the line, for avoid process them again, and avoid others problems
-                    new_line.replace_range(start_ignore_pos..start_ignore_pos+each_two[0].len()-1, "");
-                    copy2.replace_range(start_ignore_pos..start_ignore_pos+each_two[0].len()-1, "");
-                    comment_removed += each_two[0].len();
+                    new_line = new_line.replacen(&each_two[0], "", 1);
+                    copy2 = copy2.replacen(&each_two[0], "", 1);
                     // Check if we find an ignore character, we need to check if there is an end ignore character in the same line
                     // Chekc if we find an end ignore character, we must to reset j and i and in_ignore flag
                     if let Some(end_ignore_pos) = copy2.find(&each_two[1]){
@@ -696,11 +648,14 @@ pub mod remove_comments{
                        //reset j, i and remove the character ends delimiter for avoid process that again
                        j = 0;
                        i = delimiters_array.len()/2;
-                       new_line.replace_range(end_ignore_pos..end_ignore_pos+each_two[1].len()-1, "");
+                       new_line = new_line.replacen(&each_two[1], "", 1);
                        //remove the content to between delimiters to ignore and his delimiters for avoid process this again
-                       comment_removed += copy[start_ignore_pos..end_ignore_pos+each_two[1].len()].len();
+                       comment_removed += copy[start_ignore_pos..end_ignore_pos+each_two[1].len()+each_two[0].len()].len();
                        copy.replace_range(start_ignore_pos..end_ignore_pos+each_two[1].len()+each_two[0].len(), "");
-                       new_line2 = line[..copy.len()+comment_removed].to_string();
+                       //upload the index of the pos
+                       pos = copy.find(delimiter).unwrap_or(copy.len());
+                       new_line2 = copy[..pos].to_string();
+                       new_line2 = line[..new_line2.len()+comment_removed].to_string();;
                        }
                        // else if the end ignore end delimiter is greather than the comment delimiter
                       else{
@@ -710,19 +665,20 @@ pub mod remove_comments{
                        //reset j and i, and remove the end delimiter
                        j = 0;
                        i = delimiters_array.len()/2;
-                       new_line.replace_range(end_ignore_pos..end_ignore_pos+each_two[1].len()-1, "");
+                       new_line = new_line.replacen(&each_two[1], "", 1);
                        //remove the delimiter processed, for avoid process this again
-                       comment_removed+=copy[start_ignore_pos..end_ignore_pos+each_two[1].len()].len();
+                       comment_removed+=copy[start_ignore_pos..end_ignore_pos+each_two[1].len()+each_two[0].len()].len();
                        copy.replace_range(start_ignore_pos..end_ignore_pos+each_two[1].len()+each_two[0].len(), "");
-                       
+                       pos = copy.find(delimiter).unwrap_or(copy.len());
+                       new_line2 = copy[..pos].to_string();
+                       new_line2 = line[..new_line2.len()+comment_removed].to_string();
                        // search a new comment delimiter appear for processs
                        if let Some(pos) = copy.find(delimiter){
                         new_line = copy[..pos].to_string();
                         with_delimiter = true;
-                        continue;
                        }
                        else{
-                        result = (each_two[1].to_string(), true, line.to_string());
+                        result = (each_two[1].to_string(), in_ignore, line.to_string());
                         return result;
                          }
                        }
@@ -736,8 +692,12 @@ pub mod remove_comments{
                   }
                 }
                 //if the start delimiter from this pair of ignore delimiters are not found go to the next pair, if the main vector chars contains more pairs
-                i -= 1;
+               else{
+                 i -= 1;
                 j += 2;
+                }
+                each_two.clear();
+                
               }
               result = ("".to_string(), false, new_line2.to_string());
            return result;

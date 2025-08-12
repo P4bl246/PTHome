@@ -1,10 +1,11 @@
+Hello//this is 'tinot' "other"
+'Hello' "//into //done" //Other 
+Hellot 'hi//' 'hi' hi' some "his" "//"
 6 djsl
 HELLO'thisis' "hielo"
 //Hello
 hiejos
-Hello//this is 'tinot' "other"
-'Hello' "//into //done" //Other 
-Hellot 'hi//' 'hi' hi' some "his" "//"
+
 
 
 1/*This is a line comment*/s
