@@ -411,6 +411,7 @@ pub mod remove_comments{
     /// The function will remove everything after the first occurrence of the delimiter in each line.
     
      pub fn simple_comments(input_file: &str, delimiter: &str, ignore_content_between: (&Vec<char>, &Vec<&str>), manage_close: bool)-> Option<bool>{
+       use crate::main_code::utilities::general;
         println!("REMOVING SIMPLE COMMENTS FROM FILE: {}", input_file);
         if delimiter.is_empty(){
             panic!("Error: The delimiter cannot be an empty string.");
@@ -467,14 +468,18 @@ pub mod remove_comments{
       let mut num_line = 0;
       let mut in_ignore = false; // flag to indicate if we are in the ignore content
       let mut delimiter_ignore = String::new();
+      let mut ignore_delimiters = false;
+      if !ignore_content_between.0.is_empty() || !ignore_content_between.1.is_empty(){ignore_delimiters = true;}
 
       {
         let file_content = fs::read_to_string(input_file).expect(&format!("Failed to read the file '{}'", input_file));
         let mut removed = 0;
+        let mut contains = false;
         for line in file_content.lines() {        
           counter += 1;
           removed = 0;
           let mut copy = line.to_string();
+         if ignore_delimiters{ 
           if in_ignore{
             if let Some(end) = copy.find(&delimiter_ignore){
               in_ignore = false;
@@ -482,7 +487,36 @@ pub mod remove_comments{
               removed += delimiter_ignore.len();
             }
           }
-          if copy.contains(delimiter) && !in_ignore{
+          if !in_ignore{
+            let mut j = 0;
+            let mut some_start_ignore:Vec<String> = Vec::new();
+            if !ignore_content_between.0.is_empty(){
+             while j <= ignore_content_between.0.len()-1{
+              let mut sub_vec = general::sub_vec(&ignore_content_between.0, 2, j);
+              some_start_ignore.push(sub_vec[0].to_string());
+              sub_vec.clear();
+              j+=2;
+              }
+             }
+             j= 0;
+             if !ignore_content_between.1.is_empty(){
+             while j <= ignore_content_between.1.len()-1{
+              let mut sub_vec = general::sub_vec(&ignore_content_between.1, 2, j);
+              some_start_ignore.push(sub_vec[0].to_string());
+              sub_vec.clear();
+              j+=2;
+               } 
+             }
+            if !some_start_ignore.is_empty(){
+              for element in some_start_ignore{
+              if copy.contains(&element){
+                contains = true;
+                break;
+              }
+             }
+            }
+          }
+          if copy.contains(delimiter) && !in_ignore && contains{
             if !ignore_content_between.0.is_empty() || !ignore_content_between.1.is_empty(){
             let result = content_between(ignore_content_between.0, ignore_content_between.1, delimiter, &copy);
             delimiter_ignore = result.0;
@@ -501,13 +535,31 @@ pub mod remove_comments{
           }
           }
           else{
+            if line.contains(delimiter) && !in_ignore{
+              if let Some(delimiter) = copy.find(delimiter){
+               new_content.push_str(&line[..delimiter]);
+               new_content.push('\n');
+             }
+            }
+            else{
             new_content.push_str(&line);
             new_content.push('\n');
+             }
+            }
+           }
+           else{
+             if let Some(delimiter) = copy.find(delimiter){
+               new_content.push_str(&line[..delimiter]);
+               new_content.push('\n');
+             }else{
+              new_content.push_str(&line);
+               new_content.push('\n');
+             }
            }
           }  
         }
         // if some ignore are open after process all the file, print an error
-        if in_ignore && manage_close{
+        if in_ignore && manage_close && ignore_delimiters{
            println!("Error in the line: '{}': '{}'. missing close delimiter: {}", num_line, line_start, delimiter_ignore);
            return None;
         }
