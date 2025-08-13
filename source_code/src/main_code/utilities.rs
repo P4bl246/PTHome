@@ -719,13 +719,18 @@ pub mod remove_comments{
                   removed_here = copy2[pos_start..pos_end+delimiters_array[n+1].len()].len();
                   let mut before = pos_start;
                   let mut new_string = String::new();
-                  while !i2 >= removed_here{
                     for (n, c) in copy2.chars().enumerate(){
-                      if i2 >= removed_here{break;}
-                      if n == before{new_string.push(' '); i2+=1; before += 1}
+                      if n == before{
+                        new_string.push(' ');  
+                      if i2<removed_here{
+                        before += 1;
+                      i2+=1;
+                      }
+                       
+                    }
                       else{new_string.push(c)}
                     }
-                  } 
+                   
                   copy2 = new_string.to_string();
                  }else{copy2 = copy3.to_string();}
                }
