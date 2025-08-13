@@ -906,8 +906,8 @@ pub mod remove_comments{
     /// If the file cannot be read or written, the function will panic with an error message
     /// If there is a block comment without end delimiter, the function will return -1 with an error message.
     /// # Return
-    /// * `-1` - If there is a block comment without an end delimiter.
-    /// * `0` - If the block comments were successfully removed.
+    /// * `None` - If there is a block comment without an end delimiter.
+    /// * `Some(String)` - If the block comments were successfully removed.
     
     pub fn block_comments(content: &str, start_delimiter: &str, end_delimiter: &str, mode: ModeBlock) -> Option<String>{
       println!("REMOVING BLOCK COMMENTS FROM CONTENT: {}", content);
