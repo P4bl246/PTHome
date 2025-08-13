@@ -420,7 +420,7 @@ pub mod remove_comments{
     /// # `simple_comments`
     /// Removes simple comments from a file and rewrites it.
     /// # Arguments
-    /// * `input_file: &str` - The path to the file from which simple comments will be removed.
+    /// * `content: &str` - The string which simple comments will be removed.
     /// * `delimiter: &str` - The delimiter used to identify simple comments.
     /// * `ignore_content_between: (&Vec<char>, &Vec<&str>)` - A tuple containing two vectors:
     ///   - A vector of characters that should be ignored the content between this when removing comments.
@@ -435,9 +435,12 @@ pub mod remove_comments{
 
     /// mod main_code;
     /// fn main (){
+    /// use std::fs::{self, remove_dir_all};
     /// use crate::main_code::utilities::remove_comments;
     /// let input_file = "example.txt";
-    /// remove_comments::remove_simple_comments(input_file, "//");
+    /// let content = fs::read_to_string(input_file).expect(&format!("Failed to read the file '{}'", input_file));
+    /// let tuple = ([].to_vec(), [].to_vec())
+    /// let new_content = remove_comments::remove_simple_comments(content, "//", tuple, false);
     /// }
     /// ```
     /// The result is a file with simple comments removed.
@@ -446,14 +449,14 @@ pub mod remove_comments{
     /// # Note
     /// The function will remove everything after the first occurrence of the delimiter in each line.
     
-     pub fn simple_comments(input_file: &str, delimiter: &str, ignore_content_between: (&Vec<char>, &Vec<&str>), manage_close: bool)-> Option<bool>{
+     pub fn simple_comments(content: &str, delimiter: &str, ignore_content_between: (&Vec<char>, &Vec<&str>), manage_close: bool)-> Option<String>{
        use crate::main_code::utilities::general;
-        println!("REMOVING SIMPLE COMMENTS FROM FILE: {}", input_file);
+        println!("REMOVING SIMPLE COMMENTS FROM CONTENT: {}", content);
         if delimiter.is_empty(){
             panic!("Error: The delimiter cannot be an empty string.");
         }
-        if input_file.is_empty(){
-          panic!("Error: The input file cannot be an empty string.");
+        if content.is_empty(){
+          panic!("Error: The content cannot be an empty string.");
         }
         let mut i: usize = ignore_content_between.0.len()/2;
         if !(ignore_content_between.0.is_empty() && ignore_content_between.1.is_empty()){
@@ -508,10 +511,10 @@ pub mod remove_comments{
       if !ignore_content_between.0.is_empty() || !ignore_content_between.1.is_empty(){ignore_delimiters = true;}
 
       {
-        let file_content = fs::read_to_string(input_file).expect(&format!("Failed to read the file '{}'", input_file));
+        
         let mut removed = 0;
         let mut contains = false;
-        for line in file_content.lines() {    
+        for line in content.lines() {    
           contains = false;    
           counter += 1;
           removed = 0;
@@ -600,12 +603,9 @@ pub mod remove_comments{
            println!("Error in the line: '{}': '{}'. missing close delimiter: {}", num_line, line_start, delimiter_ignore);
            return None;
         }
-       
-      fs::remove_file(input_file);
-      let mut file = fs::File::create(input_file).expect(&format!("Failed to create the file '{}'", input_file));
-      file.write_all(new_content.as_bytes()).expect(&format!("Failed to write to the file '{}'", input_file));
-        println!("SIMPLE COMMENTS REMOVED FROM FILE: {}", input_file);
-        return Some(true);
+
+        println!("SIMPLE COMMENTS REMOVED FROM CONTENT: {}", content);
+        return Some(new_content);
     }
 //------------------------------------------------------------------
     /// # `content_between`
