@@ -372,6 +372,42 @@ pub mod general{
     let sub_vec = vec[start_i..start_i+num_elements].to_vec();
     return sub_vec;
   }
+  
+//--------------------------------------------------------------------------------------------
+  pub struct Map<'a, T, U>{
+    back:(&'a T),
+    value:(U),
+    next:(&'a Map<'a, T, Option<U>>)
+  }
+  impl<'a, T, U> Map<'a, T, U>{
+    pub fn new(back_pointer:&'a T, value_map:U, next_pointer:&'a Map<'a, T, Option<U>>)->Self{
+       Self{
+        back: &back_pointer,
+        value:value_map,
+        next: &next_pointer
+       }
+      }
+    pub fn get_back(&self)->&'a T{
+       self.back
+    }
+    pub fn get_value(&self)->&U{
+      &self.value
+    }  
+    pub fn get_next(&self)->&'a Map<'a, T, Option<U>>{
+      self.next
+    }
+    pub fn set_back(&mut self, new_back:&'a T){
+         self.back = new_back;
+    }
+    pub fn set_value(&mut self, new_value:U){
+     self.value=new_value;
+    }
+    pub fn set_next(&mut self, new_next:&'a Map<'a, T, Option<U>>){
+      self.next = new_next;
+    }
+
+    }
+
 }
 //------------------------------------------------------------------
 /// # Mod `remove_comments` from `utilities.rs`
@@ -638,8 +674,8 @@ pub mod remove_comments{
     /// - `2:String`. Is the string result to the process
     /// # Note 
     /// This is use in the function [`content_between`] 
-  
-    fn process(mut in_ignore:bool, delimiters_array:&Vec<String>, line:&str, mut pos:usize, delimiter:&str)->(String, bool, String){
+
+    fn process<'a>(mut in_ignore:bool, delimiters_array:&Vec<String>, line:&str, mut pos:usize, delimiter:&str)->(String, bool, String){
       use crate::main_code::utilities::general;
       let mut copy = line.to_string();
       let mut j = 0;
@@ -660,17 +696,48 @@ pub mod remove_comments{
         sub_vec.clear();
         j+=2;
         }
+        let mut ignore_order: Vec<usize> = Vec::new();
          j= 0;
          {
+          use std::collections::HashMap;
+
           let mut copy2 = copy.to_string();
-         while true{
-           for 
-          }
+          // get the order of the delimiters in the string
+          let mut index_register: Vec<usize> = Vec::new();
+          let mut index_with_str = HashMap::new();
+           for (n, i) in some_start_ignore.iter().enumerate(){
+            while copy2.contains(i){
+              if let Some(pos_start) = copy2.find(i){
+                copy2 = copy2.replacen(i, "", 1);
+                index_register.push(pos_start);
+                index_with_str.insert(pos_start, i);
+                 if let Some(pos_end) = copy2.find(&delimiters_array[n+1]){
+                  copy2.replace_range(pos_start..pos_end, "");
+                 } 
+               }
+             }
+           }
+           let mut register:Vec<String> = Vec::new();
+           index_register.sort();
+           for i in index_register{
+            register.push(index_with_str.get(&i).unwrap().to_string());
+           }
+          //identify the order like first to last
+             for i in &register{
+               for (n, s)  in some_start_ignore.iter().enumerate(){
+                 if *i == *s{
+                   ignore_order.push(n);
+                   break;
+                 }
+               }
+            }
          }
+           
+          
          let mut index = 0;
-         while j != 0 && with_comment {
+         while j <= some_start_ignore.len()-1 && with_comment {
           if (index<=ignore_order.len()-1){j= ignore_order[index];}
-          else{j == 0; continue;}
+          else{j = some_start_ignore.len()+1; continue;}
           let sub_vec = general::sub_vec(delimiters_array, 2, j);
           if copy.contains(&sub_vec[0]) && with_comment{
             let mut for_remove_delimiters = copy.to_string();
