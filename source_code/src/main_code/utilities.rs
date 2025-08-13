@@ -427,8 +427,8 @@ pub mod remove_comments{
     ///   - A vector of strings that should be ignored the content between this when removing comments.
     /// * `manage_close: bool` - Ensure the close of the ignore_content_between tuple
     /// # Return
-    /// Returns an `Option<i32>`:
-    /// * `Some(i32)` - If the simple comments were successfully removed, returns `Some(0)`.
+    /// Returns an `Option<String>`:
+    /// * `Some(String)` - If the simple comments were successfully removed, returns `Some(new_content)`.
     /// * `None` - If there is an error, returns `None` with an error message.
     /// # Example
     /// ```rust 
