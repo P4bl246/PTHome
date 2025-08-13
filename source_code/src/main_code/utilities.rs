@@ -675,7 +675,7 @@ pub mod remove_comments{
     /// # Note 
     /// This is use in the function [`content_between`] 
 
-    fn process<'a>(mut in_ignore:bool, delimiters_array:&Vec<String>, line:&str, mut pos:usize, delimiter:&str)->(String, bool, String){
+    fn process(mut in_ignore:bool, delimiters_array:&Vec<String>, line:&str, mut pos:usize, delimiter:&str)->(String, bool, String){
       use crate::main_code::utilities::general;
       let mut copy = line.to_string();
       let mut j = 0;
@@ -702,18 +702,32 @@ pub mod remove_comments{
           use std::collections::HashMap;
 
           let mut copy2 = copy.to_string();
+          let mut removed_here = 0;
           // get the order of the delimiters in the string
           let mut index_register: Vec<usize> = Vec::new();
           let mut index_with_str = HashMap::new();
            for (n, i) in some_start_ignore.iter().enumerate(){
             while copy2.contains(i){
-              if let Some(pos_start) = copy2.find(i){
-                copy2 = copy2.replacen(i, "", 1);
+              let mut copy3 = copy2.to_string();
+              let mut i2 = 0;
+              if let Some(pos_start) = copy3.find(i){
+                copy3 = copy3.replacen(i, " ", 1);
                 index_register.push(pos_start);
                 index_with_str.insert(pos_start, i);
-                 if let Some(pos_end) = copy2.find(&delimiters_array[n+1]){
-                  copy2.replace_range(pos_start..pos_end, "");
-                 } 
+                
+                 if let Some(pos_end) = copy3.find(&delimiters_array[n+1]){
+                  removed_here = copy2[pos_start..pos_end+delimiters_array[n+1].len()].len();
+                  let mut before = pos_start;
+                  let mut new_string = String::new();
+                  while !i2 >= removed_here{
+                    for (n, c) in copy2.chars().enumerate(){
+                      if i2 >= removed_here{break;}
+                      if n == before{new_string.push(' '); i2+=1; before += 1}
+                      else{new_string.push(c)}
+                    }
+                  } 
+                  copy2 = new_string.to_string();
+                 }else{copy2 = copy3.to_string();}
                }
              }
            }
@@ -737,7 +751,7 @@ pub mod remove_comments{
          let mut index = 0;
          while j <= some_start_ignore.len()-1 && with_comment {
           if (index<=ignore_order.len()-1){j= ignore_order[index];}
-          else{j = some_start_ignore.len()+1; continue;}
+          else{j = some_start_ignore.len()+1;}
           let sub_vec = general::sub_vec(delimiters_array, 2, j);
           if copy.contains(&sub_vec[0]) && with_comment{
             let mut for_remove_delimiters = copy.to_string();
