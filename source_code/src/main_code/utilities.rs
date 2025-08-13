@@ -676,60 +676,50 @@ pub mod remove_comments{
     /// This is use in the function [`content_between`] 
 
     fn process(mut in_ignore:bool, delimiters_array:&Vec<String>, line:&str, mut pos:usize, delimiter:&str)->(String, bool, String){
-     use std::collections::HashMap;
       use crate::main_code::utilities::general;
-      let mut copy = line.to_string();
-      let mut j = 0;
-      let mut start_ignore_index:Vec<usize> = Vec::new();
-      let mut end_ignore_index:Vec<usize> = Vec::new();
-      let mut content_out_of_comment = line[..pos].to_string();
-      let mut with_comment = true;
-      let mut some_start_ignore_map = HashMap::new();
-      let mut some_start_ignore:Vec<String> = Vec::new();
-      let mut removed = 0;
-      let mut with_ignore = false;
-      let mut without_end: Vec<usize> = Vec::new();
-      let mut expected: Vec<String> = Vec::new();
-      
       if !in_ignore{
-        while j<= delimiters_array.len()-1{
-          let mut sub_vec = general::sub_vec(delimiters_array, 2, j);
-        some_start_ignore_map.insert(sub_vec[0].to_string(), j);
-        sub_vec.clear();
-        j+=2;
-        }
-        j= 0;
+      let mut copy = line.to_string(); // create a mutable copy of the input line
+      let mut j = 0; // Use like a global counter 
+      let mut start_ignore_index:Vec<usize> = Vec::new();//Array of indexes by start ignore delimiters found
+      let mut end_ignore_index:Vec<usize> = Vec::new();// Array of indexes by end ignore delimiters found
+      let mut content_out_of_comment = line[..pos].to_string(); // String to contain the content before a delimiter comment
+      let mut some_start_ignore:Vec<String> = Vec::new(); // Array of strings, for store the start ignore delimiter
+      let mut removed = 0; // global variable for store some temporary value 
+      let mut without_end: Vec<usize> = Vec::new(); // Array for store the indexes of the ignore delimiters start without end delimiter
+      let mut expected: Vec<String> = Vec::new(); // Array for store the end delimiter for them indexes without end delimiter
+      
+        j= 0;//reset j
+        // Fill some_start_ignore
         while j<= delimiters_array.len()-1{
           let mut sub_vec = general::sub_vec(delimiters_array, 2, j);
         some_start_ignore.push(sub_vec[0].to_string());
         sub_vec.clear();
         j+=2;
         }
-        let mut ignore_order: Vec<usize> = Vec::new();
-         j= 0;
+        let mut ignore_order: Vec<usize> = Vec::new(); //Array to store the order of ignore start delimiters like has a end delimiter ignore found
+         j= 0;//reset j
+         //Create an scope for local processing, phase of "IDENTIFY THE ORDER OF THE DELIMITERS AND FILTER THIS"
          {
-
-          let mut copy2 = copy.to_string();
-          let mut removed_here = 0;
           // get the order of the delimiters in the string
-          let mut index_register: Vec<usize> = Vec::new();
-          let mut index_with_str = HashMap::new();
-          
+          //iterate in the start delimiters for search this
            for (n, i) in some_start_ignore.iter().enumerate(){
-            while copy2.contains(i){
-              let mut copy3 = copy2.to_string();
+            //iterate in all appears of this delimiter
+            while copy.contains(i){
+              let mut copy2 = copy.to_string();
               let mut i2 = 0;
-              if let Some(pos_start) = copy3.find(i){
-                copy3 = copy3.replacen(i, " ", 1);
-                index_register.push(pos_start);
-                index_with_str.insert(pos_start, i);
-                
-                 if let Some(pos_end) = copy3.find(&delimiters_array[n+1]){
-                  removed_here = copy2[pos_start..pos_end+delimiters_array[n+1].len()].len();
+              // Look the pos of the delimier
+              if let Some(pos_start) = copy2.find(i){
+                copy2 = copy2.replacen(i, " ", 1);
+                // Search the pos of the end delimiter if have
+                 if let Some(pos_end) = copy2.find(&delimiters_array[n+1]){
+                  start_ignore_index.push(pos_start);
+                  end_ignore_index.push(pos_end);
+                  removed = copy[pos_start..pos_end+delimiters_array[n+1].len()].len();
                   let mut before = pos_start;
                   let mut new_string = String::new();
+                  //replace this range  with spaces (' ') for avoid move indexes and edit the length of the string
                     for (n, c) in copy2.chars().enumerate(){
-                      if i2<removed_here  && n== before{
+                      if i2<removed  && n== before{
                         new_string.push(' ');  
                         before += 1;
                       i2+=1;
@@ -738,70 +728,24 @@ pub mod remove_comments{
                       else{new_string.push(c)}
                     }
                    
-                  copy2 = new_string.to_string();
-                 }else{copy2 = copy3.to_string();}
+                  copy = new_string.to_string(); //upload copy
+                 }
+                 // if not have his end delimiter
+                 else{
+                 without_end.push(pos_start);
+                 expected.push(delimiters_array[n+1].clone()); 
+                 copy = copy2.to_string();
+                 }
                }
              }
            }
-           let mut register:Vec<String> = Vec::new();
-           index_register.sort();
-           for i in index_register{
-            register.push(index_with_str.get(&i).unwrap().to_string());
-           }
-          //identify the order like first to last
-             for i in &register{
-              if let Some(n) = some_start_ignore_map.get(i){
-                ignore_order.push(*n);
-              }
-            }
+           //sort the indexes than less to greater 
+           start_ignore_index.sort();
+           end_ignore_index.sort();
          }
-           
-          
-         let mut index = 0;
-         j=0;
-         while j <= some_start_ignore.len(){
-          if (index<=ignore_order.len()-1){
-            j= ignore_order[index];
-          }
-          else{
-            j = some_start_ignore.len()+1;
-          }
-          let sub_vec = general::sub_vec(delimiters_array, 2, j);
-          if copy.contains(&sub_vec[0]) && with_comment{
-            let mut for_remove_delimiters = copy.to_string();
-            if let Some(start) = copy.find(&sub_vec[0]){
-             for_remove_delimiters = for_remove_delimiters.replacen(&sub_vec[0], " ", 1);
-             let mut i2 = 0;
-             if let Some(end) = for_remove_delimiters.find(&sub_vec[1]){
-              start_ignore_index.push(start);
-              end_ignore_index.push(end);
-              removed = copy[start..end+sub_vec[1].len()].len();
-              let mut before = start;
-                  let mut new_string = String::new();
-                    for (n, c) in copy.chars().enumerate(){
-                      if i2<removed  && n== before{
-                        new_string.push(' ');  
-                        before += 1;
-                      i2+=1;
-                      }
-                      
-                    else{
-                      new_string.push(c)
-                    }
-                  }
-                  copy = new_string.to_string(); 
-             }  
-             else{
-              without_end.push(start);
-              expected.push(sub_vec[1].clone()); 
-              copy = for_remove_delimiters.to_string();
-             }
-            } 
-          }
-          index+=1;
-         }
-        }
-        let mut comment_appears:Vec<usize> = Vec::new();     
+
+        let mut comment_appears:Vec<usize> = Vec::new();    
+        // Scope for process the indexes and comments "FILTER COMMENTS AND INDEXES" 
         {   
         let mut s = 0;
         let mut comment_appears_first = general::all_appears_index(&copy, delimiter);
@@ -812,7 +756,7 @@ pub mod remove_comments{
         while comment_appears_first.len() > 0{
           if s>comment_appears_first.len()-1{break;}
           let mut index_removed = 0;
-          //if the comment are be into an ignore content
+          //if the comment is into an ignore content
            for (l, n) in comment_appears_first.iter().enumerate(){
             if *n  > copy_start[0] && *n  < copy_end[0]{
               index_remove_comment.push(l);
@@ -822,6 +766,7 @@ pub mod remove_comments{
               }
             }
             s += 1;
+            //remove indexes processed
            if !index_remove_comment.is_empty(){
             for n in &index_remove_comment{
               comment_appears_first.remove((*n)-index_removed);
@@ -876,6 +821,7 @@ pub mod remove_comments{
                 return result;
               }
           }
+          //if the line has comments
         else{
           let mut comment_appears2 = comment_appears.to_vec();
           // Check if the first start comment are into ignore content
@@ -908,6 +854,10 @@ pub mod remove_comments{
 
         let result = ("".to_string(), false, content_out_of_comment.to_string());
         return result;
+      }else{
+        let result = ("".to_string(), true, line.to_string());
+        return result;
+      }
         
    }
 //------------------------------------------------------------------
