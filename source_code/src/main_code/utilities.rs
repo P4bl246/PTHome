@@ -709,7 +709,21 @@ pub mod remove_comments{
               let mut i2 = 0;
               // Look the pos of the delimier
               if let Some(pos_start) = copy2.find(i){
-                copy2 = copy2.replacen(i, " ", 1);
+                let mut new_copy = String::new();
+                let mut before_f = pos_start;
+                removed = i.len();
+                for (n, c) in copy2.chars().enumerate(){
+                  if i2<removed && n==before_f{
+                    new_copy.push(' ');
+                    i2+=1;
+                    before_f+=1;
+                  }
+                  else{
+                    new_copy.push(c);
+                  }
+                }
+                copy2 = new_copy.to_string();
+                i2 = 0;
                 // Search the pos of the end delimiter if have
                  if let Some(pos_end) = copy2.find(&delimiters_array[n+1]){
                   start_ignore_index.push(pos_start);
@@ -895,30 +909,25 @@ pub mod remove_comments{
     /// * `-1` - If there is a block comment without an end delimiter.
     /// * `0` - If the block comments were successfully removed.
     
-    pub fn block_comments(input_file: &str, start_delimiter: &str, end_delimiter: &str, mode: ModeBlock) -> i32{
-      println!("REMOVING BLOCK COMMENTS FROM FILE: {}", input_file);
+    pub fn block_comments(content: &str, start_delimiter: &str, end_delimiter: &str, mode: ModeBlock) -> Option<String>{
+      println!("REMOVING BLOCK COMMENTS FROM CONTENT: {}", content);
       let mut new_content = String::new();
       match mode{
       ModeBlock::Single =>{
-        let file_content = fs::read_to_string(input_file).expect(&format!("Failed to read the file '{}'", input_file));
-        match single_mode(&file_content, start_delimiter, end_delimiter){
-            Ok(content) =>  new_content.push_str(&content) ,
-            Err(_) => return -1
+        match single_mode(&content, start_delimiter, end_delimiter){
+            Ok(content2) =>  new_content.push_str(&content2) ,
+            Err(_) => return None
         }
        }
        ModeBlock::Nested =>{
-        let file_content = fs::read_to_string(input_file).expect(&format!("Failed to read the file '{}'", input_file));
-        match nested_mode(&file_content, start_delimiter, end_delimiter){
-          Ok(content) => new_content.push_str(&content),
-          Err(_) => return -1
+        match nested_mode(&content, start_delimiter, end_delimiter){
+          Ok(content2) => new_content.push_str(&content2),
+          Err(_) => return None
         }
        }
       }
-      fs::remove_file(input_file);
-      let mut file = fs::File::create(input_file).expect(&format!("Failed to create the file '{}'", input_file));
-      file.write_all(new_content.as_bytes()).expect(&format!("Failed to write to the file '{}'", input_file));
-      println!("BLOCK COMMENTS REMOVED FROM FILE: {}", input_file);
-      return 0;
+      println!("BLOCK COMMENTS REMOVED FROM CONTENT: {}", content);
+      return Some(new_content);
     }
 //------------------------------------------------------------------------------------------
     /// # `single_mode`
