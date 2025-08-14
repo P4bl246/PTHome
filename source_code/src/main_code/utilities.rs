@@ -8,7 +8,7 @@ pub mod general{
     /// # `remove_empty_lines`
     /// Removes empty lines from a file and rewrites it.
     /// # Arguments
-    /// * `input_file: &str` - The path to the file from which empty lines will be removed.
+    /// * `content: &str` - The content from which empty lines will be removed.
     /// # Example
     /// ```rust
     /// mod main_code;
@@ -21,12 +21,10 @@ pub mod general{
     /// The result is a file withouth empty lines.
     /// # Errors
     /// If the file cannot be read or written, the function will panic with an error message.
-   pub fn remove_empty_lines(input_file: &str){
-    println!("REMOVING VOID LINES FROM FILE: {}", input_file);
+   pub fn remove_empty_lines(content: &str) -> String{
+    println!("REMOVING VOID LINES FROM CONTENT: {}", content);
      let mut new_content = String::new();
-     {
-       let content= fs::read_to_string(input_file).expect(&format!("Error trying to open the file '{}'", input_file));
-       
+     {       
        for line in content.lines(){
          if line.is_empty(){
              continue;
@@ -35,18 +33,15 @@ pub mod general{
        }
 
      }
-     fs::remove_file(input_file).expect(&format!("Error trying to remove the file '{}'", input_file));
-
-     let mut new_file = fs::File::create(input_file).expect(&format!("Error trying to remove the file '{}'", input_file));
-     new_file.write_all(new_content.as_bytes()).expect(&format!("Error trying to write in the file '{}'", input_file));
-     println!("VOID LINES REMOVED FROM FILE: {}", input_file);
+     println!("VOID LINES REMOVED FROM FILE: {}", content);
+     return new_content;
    }
 //------------------------------------------------------------------------------------------
     /// # `num_lines`
     /// A struct to hold the configuration for the `NumLines` instance and his metods.
-     pub struct NumLines {
-          input_file: &'static str,
-          delimiter: &'static str,
+     pub struct NumLines<'a> {
+          content: &'a str,
+          delimiter: &'a str,
     }
     
     /// # `impl num_lines`
@@ -57,57 +52,55 @@ pub mod general{
     /// * `get_delimiter`
     /// * `set_input_file`
     /// * `set_delimiter`
-    impl NumLines{
+    impl<'a> NumLines<'a>{
     /// # `new`
     /// Creates a new instance of `NumLines`.
     /// # Arguments
-    /// * `input_file: &'static str` - The path to the file to be processed.
-    /// * `delimiter: &'static str` - The delimiter to be used for line numbering.
+    /// * `content: &'a str` - The str to be processed.
+    /// * `delimiter: &'a str` - The delimiter to be used for line numbering.
     /// # Example
     /// ```rust
     /// mod main_code;
     /// fn main (){
     /// use crate::main_code::utilities::general;
-    /// let input_file = general::NumLines::new("example.txt", " - ");
-    /// input_file.numerate_lines();
+    /// let instance = general::NumLines::new("example.txt\n   \nsdf", " - ");
     /// }
     /// ```
-    /// The result is a file with lines numerated.
     /// # Return
     /// Returns a new instance of `NumLines` with the specified input file and delimiter.
     /// # IMPORTANT
     /// If don't want use a delimiter just use an empty string `""`.
     /// **NOTE:** The default delimiter is an space `' '`
-    pub fn new(input_file: &'static str, delimiter: &'static str) -> Self{
+    pub fn new(content: &'a str, delimiter: &'a str) -> Self{
       Self {
-        input_file,
-        delimiter,
+        content:content,
+        delimiter:delimiter,
       }
     }
 //---------------------------------------------------------------------
        /// # `numerate_lines`
-       /// Numerates the lines of a file and rewrites it
+       /// Numerates the lines of `content` and return a String with the `content` numerate
        /// # Example
        /// ```rust
        /// mod main_code;
        /// fn main (){
        /// use crate::main_code::utilities::general;
        /// 
-       /// let input_file = general::NumLines::new("example.txt", " - ");
-       /// input_file.numerate_lines();
+       /// let mut instance = general::NumLines::new("example.txt", " - ");
+       /// let numerate = instance.numerate_lines();
+       /// //Upload content just as here
+       /// instance.set_content(&numerate);
        /// }
        /// ```
-       /// The result is a file with lines numerated.
-       /// # Errors
-       /// If the file cannot be read or written, the function will panic with an error message.
-       pub fn numerate_lines(&self){
-        println!("NUMERATING LINES FROM FILE: {}", self.input_file);
+       /// # Return
+       /// String with the `content` str numerated
+       pub fn numerate_lines(&self) -> String{
+        println!("NUMERATING LINES FROM CONTENT: {}", self.content);
         let mut new_content = String::new();
 
         {
-            let content = fs::read_to_string(self.input_file).expect(&format!("Error trying to open the file '{}'", self.input_file));
             let mut count = 1;
-            for line in content.lines(){
+            for line in self.content.lines(){
               if self.delimiter.is_empty(){
               new_content.push_str(&format!("{} {}\n", count, line)); 
               }
@@ -119,32 +112,30 @@ pub mod general{
             }
             
         }
-        fs::remove_file(self.input_file).expect(&format!("Error trying to remove the file '{}'", self.input_file));
-        let mut new_file = fs::File::create(self.input_file).expect(&format!("Error trying to remove the file '{}'", self.input_file));
-        new_file.write_all(new_content.as_bytes()).expect(&format!("Error trying to write in the file '{}'", self.input_file));
-        println!("LINES NUMERATED FROM FILE: {}", self.input_file);
+        println!("LINES NUMERATED FROM CONTENT");
+        return new_content;
     }
 //---------------------------------------------------------------------
         /// # `remove_num_lines`
-        /// Removes line numbers from a file. Recomended use this just if you use before the function `numerate_lines`.
+        /// Removes line numbers from `content`. Recomended use this just if you use before the function `numerate_lines` and upload `content`.
         /// # Example
         /// ```rust
         /// mod main_code;
         /// fn main (){
         /// use crate::main_code::utilities::general;
-        /// let input_file = general::NumLines::new("example.txt", " - ");
-        /// input_file.remove_num_lines();
+        /// let instance = general::NumLines::new("example.txt", " - ");
+        /// let mut rmv_num = instance.remove_num_lines();
+        /// //Upload content just as here
+        /// instance.set_content(&rmv_num);
         /// }   
         /// ```
-        /// /// The result is a file without line numbers.
-        /// # Errors
-        /// If the file cannot be read or written, the function will panic with an error message
-        pub fn remove_num_lines(&self) {
-            println!("REMOVING LINE NUMBERS FROM FILE: {}", self.input_file);
+        /// # Return
+        /// String with the `content` cleaned of numeber of lines
+        pub fn remove_num_lines(&self) -> String{
+            println!("REMOVING LINE NUMBERS FROM CONTENT: {}", self.content);
             let mut new_content = String::new();
             {
-                let content = fs::read_to_string(self.input_file).expect(&format!("Error trying to open the file '{}'", self.input_file));
-                for line in content.lines() {
+                for line in self.content.lines() {
                     if self.delimiter.is_empty(){
                         if let Some(pos) = line.find(' ') {
                             new_content.push_str(&line[pos + 1..]);
@@ -157,14 +148,12 @@ pub mod general{
                 new_content.push('\n');
             }
          }
-            fs::remove_file(self.input_file).expect(&format!("Error trying to remove the file '{}'", self.input_file));
-            let mut new_file = fs::File::create(self.input_file).expect(&format!("Error trying to create the file '{}'", self.input_file));
-            new_file.write_all(new_content.as_bytes()).expect(&format!("Error trying to write in the file '{}'", self.input_file));
-            println!("LINE NUMBERS REMOVED FROM FILE: {}", self.input_file);
+            println!("LINE NUMBERS REMOVED FROM CONTENT");
+            return new_content;
         }
 //---------------------------------------------------------------------
         /// # `skip_num_line`
-        /// Skips the line number in a file. Use this just if you use before the function `numerate_lines`.
+        /// Skips the line number in str. Use this just if you use before the function `numerate_lines`.
         /// # Arguments
         /// * `line: &str` - The line from which the line number will be skipped.
         /// # Example
@@ -201,7 +190,7 @@ pub mod general{
         }
 //---------------------------------------------------------------------
         /// # `get_num_line`
-        /// Gets the current line number from a file.
+        /// Gets the current line number from a str.
         /// # Arguments
         /// * `line: &str` - The line from which the current line number will be extracted.
         /// 
@@ -242,7 +231,7 @@ pub mod general{
        /// # Return
        /// Returns the input file path as a `String`.
        pub fn get_input_file(&self) -> String{
-            self.input_file.to_string()
+            self.content.to_string()
         }
 //---------------------------------------------------------------------
        /// # `get_delimiter`
@@ -253,27 +242,27 @@ pub mod general{
             self.delimiter.to_string()
         }
 //---------------------------------------------------------------------
-       /// # `set_input_file`
+       /// # `set_content`
        /// Sets the input file path.
        /// # Arguments
-       /// * `input_file: &'static str` - The new input file path to be set.
+       /// * `input_file: &'a str` - The new input file path to be set.
        /// # Example
        /// ```rust
        /// mod main_code;
        /// fn main (){
        /// use crate::main_code::utilities::general;
        /// let mut input_file = general::NumLines::new("example.txt", " - ");
-       /// input_file.set_input_file("new_example.txt");
+       /// input_file.set_content("new_example.txt");
        /// }
        /// ```
-       pub fn set_input_file(&mut self, new_value:&'static str){
-            self.input_file = new_value;
+       pub fn set_content(&mut self, new_value:&'a str){
+            self.content = new_value;
         }
 //---------------------------------------------------------------------
        /// # `set_delimiter`
        /// Sets the delimiter
        /// ## Arguments 
-       /// * `delimiter: &'static str` - The new delimiter to be set.
+       /// * `delimiter: &'a str` - The new delimiter to be set.
        /// # Example  
        /// ```rust
        /// mod main_code;
@@ -283,7 +272,7 @@ pub mod general{
        /// input_file.set_delimiter(" | ");
        /// }
        /// ```
-       pub fn set_delimiter(&mut self, new_value:&'static str){
+       pub fn set_delimiter(&mut self, new_value:&'a str){
             self.delimiter = new_value;
        }
        
@@ -373,41 +362,6 @@ pub mod general{
     return sub_vec;
   }
   
-//--------------------------------------------------------------------------------------------
-  pub struct Map<'a, T, U>{
-    back:(&'a T),
-    value:(U),
-    next:(&'a Map<'a, T, Option<U>>)
-  }
-  impl<'a, T, U> Map<'a, T, U>{
-    pub fn new(back_pointer:&'a T, value_map:U, next_pointer:&'a Map<'a, T, Option<U>>)->Self{
-       Self{
-        back: &back_pointer,
-        value:value_map,
-        next: &next_pointer
-       }
-      }
-    pub fn get_back(&self)->&'a T{
-       self.back
-    }
-    pub fn get_value(&self)->&U{
-      &self.value
-    }  
-    pub fn get_next(&self)->&'a Map<'a, T, Option<U>>{
-      self.next
-    }
-    pub fn set_back(&mut self, new_back:&'a T){
-         self.back = new_back;
-    }
-    pub fn set_value(&mut self, new_value:U){
-     self.value=new_value;
-    }
-    pub fn set_next(&mut self, new_next:&'a Map<'a, T, Option<U>>){
-      self.next = new_next;
-    }
-
-    }
-
 }
 //------------------------------------------------------------------
 /// # Mod `remove_comments` from `utilities.rs`
@@ -418,7 +372,7 @@ pub mod remove_comments{
     use std::io::Write;
 
     /// # `simple_comments`
-    /// Removes simple comments from a file and rewrites it.
+    /// Removes simple comments from a string
     /// # Arguments
     /// * `content: &str` - The string which simple comments will be removed.
     /// * `delimiter: &str` - The delimiter used to identify simple comments.
@@ -439,15 +393,16 @@ pub mod remove_comments{
     /// use crate::main_code::utilities::remove_comments;
     /// let input_file = "example.txt";
     /// let content = fs::read_to_string(input_file).expect(&format!("Failed to read the file '{}'", input_file));
-    /// let tuple = ([].to_vec(), [].to_vec())
+    /// let vec_char:Vec<char> = Vec::new();
+    /// let vec_str:Vec<String> = Vec::new();
+    /// let tuple = (vec_char, vec_str):
     /// let new_content = remove_comments::remove_simple_comments(content, "//", tuple, false);
     /// }
     /// ```
-    /// The result is a file with simple comments removed.
     /// # Errors
-    /// If the file cannot be read or written, the function will panic with an error message.
+    /// If content or delimiter is empty go to panic
     /// # Note
-    /// The function will remove everything after the first occurrence of the delimiter in each line.
+    /// The function will remove everything after the first occurrence of the comment delimiter in each line.
     
      pub fn simple_comments(content: &str, delimiter: &str, ignore_content_between: (&Vec<char>, &Vec<&str>), manage_close: bool)-> Option<String>{
        use crate::main_code::utilities::general;
@@ -477,11 +432,9 @@ pub mod remove_comments{
         }
         if !ignore_content_between.1.is_empty(){
         for ch in ignore_content_between.1{
-          for ch2 in ch.chars(){  
-          if delimiter.contains(ch2){
+          if delimiter.contains(*ch){
             println!("Error: The delimiter '{}' cannot be in the ignore strings vector '{:?}'", delimiter, ignore_content_between.1);
             return None;
-           }
           }
          }
          // Chekc if the vector ignore_content_between.1 has an even number of elements
@@ -604,7 +557,7 @@ pub mod remove_comments{
            return None;
         }
 
-        println!("SIMPLE COMMENTS REMOVED FROM CONTENT: {}", content);
+        println!("SIMPLE COMMENTS REMOVED FROM CONTENT");
         return Some(new_content);
     }
 //------------------------------------------------------------------
@@ -885,20 +838,24 @@ pub mod remove_comments{
         Single
      }
     /// # `block_comments`
-    /// Removes block comments from a file and rewrites it. 
+    /// Removes block comments from a string. 
     /// * This function is an API for the functions [`single_mode`] and [`nested_mode`].
     /// # Arguments
-    /// * `input_file: &str` - The path to the file from which block comments will be removed.
+    /// * `content: &str` - The string from which block comments will be removed.
     /// * `start_delimiter: &str` - The starting delimiter of the block comment.
     /// * `end_delimiter: &str` - The ending delimiter of the block comment.
+    /// * `ignore_content_between: (&Vec<char>, &Vec<&str>)` - A tuple containing two vectors:
     /// * `mode: ModeBlock` - The mode of block comment removal, either [`ModeBlock::Nested`] or [`ModeBlock::Single`]
     /// # Example
     /// ```rust
     /// mod main_code;
     /// fn main (){
     /// use crate::main_code::utilities::remove_comments;
-    /// let input_file = "example.txt";
-    /// remove_comments::remove_block_comments(input_file, "/*", "*/", ModeBlock::Single);
+    /// let content = "example.txt/*fadfjs*/";
+    /// let vec_char:Vec<char> = Vec::new();
+    /// let vec_str:Vec<String> = Vec::new();
+    /// let tuple = (vec_char, vec_str):
+    /// let result = remove_comments::remove_block_comments(content, "/*", "*/", tuple, ModeBlock::Single);
     /// }
     /// ```
     /// The result is a file with block comments removed.
@@ -909,7 +866,54 @@ pub mod remove_comments{
     /// * `None` - If there is a block comment without an end delimiter.
     /// * `Some(String)` - If the block comments were successfully removed.
     
-    pub fn block_comments(content: &str, start_delimiter: &str, end_delimiter: &str, mode: ModeBlock) -> Option<String>{
+    pub fn block_comments(content: &str, start_delimiter: &str, end_delimiter: &str, ignore_content_between: (&Vec<char>, &Vec<&str>), mode: ModeBlock) -> Option<String>{
+      if content.is_empty(){
+        panic!("Error: the argument 'conten't is empty");
+      }
+      if start_delimiter.is_empty() || end_delimiter.is_empty(){
+        panic!("Error: start delimiter or end delimiter is empty");
+      }
+
+      if !(ignore_content_between.0.is_empty() && ignore_content_between.1.is_empty()){
+       if !ignore_content_between.0.is_empty(){
+        for ch in ignore_content_between.0{
+          if start_delimiter.contains(*ch)||end_delimiter.contains(*ch){
+            println!("Error: The start delimiter '{}' or end delimiter '{}' cannot be in the ignore characters vector '{:?}'", start_delimiter, end_delimiter, ignore_content_between.0);
+            return None;
+            }
+          }
+          //Chekc if the vector ignore_content_between.0 has an even number of elements
+          //Becuase is a pair start-end, so, all the characters must be in pairs, like this: ['{', '}'], ['(', ')'], ['[', ']']
+          let i = ignore_content_between.0.len();
+         if i % 2 != 0{
+            println!("Error: The ignore characters vector '{:?}' must have an even number of elements", ignore_content_between.0);
+            return None;
+         }
+        }
+        if !ignore_content_between.1.is_empty(){
+        for str in ignore_content_between.1{ 
+          if start_delimiter.contains(*str) || end_delimiter.contains(*str){
+            println!("Error: The start delimiter '{}' or end delimiter '{}' cannot be in the ignore strings vector '{:?}'", start_delimiter,end_delimiter, ignore_content_between.1);
+            return None;
+           }
+         }
+         // Chekc if the vector ignore_content_between.1 has an even number of elements
+        //Becuase is a pair start-end, so, all the strings must be in pairs, like this: ["{", "}"], ["(", ")"], ["[", "]"]
+          let i = ignore_content_between.1.len();
+          if i % 2 != 0{
+            println!("Error: The ignore strings vector '{:?}' must have an even number of elements", ignore_content_between.1);
+            return None;
+          }
+        }
+        if !ignore_content_between.0.is_empty() && !ignore_content_between.1.is_empty(){
+        for ch in ignore_content_between.0{
+          if ignore_content_between.1.contains(&&(*ch.to_string())){
+            println!("Error: The ignore characters vector '{:?}' cannot contain the same characters as the ignore strings vector '{:?}'", ignore_content_between.0, ignore_content_between.1);
+            return None;
+          }
+        }
+       }
+      }
       println!("REMOVING BLOCK COMMENTS FROM CONTENT: {}", content);
       let mut new_content = String::new();
       match mode{
@@ -926,7 +930,7 @@ pub mod remove_comments{
         }
        }
       }
-      println!("BLOCK COMMENTS REMOVED FROM CONTENT: {}", content);
+      println!("BLOCK COMMENTS REMOVED FROM CONTENT");
       return Some(new_content);
     }
 //------------------------------------------------------------------------------------------
@@ -960,6 +964,7 @@ pub mod remove_comments{
          let mut counter = 0;// counter for the line number
          let mut line_num = 0;// line number where the block comment starts
          let mut multi_line = false; // flag to indicate if the block comment is multi-line
+         let mut in_ignore = false; //flag to indicate if we are in ignore_conntent
          // Iterate through each line in the content
          // This is a single mode, so we don't need to handle nested comments
          for line in content.lines() {
@@ -979,7 +984,10 @@ pub mod remove_comments{
                if let Some(start_pos) = line_copy.find(delimiter_start){
                 // If the start delimiter is found, check if a block comment is already open
                 // If not, push the content before the start delimiter to the new content
-                if !block_open {new_content.push_str(&line_copy[..start_pos]); block_open = true;}
+                if !block_open {
+                  
+                  new_content.push_str(&line_copy[..start_pos]); block_open = true;
+                }
                 // If the start delimiter is found, check if the end delimiter is also present in the line
                 if let Some(end_pos) = line_copy.find(delimiter_end){
                     // For preserved code between comments, but no inside of any of them, in other words, code between start and end block comments delimiters.
