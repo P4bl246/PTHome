@@ -722,6 +722,9 @@ pub mod remove_comments{
         //remove comments into ignore content
         while comment_appears_first.len() > 0{
           if s>comment_appears_first.len()-1{break;}
+          if copy_start.len() <= 0 || copy_end.len() <= 0{
+              break;
+            }
           let mut index_removed = 0;
           //if the comment is into an ignore content
            for (l, n) in comment_appears_first.iter().enumerate(){
