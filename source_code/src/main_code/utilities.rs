@@ -740,7 +740,9 @@ pub mod remove_comments{
               index_removed += 1;
             }
            }
-            
+            if copy_start.len()-1 <= 0 || copy_end.len()-1 <= 0{
+              break;
+            }
             copy_start.remove(0);
             copy_end.remove(0);
          }
