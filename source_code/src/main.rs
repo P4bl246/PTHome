@@ -1,3 +1,4 @@
+
 mod main_code;
 fn main() {
   use crate::main_code::utilities::remove_comments;
@@ -9,7 +10,7 @@ fn main() {
     let ignore = (&ignore_this, &ignore_this2);
     let content = fs::read_to_string(file_path).expect(&format!("Failed to read the file '{}'", file_path));  
 
-    let n = remove_comments::simple_comments(&content, "//", ignore, true);
+    let n = remove_comments::block_comments(&content, "/*", "*/", ignore, remove_comments::ModeBlock::Single);
     
     match n{
         None => println!("Error"),

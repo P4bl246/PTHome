@@ -371,6 +371,26 @@ pub mod general{
      }
      return new;
   }
+//-----------------------------------------------------------------------------------------------
+  pub fn replace_index(str_in: &str, replace: &str, index: usize)-> String{
+    if str_in.is_empty() || replace.is_empty(){
+      return str_in.to_string();
+    }
+    let mut new_str = String::new();
+    if index >= str_in.len(){
+      new_str.push_str(&str_in.to_string());
+      return new_str;
+    }
+    for (i, c) in str_in.to_string().chars().enumerate(){
+      if i == index{
+        new_str.push_str(&replace.to_string());
+      }
+      else{
+        new_str.push(c);
+      }
+    }
+    return new_str;
+  }
 }
 //------------------------------------------------------------------
 /// # Mod `remove_comments` from `utilities.rs`
@@ -419,8 +439,8 @@ pub mod remove_comments{
      pub fn simple_comments(content: &str, delimiter: &str, ignore_content_between: (&Vec<char>, &Vec<&str>), manage_close: bool)-> Option<String>{
        use crate::main_code::utilities::general;
         println!("REMOVING SIMPLE COMMENTS FROM CONTENT: {}", content);
-        if delimiter.is_empty() || delimiter == " "{
-            panic!("Error: The delimiter cannot be an empty string or space (' ').");
+        if delimiter.is_empty() || delimiter.contains(" "){
+            panic!("Error: The delimiter cannot be an empty string or contains a space (' ').");
         }
         if content.is_empty(){
           panic!("Error: The content cannot be an empty string.");
@@ -452,8 +472,8 @@ pub mod remove_comments{
             println!("Error: The delimiter '{}' cannot be in the ignore strings vector '{:?}'", delimiter, ignore_content_between.1);
             return None;
           }
-          if *ch == " "{
-          println!("Error: The ignore delimiter '{}' cannot be a space (' ') the ignore characters vector '{:?}'", *ch, ignore_content_between.1);
+          if ch.contains(" "){
+          println!("Error: The ignore delimiter '{}' cannot contains a space (' ') the ignore characters vector '{:?}'", *ch, ignore_content_between.1);
             return None;
           }
          }
@@ -893,8 +913,8 @@ pub mod remove_comments{
       if content.is_empty(){
         panic!("Error: the argument 'conten't is empty");
       }
-      if start_delimiter.is_empty() || start_delimiter == " " || end_delimiter.is_empty() || end_delimiter == " "{
-        panic!("Error: start delimiter or end delimiter is empty. Or some comment delimiter is a space (' ')");
+      if start_delimiter.is_empty() || start_delimiter.contains(" ") || end_delimiter.is_empty() || end_delimiter.contains(" "){
+        panic!("Error: start delimiter or end delimiter is empty. Or some comment delimiter contains (' ')");
       }
 
       if !(ignore_content_between.0.is_empty() && ignore_content_between.1.is_empty()){
@@ -924,8 +944,8 @@ pub mod remove_comments{
             println!("Error: The start delimiter '{}' or end delimiter '{}' cannot be in the ignore strings vector '{:?}'", start_delimiter,end_delimiter, ignore_content_between.1);
             return None;
            }
-          if *str == " "{
-            println!("Error: The ignore string '{}' cannot be a space (' ') in the ignore string vector '{:?}'", *str, ignore_content_between.1);
+          if str.contains(" "){
+            println!("Error: The ignore string '{}' cannot contains a space (' ') in the ignore string vector '{:?}'", *str, ignore_content_between.1);
             return None;
           } 
          }
@@ -1062,6 +1082,7 @@ pub mod remove_comments{
                 }
                 // Find the position of the start delimiter in the line
                if let Some(mut start_pos) = line_copy.find(delimiter_start){
+                let mut no_remove = false;
                 // If the start delimiter is found, check if a block comment is already open
                 // If not, push the content before the start delimiter to the new content
                 if !block_open {
@@ -1079,7 +1100,7 @@ pub mod remove_comments{
                     if in_ignore{block_open = false; break;}
                     start_pos = 0; //because the start delimiter, after upload line_copy move to the first position or start in this position
                   }
-                  else{new_content.push_str(&line_copy[..start_pos]); block_open = true;}
+                  else{new_content.push_str(&line[..start_pos]); block_open = true;}
                 }
                 // If the start delimiter is found, check if the end delimiter is also present in the line
                 if let Some(end_pos) = line_copy.find(delimiter_end){
@@ -1087,6 +1108,25 @@ pub mod remove_comments{
                     // The comp its this, becuase the code between comments, is in the start and end of comment, like this '/*thi*/between/*other*/', like we look here, the start delimiter have a greater index than end delimiter
                     //and the content "between" starts after the end delimiter, so we can push en_pos+delimiter_end.len(), and need been not multi-line, because the while loop and all this flux into the for-loop trate with a single line, 
                     //so we need have a way to indicate the comment in some line where open a block comment, is not close, therefore, all after this start must be skiped and ignored.
+                    //For avoid problems when the start index and end index superpose like this '*/*' or this '/*/', priorize the end delimiter
+                   while end_pos == start_pos+delimiter_start.len()-1 || end_pos+delimiter_end.len()-1 == start_pos{                    
+                    //For this case '/*/'
+                    if end_pos == start_pos+delimiter_start.len()-1{
+                    line_copy.replace_range(start_pos..start_pos+delimiter_start.len()-1, &str_of_n_str(" ", delimiter_start.len()-1));
+                   }
+                   //For this case '*/*'
+                   else{
+                    line_copy = general::replace_index(&line_copy," ", start_pos+1);
+                  }
+                   start_pos = line_copy.find(&delimiter_start).unwrap_or(line_copy.len()+1);
+                   if start_pos == line_copy.len()+1{
+                    no_remove = true;
+                    start_pos = 0;
+                   }
+                   else{no_remove = false;}
+
+                   }
+
                     if start_pos > end_pos+delimiter_end.len() && !multi_line{
                       
                     let mut string_before = content_between(ignore_content_between.0, ignore_content_between.1, delimiter_start, &line_copy);
@@ -1107,9 +1147,11 @@ pub mod remove_comments{
                     line_copy.replace_range(end_pos..end_pos+delimiter_end.len(), &str_of_n_str(" ", line_copy[end_pos..end_pos+delimiter_end.len()].len()));
                     block_open = true;
                      }
+                     
+
                     }
                     // Remove the start delimiter from the line copy, for not process this again, and avoid problems
-                    line_copy.replace_range(start_pos..start_pos+delimiter_start.len(), &str_of_n_str(" ", line_copy[start_pos..start_pos+delimiter_start.len()].len()));
+                    if !no_remove {line_copy.replace_range(start_pos..start_pos+delimiter_start.len(), &str_of_n_str(" ", delimiter_start.len()));}
                 }
                 
               }
