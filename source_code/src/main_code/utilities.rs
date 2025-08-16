@@ -1208,7 +1208,7 @@ pub mod remove_comments{
               }
              }
              // If the line doesn't contain the start delimiter and a block comment is not open, push the line to the new content
-            else if !block_open{
+            else if !block_open || in_ignore{
              new_content.push_str(&line);
              new_content.push('\n');
            }
