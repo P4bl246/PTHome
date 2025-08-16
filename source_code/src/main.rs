@@ -10,7 +10,7 @@ fn main() {
     let ignore = (&ignore_this, &ignore_this2);
     let content = fs::read_to_string(file_path).expect(&format!("Failed to read the file '{}'", file_path));  
 
-    let n = remove_comments::block_comments(&content, "/*", "*/", ignore, remove_comments::ModeBlock::Single);
+    let n = remove_comments::block_comments(&content, "/*", "*/", ignore, remove_comments::ModeBlock::Single, remove_comments::ManageClose::Both);
     
     match n{
         None => println!("Error"),

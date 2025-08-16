@@ -889,6 +889,7 @@ pub mod remove_comments{
     /// * `end_delimiter: &str` - The ending delimiter of the block comment.
     /// * `ignore_content_between: (&Vec<char>, &Vec<&str>)` - A tuple containing two vectors:
     /// * `mode: ModeBlock` - The mode of block comment removal, either [`ModeBlock::Nested`] or [`ModeBlock::Single`]
+    /// * `manage_close` - The mode of ensure the content has his block comments and ignore content correctly close or not, either [`ManageClose::Both`], [`ManageClose::Comment`], [`ManageClose::Ignore`] or [`ManageClose::None`]
     /// # Example
     /// ```rust
     /// mod main_code;
@@ -909,7 +910,7 @@ pub mod remove_comments{
     /// * `None` - If there is a block comment without an end delimiter.
     /// * `Some(String)` - If the block comments were successfully removed.
     
-    pub fn block_comments(content: &str, start_delimiter: &str, end_delimiter: &str, ignore_content_between: (&Vec<char>, &Vec<&str>), mode: ModeBlock) -> Option<String>{
+    pub fn block_comments(content: &str, start_delimiter: &str, end_delimiter: &str, ignore_content_between: (&Vec<char>, &Vec<&str>), mode: ModeBlock, manage_close: ManageClose) -> Option<String>{
       if content.is_empty(){
         panic!("Error: the argument 'conten't is empty");
       }
@@ -970,7 +971,7 @@ pub mod remove_comments{
       let mut new_content = String::new();
       match mode{
       ModeBlock::Single =>{
-        match single_mode(&content, start_delimiter, end_delimiter, ignore_content_between){
+        match single_mode(&content, start_delimiter, end_delimiter, ignore_content_between, manage_close){
             Ok(content2) =>  new_content.push_str(&content2) ,
             Err(_) => return None
         }
@@ -986,12 +987,32 @@ pub mod remove_comments{
       return Some(new_content);
     }
 //------------------------------------------------------------------------------------------
+
+    /// `ManageClose`
+    /// Enum to indicate what type of close you want to verify, and ensure this is correctly close
+    /// * Options:
+    ///   - `Both`: Ensure the ignore delimiters are correctly close and the block comment are correctly close.
+    ///       * Return a error message indicate the ignore delimiter expected if some start delimiter ignore are not close and arrive at the end of input content.
+    ///       * Return a error message indicate the line content, and number of line where start the block comment with missing close.
+    ///   - `Ignore`: Ensure the ignore delimiters are correctly close.
+    ///       * Return a error message indicate the ignore delimiter expected if some start delimiter ignore are not close and arrive at the end of input content.
+    ///   - `Comment`: Ensure the block comment are correctly close.
+    ///       * Return a error message indicate the line content, and number of line where start the block comment with missing close.
+    ///   - `None`: Not make verification.
+
+    pub enum ManageClose{
+    Both,
+    Comment,
+    Ignore, 
+    None
+   }
     /// # `single_mode`
     /// Removes block comments in single mode from a line.
     /// # Arguments
     /// * `content: &Vec<&str>` - A vector of lines from content from which block comments will be removed.
     /// * `delimiter_end: &str` - The ending delimiter of the block comment.
     /// * `delimiter_start: &str` - The starting delimiter of the block comment.
+    /// * ``
     /// * **NOTE:** This is use in his API [`block_comments`] fuction.
     /// # Return
     /// Returns a `Result<String, i32>`:
@@ -999,8 +1020,8 @@ pub mod remove_comments{
     /// * `Err(i32)` - If there is an error, returns an `i32` error code:
     ///   - `-1` - If the start and end delimiters are the same or content vector is empty.
     ///   - `2` - If the block comment are not closed and arrive to the end of content vector, with an error message indicating the line number and content of the line.
- fn single_mode(content: &str, delimiter_start: &str, delimiter_end: &str, ignore_content_between: (&Vec<char>, &Vec<&str>)) -> Result<String, i32>{
-      use crate::main_code::utilities::general;
+ fn single_mode(content: &str, delimiter_start: &str, delimiter_end: &str, ignore_content_between: (&Vec<char>, &Vec<&str>), manage_close: ManageClose) -> Result<String, i32>{
+      use crate::main_code::utilities::{general, remove_comments::ManageClose};
         if delimiter_start == delimiter_end{
             println!("Error: The start and end delimiters are the same.");
             return Err(-1);
@@ -1096,7 +1117,7 @@ pub mod remove_comments{
                     else{continue 'next;}
                     //because if you watch inside the function [`process`] the code just return in_ignore like true if some ignore delimiter start, is not closed and this are before the first delimiter found
                     if in_ignore{block_open = false; break;}
-                    start_pos = string_before.2.len()+1; //because the start delimiter, after upload line_copy move to the first position or start in this position
+                    start_pos = string_before.2.len(); //because the start delimiter, after upload line_copy move to the first position or start in this position
                   }
                   new_content.push_str(&line[..start_pos]); block_open = true;
                 }
@@ -1106,11 +1127,11 @@ pub mod remove_comments{
                      if contains{
                       let string_before_first_end = content_between(ignore_content_between.0, ignore_content_between.1, delimiter_end, &line_copy);
                       //if not found a end delimiter in the same line
-                      if !(string_before_first_end.2.len() == line_copy.len()){
+                      if string_before_first_end.2.len() == line_copy.len(){
                         block_open = true;
                         continue 'next;
                       }
-                      end_pos = string_before_first_end.2.len()+1;
+                      end_pos = string_before_first_end.2.len();
                      }
                     // For preserved code between comments, but no inside of any of them, in other words, code between start and end block comments delimiters.
                     // The comp its this, becuase the code between comments, is in the start and end of comment, like this '/*thi*/between/*other*/', like we look here, the start delimiter have a greater index than end delimiter
@@ -1120,18 +1141,25 @@ pub mod remove_comments{
                    while end_pos == start_pos+delimiter_start.len()-1 || end_pos+delimiter_end.len()-1 == start_pos{                    
                     //For this case '/*/'
                     if end_pos == start_pos+delimiter_start.len()-1{
-                    line_copy.replace_range(start_pos..start_pos+delimiter_start.len()-1, &str_of_n_str(" ", delimiter_start.len()-1));
+                    line_copy = general::replace_index(&line_copy, " ", start_pos);
+                    
                    }
                    //For this case '*/*'
                    else{
-                    line_copy = general::replace_index(&line_copy," ", start_pos+1);
+                    if delimiter_start.len()>1 {line_copy = general::replace_index(&line_copy," ", start_pos+1);}
+                    //for case like this '*/' when the start delimtier is '/' and the end is '*', so we no need to remove the start delimiter because no its a "real" superpose
+                    else{
+                      break;
+                    }
                   }
                    start_pos = line_copy.find(&delimiter_start).unwrap_or(line_copy.len()+1);
                    if start_pos == line_copy.len()+1{
                     no_remove = true;
                     start_pos = 0;
                    }
-                   else{no_remove = false;}
+                   else{
+                    no_remove = false;
+                  }
 
                    }
                    //For preserve content between start comments
@@ -1157,11 +1185,11 @@ pub mod remove_comments{
                      if contains{
                       let string_before_first_end = content_between(ignore_content_between.0, ignore_content_between.1, delimiter_end, &line_copy);
                       //if not found a end delimiter in the same line
-                      if !(string_before_first_end.2.len() == line_copy.len()){
+                      if string_before_first_end.2.len() == line_copy.len(){
                         block_open = true;
                         continue 'next;
                       }
-                      end_pos = string_before_first_end.2.len()+1;
+                      end_pos = string_before_first_end.2.len();
                      }
                 // If a block comment is open and the end delimiter is found, push the content after the end delimiter to the new content
                 // and close the block comment
@@ -1191,11 +1219,36 @@ pub mod remove_comments{
             new_content.push('\n');
           }
          }
-          // If a block comment is open at the end of the content, return an error
-         if block_open {
-            println!("Error: Block comment without end delimiter in line '{}': '{}'", line_num, line_content);
-            return Err(2);
-           }
+         match manage_close{
+          ManageClose::Both=>{
+               // if some ignore are open after process all the file, print an error
+              if in_ignore{
+                println!("Error in the line: '{}': '{}'. missing close delimiter: {}", line_num, line_content, delimiter_ignore);
+                return Err(2);
+              }
+              // If a block comment is open at the end of the content, return an error
+              if block_open {
+                 println!("Error: Block comment without end delimiter in line '{}': '{}'", line_num, line_content);
+                 return Err(2);
+              }
+          }, 
+          ManageClose::Comment =>{
+            // If a block comment is open at the end of the content, return an error
+              if block_open {
+                 println!("Error: Block comment without end delimiter in line '{}': '{}'", line_num, line_content);
+                 return Err(2);
+              }
+          }, 
+          ManageClose::Ignore  =>{
+            if in_ignore{
+                println!("Error in the line: '{}': '{}'. missing close delimiter: {}", line_num, line_content, delimiter_ignore);
+                return Err(2);
+              }
+          }, 
+          ManageClose::None=>{},
+          _ => {panic!("¡FATAL ERROR!: The enum can be 'Ignore', 'Comment' or 'Both'");},
+         };
+
          return Ok(new_content);                
     }
 
