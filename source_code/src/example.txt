@@ -1,17 +1,9 @@
-1/*This is a line comment*/s
-2/*this/**/*/
-F/*This is a/*other/*chars/*/**/22*/ */N
-F/*this is*/in/*ishodk*/blocks/*dhsin/*sijd/**/*/12
-F/*This is
-Multiline
-jump
-/*jump
-*/*/ss
-F/*This is 
-Multiline 
-/*Nested 
-djksl+
-*/
+1s
+2*/
+F**/22*/ */N
+Finblocks*/12
+F*/ss
+F
 */M
 J*/55
 HELLO

@@ -1021,10 +1021,11 @@ pub mod remove_comments{
          let mut contains = false; // flag to indicate if the line contains some ignore delimiter
          let mut ignore_delimiter = false; //flag to indicate if have some ignore_delimiter 
          let mut delimiter_ignore = String::new(); // To store the delimiter ignore expected if in_ignore is true
+         let mut some_start_ignore:Vec<String> = Vec::new(); // To store all the start ignore delimiters
          if !ignore_content_between.0.is_empty() || !ignore_content_between.1.is_empty(){ignore_delimiter = true;}
          // Iterate through each line in the content
          // This is a single mode, so we don't need to handle nested comments
-         for line in content.lines() {
+         'next: for line in content.lines() {
           counter += 1; // Increment the line counter
           contains = false;
            let mut line_copy= line.to_string(); // copy the line for handle his content
@@ -1040,7 +1041,6 @@ pub mod remove_comments{
           }
           if !in_ignore{
             let mut j = 0;
-            let mut some_start_ignore:Vec<String> = Vec::new();
             if !ignore_content_between.0.is_empty(){
              while j <= ignore_content_between.0.len()-1{
               let mut sub_vec = general::sub_vec(&ignore_content_between.0, 2, j);
@@ -1059,8 +1059,8 @@ pub mod remove_comments{
                } 
              }
             if !some_start_ignore.is_empty(){
-              for element in some_start_ignore{
-              if line_copy.contains(&element){
+              for element in &some_start_ignore{
+              if line_copy.contains(element){
                 contains = true;
                 break;
               }
@@ -1087,23 +1087,31 @@ pub mod remove_comments{
                 // If not, push the content before the start delimiter to the new content
                 if !block_open {
                   if contains{  
-                    let mut string_before = content_between(ignore_content_between.0, ignore_content_between.1, delimiter_start, &line_copy);
+                    let string_before = content_between(ignore_content_between.0, ignore_content_between.1, delimiter_start, &line_copy);
                     //Upload in_ignore flag
                     in_ignore = string_before.1;
                     delimiter_ignore = string_before.0;
-                    line_copy = line_copy[string_before.2.len()..].to_string(); //upload line_copy with content in the line like find the first start delimiter
-                    new_content.push_str(&line[..string_before.2.len()]);
                     if !(string_before.2.len() == line_copy.len()){block_open = true;}
-                    //if the line not contains a start delimiter 
-                    else{break;}
+                    //if the line not contains a start delimiter, go to the next line
+                    else{continue 'next;}
                     //because if you watch inside the function [`process`] the code just return in_ignore like true if some ignore delimiter start, is not closed and this are before the first delimiter found
                     if in_ignore{block_open = false; break;}
-                    start_pos = 0; //because the start delimiter, after upload line_copy move to the first position or start in this position
+                    start_pos = string_before.2.len()+1; //because the start delimiter, after upload line_copy move to the first position or start in this position
                   }
-                  else{new_content.push_str(&line[..start_pos]); block_open = true;}
+                  new_content.push_str(&line[..start_pos]); block_open = true;
                 }
                 // If the start delimiter is found, check if the end delimiter is also present in the line
-                if let Some(end_pos) = line_copy.find(delimiter_end){
+                if let Some(mut end_pos) = line_copy.find(delimiter_end){
+                    // if the line contains some ignore delimiter check this but now with the end comment delimiter
+                     if contains{
+                      let string_before_first_end = content_between(ignore_content_between.0, ignore_content_between.1, delimiter_end, &line_copy);
+                      //if not found a end delimiter in the same line
+                      if !(string_before_first_end.2.len() == line_copy.len()){
+                        block_open = true;
+                        continue 'next;
+                      }
+                      end_pos = string_before_first_end.2.len()+1;
+                     }
                     // For preserved code between comments, but no inside of any of them, in other words, code between start and end block comments delimiters.
                     // The comp its this, becuase the code between comments, is in the start and end of comment, like this '/*thi*/between/*other*/', like we look here, the start delimiter have a greater index than end delimiter
                     //and the content "between" starts after the end delimiter, so we can push en_pos+delimiter_end.len(), and need been not multi-line, because the while loop and all this flux into the for-loop trate with a single line, 
@@ -1126,30 +1134,17 @@ pub mod remove_comments{
                    else{no_remove = false;}
 
                    }
-
-                    if start_pos > end_pos+delimiter_end.len() && !multi_line{
-                      
-                    let mut string_before = content_between(ignore_content_between.0, ignore_content_between.1, delimiter_start, &line_copy);
-                    //Upload in_ignore flag
-                    in_ignore = string_before.1;
-                    delimiter_ignore = string_before.0;
-                    new_content.push_str(&line[end_pos+delimiter_end.len()..string_before.2.len()]);
-                    line_copy = line_copy[string_before.2.len()..].to_string(); //upload line_copy with content in the line like find the first start delimiter
-                    
-                    if !(string_before.2 == line_copy){block_open = true;}
-                    //if the line not contains a start delimiter 
-                    else{break;}
-                    //because if you watch inside the function [`process`] the code just return in_ignore like true if some ignore delimiter start, is not closed and this are before the first delimiter found
-                    if in_ignore{block_open = false; break;}
-                    start_pos = 0; //because the start delimiter, after upload line_copy move to the first position or start in this position
+                   //For preserve content between start comments
+                  if start_pos > end_pos+delimiter_end.len() && !multi_line{
+                    new_content.push_str(&line[end_pos+delimiter_end.len()..start_pos]);
                   
                     // Remove the end delimiter from the line copy to continuing process the next start block comment in the line
                     line_copy.replace_range(end_pos..end_pos+delimiter_end.len(), &str_of_n_str(" ", line_copy[end_pos..end_pos+delimiter_end.len()].len()));
                     block_open = true;
-                     }
                      
-
                     }
+
+                  }
                     // Remove the start delimiter from the line copy, for not process this again, and avoid problems
                     if !no_remove {line_copy.replace_range(start_pos..start_pos+delimiter_start.len(), &str_of_n_str(" ", delimiter_start.len()));}
                 }
@@ -1157,7 +1152,17 @@ pub mod remove_comments{
               }
               if !in_ignore{
              //pass here when the line hasn't more start delimiters
-              if let Some(end_pos) = line_copy.find(delimiter_end){
+              if let Some(mut end_pos) = line_copy.find(delimiter_end){
+                // if the line contains some ignore delimiter check this but now with the end comment delimiter
+                     if contains{
+                      let string_before_first_end = content_between(ignore_content_between.0, ignore_content_between.1, delimiter_end, &line_copy);
+                      //if not found a end delimiter in the same line
+                      if !(string_before_first_end.2.len() == line_copy.len()){
+                        block_open = true;
+                        continue 'next;
+                      }
+                      end_pos = string_before_first_end.2.len()+1;
+                     }
                 // If a block comment is open and the end delimiter is found, push the content after the end delimiter to the new content
                 // and close the block comment
                 if block_open{
