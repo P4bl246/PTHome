@@ -1203,8 +1203,7 @@ pub mod remove_comments{
                       start_pos = end_pos+delimiter_end.len()+verify_ignore.2.len();
                     }else{
                       start_pos = line_copy.len();
-                      block_open = false;
-                      new_content.push_str(&line[end_pos..start_pos].to_string());
+                      block_open = true;
                       break;
                     }
                    //For preserve content between start comments
