@@ -362,6 +362,22 @@ pub mod general{
     return sub_vec;
   }
 //-----------------------------------------------------------------------------------------------
+  /// # `sstr_of_n_str`
+  /// Create a string from other string with n length
+  /// # Arguments
+  /// * `str_use:&str` - String to use for generate the new string
+  /// * `len_new_str:usize` - Indicate the length of the new string
+  /// # Return
+  /// A string with n length, all his content are the `str_use`
+  /// # Example 
+  /// ```rust
+  /// mod main_code;
+  /// fn main(){
+  /// use crate::main_code::utilities::general;
+  /// let str = general::str_of_n_str("S", 5);
+  /// println!("{}", str); //result is "SSSSS"
+  /// }
+  /// ``` 
   pub fn str_of_n_str(str_use: &str, len_new_str: usize) -> String{
      let mut new = String::new();
      let mut i = 0;
@@ -372,6 +388,25 @@ pub mod general{
      return new;
   }
 //-----------------------------------------------------------------------------------------------
+   /// # `replace_index`
+   /// Replace a character with his index in a string
+   /// # Arguments
+   /// * `str_in:&str` - string to remove the character
+   /// * `repalce:&str` - string for replace
+   /// * `index:usize` - index to replace
+   /// # Return
+   /// The input string if `str_in` or `replace` is empty
+   /// A String with the index replaced
+   ///   /// # Example 
+  /// ```rust
+  /// mod main_code;
+  /// fn main(){
+  /// use crate::main_code::utilities::general;
+  /// let main_str = "Hello. This is my show?";
+  /// let str = general::replace_index(main_str.find("?").unwrap(), "!");
+  /// println!("{}", str); //result is "Hello. This is my show!"
+  /// }
+  /// ``` 
   pub fn replace_index(str_in: &str, replace: &str, index: usize)-> String{
     if str_in.is_empty() || replace.is_empty(){
       return str_in.to_string();
@@ -891,9 +926,9 @@ pub mod remove_comments{
     /// * `content: &str` - The string from which block comments will be removed.
     /// * `start_delimiter: &str` - The starting delimiter of the block comment.
     /// * `end_delimiter: &str` - The ending delimiter of the block comment.
-    /// * `ignore_content_between: (&Vec<char>, &Vec<&str>)` - A tuple containing two vectors:
+    /// * `ignore_content_between: (&Vec<char>, &Vec<&str>)` - A tuple containing two vectors: `Vec<char>` and `Vec<&str>`.
     /// * `mode: ModeBlock` - The mode of block comment removal, either [`ModeBlock::Nested`] or [`ModeBlock::Single`]
-    /// * `manage_close` - The mode of ensure the content has his block comments and ignore content correctly close or not, either [`ManageClose::Both`], [`ManageClose::Comment`], [`ManageClose::Ignore`] or [`ManageClose::None`]
+    /// * `manage_close: ManageClose` - The mode of ensure the content has his block comments and ignore content correctly close or not, either [`ManageClose::Both`], [`ManageClose::Comment`], [`ManageClose::Ignore`] or [`ManageClose::None`]
     /// # Example
     /// ```rust
     /// mod main_code;
@@ -903,7 +938,7 @@ pub mod remove_comments{
     /// let vec_char:Vec<char> = Vec::new();
     /// let vec_str:Vec<String> = Vec::new();
     /// let tuple = (vec_char, vec_str):
-    /// let result = remove_comments::remove_block_comments(content, "/*", "*/", tuple, ModeBlock::Single);
+    /// let result = remove_comments::remove_block_comments(content, "/*", "*/", tuple, remove_comments::ModeBlock::Single, remove_comments::ManageClose::Both);
     /// }
     /// ```
     /// The result is a file with block comments removed.
@@ -981,7 +1016,7 @@ pub mod remove_comments{
         }
        }
        ModeBlock::Nested =>{
-        match nested_mode(&content, start_delimiter, end_delimiter){
+        match nested_mode(&content, start_delimiter, end_delimiter, ignore_content_between, manage_close){
           Ok(content2) => new_content.push_str(&content2),
           Err(_) => return None
         }
@@ -992,7 +1027,7 @@ pub mod remove_comments{
     }
 //------------------------------------------------------------------------------------------
 
-    /// `ManageClose`
+    /// # `ManageClose`
     /// Enum to indicate what type of close you want to verify, and ensure this is correctly close
     /// * Options:
     ///   - `Both`: Ensure the ignore delimiters are correctly close and the block comment are correctly close.
@@ -1016,7 +1051,8 @@ pub mod remove_comments{
     /// * `content: &Vec<&str>` - A vector of lines from content from which block comments will be removed.
     /// * `delimiter_end: &str` - The ending delimiter of the block comment.
     /// * `delimiter_start: &str` - The starting delimiter of the block comment.
-    /// * ``
+    /// * `ignore_content_between: (&Vec<char>, &Vec<&str>)` - A tuple containing two vectors: `Vec<char>` and `Vec<&str>`.
+    /// * `manage_close: ManageClose` - The mode of ensure the content has his block comments and ignore content correctly close or not, either [`ManageClose::Both`], [`ManageClose::Comment`], [`ManageClose::Ignore`] or [`ManageClose::None`]
     /// * **NOTE:** This is use in his API [`block_comments`] fuction.
     /// # Return
     /// Returns a `Result<String, i32>`:
@@ -1046,7 +1082,7 @@ pub mod remove_comments{
          let mut contains = false; // flag to indicate if the line contains some ignore delimiter
          let mut ignore_delimiter = false; //flag to indicate if have some ignore_delimiter 
          let mut delimiter_ignore = String::new(); // To store the delimiter ignore expected if in_ignore is true
-         let mut push = false;
+         let mut push = false; //indicate if we push the str before and no need push agains
          let mut some_start_ignore:Vec<String> = Vec::new(); // To store all the start ignore delimiters
          if !ignore_content_between.0.is_empty() || !ignore_content_between.1.is_empty(){ignore_delimiter = true;}
          // Iterate through each line in the content
@@ -1056,6 +1092,7 @@ pub mod remove_comments{
           counter += 1; // Increment the line counter
           contains = false;
            let mut line_copy= line.to_string(); // copy the line for handle his content
+           //If we are in ignore content, search the end of this at the actual line
            if ignore_delimiter{ 
           if in_ignore{
             if let Some(end) = line_copy.find(&delimiter_ignore){
@@ -1066,6 +1103,7 @@ pub mod remove_comments{
                   
             }
           }
+          //Else, check if the line contains some start ignore delimiter for process
           if !in_ignore{
             some_start_ignore.clear();
             let mut j = 0;
@@ -1096,7 +1134,7 @@ pub mod remove_comments{
             }
            }
           }
-          //if we are not in content to ignore
+          //if we aren't in content to ignore
           if !in_ignore{
            // Check if the line contains the start delimiter or if a block comment is already open
            if line_copy.contains(delimiter_start) || block_open{ 
@@ -1116,21 +1154,35 @@ pub mod remove_comments{
                 // If the start delimiter is found, check if a block comment is already open
                 // If not, push the content before the start delimiter to the new content
                 if !block_open {
+                  //If line contains some start delimiter ignore, check if the start_pos are be into some contento to ignore, and search some start_ignore that not are into ignore content
                   if contains{  
                     let string_before = content_between(ignore_content_between.0, ignore_content_between.1, delimiter_start, &line_copy);
                     //Upload in_ignore flag
                     in_ignore = string_before.1;
                     delimiter_ignore = string_before.0;
+                    //If the string contains some start_delimter remove all the content after this for avoid process this
                     if !(string_before.2.len() == line_copy.len()){block_open = true; 
                       line_copy.replace_range(..string_before.2.len(), &str_of_n_str(" ", string_before.2.len()));
                     }
                      
-                    //if the line not contains a start delimiter, go to the next line
-                    else{continue 'next;}
-                    //because if you watch inside the function [`process`] the code just return in_ignore like true if some ignore delimiter start, is not closed and this are before the first delimiter found
-                    if in_ignore{block_open = false; break;}
+                    //if the line not contains a start delimiter,copy the content and go to the next line
+                    else{
+                      block_open = false;
+                      new_content.push_str(&line.to_string());
+                      new_content.push('\n');
+                      continue 'next;
+                    }
+                    //Because if you watch inside the function [`process`] the code just return in_ignore like true if some ignore delimiter start, is not closed and this are before the first delimiter found
+                    //so we rewind the block_open flag, and continue to the nex line
+                    if in_ignore{
+                      block_open = false;
+                      new_content.push_str(&line.to_string());
+                      new_content.push('\n');
+                      continue 'next;
+                    }
                     start_pos = string_before.2.len(); //because the start delimiter, after upload line_copy move to the position of the len of the string returned from the contet_betwee position or start in this position
                   }
+                  //push the content before the start delimiter
                   new_content.push_str(&line[..start_pos]); block_open = true;
                 }
                 // If the start delimiter is found, check if the end delimiter is also present in the line
@@ -1157,6 +1209,7 @@ pub mod remove_comments{
                       break;
                     }
                   }
+                  //Check if the line contains some start ignore delimiter
                   if !some_start_ignore.is_empty(){
                     for element in &some_start_ignore{
                       if line_copy.contains(element){
@@ -1165,10 +1218,13 @@ pub mod remove_comments{
                       }else {contains = false;}
                     }
                   }
+                  //If the line contains some start ignore delimiter
                    if contains{
                     let string_before_start = content_between(ignore_content_between.0, ignore_content_between.1, delimiter_start, &line_copy);
-                    in_ignore = string_before_start.1;
-                    delimiter_ignore = string_before_start.0;
+                    in_ignore = string_before_start.1;//upload in_ignore flag
+                    delimiter_ignore = string_before_start.0;//upload delimiter_ignore
+                    //If we are in ignore content that means the start_pos are not found because some start ignore content delimiter already open an not closely in the same line
+                    //So not found anyone start delimiter
                     if in_ignore{
                       block_open = false;
                       multi_line = false;
@@ -1176,15 +1232,19 @@ pub mod remove_comments{
                       new_content.push('\n');
                       continue 'next;
                     }
+                    //if not found some start comment delimiter
                     if line_copy.len() == string_before_start.2.len(){
                        start_pos = line_copy.len()+1;
                     }
                     else{
                       start_pos = string_before_start.2.len();
+                      //remove all content before start_pos
                       line_copy.replace_range(..start_pos,&str_of_n_str(" ", string_before_start.2.len()));
                     }
                    }
+                   //Else don't call content_between
                    else{start_pos = line_copy.find(&delimiter_start).unwrap_or(line_copy.len()+1);}
+                   //If not found some start comment delimiter
                    if start_pos == line_copy.len()+1{
                     no_remove = true;
                     start_pos = 0;
@@ -1195,13 +1255,19 @@ pub mod remove_comments{
                 }
                   if start_pos > end_pos+delimiter_end.len() && !multi_line{
                     between = true;
+                  //get the string after end comment delimiter
                   let string_after = line_copy[end_pos+delimiter_end.len()..].to_string();
+                  //call content_between, for aovid start_pos are into ignore content
                   let verify_ignore = content_between(ignore_content_between.0, ignore_content_between.1, delimiter_start, &string_after);
-                  in_ignore = verify_ignore.1;
-                  delimiter_ignore = verify_ignore.0;
+
+                  in_ignore = verify_ignore.1;//upload in _ignore
+                  delimiter_ignore = verify_ignore.0; //upload delimiter_ignore
+                   // if found some start comment delimiter
                     if verify_ignore.2.len() != string_after.len(){
-                      start_pos = end_pos+delimiter_end.len()+verify_ignore.2.len();
-                    }else{
+                      start_pos = end_pos+delimiter_end.len()+verify_ignore.2.len();//upload start_pos
+                    }
+                    //else leave form the loop
+                    else{
                       start_pos = line_copy.len();
                       block_open = true;
                       break;
@@ -1222,6 +1288,7 @@ pub mod remove_comments{
                 }
                 
               }
+              //if we are not in ignore content
               if !in_ignore{
 
              //pass here when the line hasn't more start delimiters
@@ -1245,6 +1312,7 @@ pub mod remove_comments{
                       end_pos = string_before_first_end.2.len();
                       line_copy.replace_range(..end_pos, &str_of_n_str(" ", string_before_first_end.2.len()));
                      }
+                     //Check if the line_copy coitnue contains some start ignore content delimiter
                   if !some_start_ignore.is_empty(){
                     for element in &some_start_ignore{
                       if line_copy.contains(element){
@@ -1253,6 +1321,7 @@ pub mod remove_comments{
                       }else {contains = false;}
                     }
                   }
+                  //verify all ignore start content delimiter are correctly close
                   if contains{
                     let for_verify_ignore = content_between(ignore_content_between.0, ignore_content_between.1, delimiter_end, &line_copy);
                     in_ignore = for_verify_ignore.1;
@@ -1277,6 +1346,7 @@ pub mod remove_comments{
                }
               }
              }
+             //verify if some start ignore content delimiter already open
              if contains{
              let last_verify_ignore = content_between(ignore_content_between.0, ignore_content_between.1, delimiter_start, &line_copy);
               in_ignore = last_verify_ignore.1;
@@ -1337,6 +1407,8 @@ pub mod remove_comments{
     /// * `content: &str` - A string containing the content from which block comments will be removed.
     /// * `delimiter_start: &str` - The starting delimiter of the block comment.
     /// * `delimiter_end: &str` - The ending delimiter of the block comment.
+    /// * `ignore_content_between: (&Vec<char>, &Vec<&str>)` - A tuple containing two vectors: `Vec<char>` and `Vec<&str>`.
+    /// * `manage_close: ManageClose` - The mode of ensure the content has his block comments and ignore content correctly close or not, either [`ManageClose::Both`], [`ManageClose::Comment`], [`ManageClose::Ignore`] or [`ManageClose::None`]
     /// * **NOTE:** This is use in his API [`block_comments`] fuction.
     /// # Return
     /// Returns a `Result<String, i32>`:
@@ -1405,7 +1477,7 @@ pub mod remove_comments{
         
     /// ```
     /// And this occurs with any end delimiter and start delimiter
-  fn nested_mode(content: &str, delimiter_start: &str, delimiter_end: &str)-> Result<String, i32>{
+  fn nested_mode(content: &str, delimiter_start: &str, delimiter_end: &str, ignore_content_between: (&Vec<char>, &Vec<&str>), manage_close: ManageClose)-> Result<String, i32>{
        use crate::main_code::utilities::general;
        if content.is_empty(){
         println!("Error: The content vector is empty");
