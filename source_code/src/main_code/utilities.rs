@@ -1184,6 +1184,8 @@ pub mod remove_comments{
                   }
                   //push the content before the start delimiter
                   new_content.push_str(&line[..start_pos]); block_open = true;
+                  //remove all before the first start comment
+                  line_copy.replace_range(..start_pos, &str_of_n_str(" ", line_copy[..start_pos].len()));
                 }
                 // If the start delimiter is found, check if the end delimiter is also present in the line
                 // We don't make some verify of the end are between string, because the first element or starg ignore delimiter content are before the end delimiter, therefore this start delimiter are into the block comment so we ignore it for this reason
@@ -1286,7 +1288,8 @@ pub mod remove_comments{
                      if !between && !no_remove && (start_pos+delimiter_start.len()< end_pos){line_copy.replace_range(start_pos+delimiter_start.len()..end_pos, &str_of_n_str(" ", line_copy[start_pos+delimiter_start.len()..end_pos].len()));}
                   }
                     // Remove the start delimiter from the line copy, for not process this again, and avoid problems
-                    if !no_remove {line_copy.replace_range(start_pos..start_pos+delimiter_start.len(), &str_of_n_str(" ", delimiter_start.len()));}
+        
+                    if !no_remove {line_copy.replace_range(..start_pos+delimiter_start.len(), &str_of_n_str(" ", line_copy[..start_pos+delimiter_start.len()].len()));}
                 }
                 
               }
