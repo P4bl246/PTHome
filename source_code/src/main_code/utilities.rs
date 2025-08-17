@@ -648,7 +648,7 @@ pub mod remove_comments{
     /// - `1:bool`. Is `true` if the some ignore pair are be open but not closely, else its `false`
     /// - `2:String`. Is the string result to the process
     /// # Note 
-    /// This is use in the function [`simple_comments`], [`single_mode`] and [`nested_mode`]
+    /// This is use in the functions [`simple_comments`], [`single_mode`] and [`nested_mode`]
     fn content_between(delimiters_array_char: &Vec<char>, delimiters_array_str: &Vec<&str>, delimiter: &str, line: &str) -> (String, bool, String){
        let mut new_line2 = String::new();
        let mut in_ignore = false;
