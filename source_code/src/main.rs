@@ -5,12 +5,12 @@ fn main() {
       use std::io::Write;
   use std::fs::{self};
     let file_path = "C:/Users/cr1pt/Vscode_clonados/PTHome/source_code/src/example.txt";
-    let ignore_this = ['"', '"'].to_vec();
-    let ignore_this2 = ["'", "'"].to_vec();
+    let ignore_this = [].to_vec();
+    let ignore_this2 = [].to_vec();
     let ignore = (&ignore_this, &ignore_this2);
     let content = fs::read_to_string(file_path).expect(&format!("Failed to read the file '{}'", file_path));  
 
-    let n = remove_comments::block_comments(&content, "/*", "*/", ignore, remove_comments::ModeBlock::Single, remove_comments::ManageClose::None);
+    let n = remove_comments::block_comments(&content, "/*", "*/", ignore, remove_comments::ModeBlock::Single, remove_comments::ManageClose::Both);
     
     match n{
         None => println!("Error"),

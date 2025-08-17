@@ -1258,7 +1258,9 @@ pub mod remove_comments{
                   //get the string after end comment delimiter
                   let string_after = line_copy[end_pos+delimiter_end.len()..].to_string();
                   //call content_between, for aovid start_pos are into ignore content
-                  let verify_ignore = content_between(ignore_content_between.0, ignore_content_between.1, delimiter_start, &string_after);
+                  if contains{
+                    let verify_ignore = content_between(ignore_content_between.0, ignore_content_between.1, delimiter_start, &string_after);
+                  
 
                   in_ignore = verify_ignore.1;//upload in _ignore
                   delimiter_ignore = verify_ignore.0; //upload delimiter_ignore
@@ -1272,8 +1274,8 @@ pub mod remove_comments{
                       block_open = true;
                       break;
                     }
+                  }
                    //For preserve content between start comments
-                  
                     new_content.push_str(&line[end_pos+delimiter_end.len()..start_pos]);
                   
                     // Remove the end delimiter from the line copy to continuing process the next start block comment in the line
@@ -1281,7 +1283,7 @@ pub mod remove_comments{
                     block_open = true;
                      
                      }
-                     if !between && !no_remove{line_copy.replace_range(start_pos+delimiter_start.len()..end_pos, &str_of_n_str(" ", line_copy[start_pos+delimiter_start.len()..end_pos].len()));}
+                     if !between && !no_remove && (start_pos+delimiter_start.len()< end_pos){line_copy.replace_range(start_pos+delimiter_start.len()..end_pos, &str_of_n_str(" ", line_copy[start_pos+delimiter_start.len()..end_pos].len()));}
                   }
                     // Remove the start delimiter from the line copy, for not process this again, and avoid problems
                     if !no_remove {line_copy.replace_range(start_pos..start_pos+delimiter_start.len(), &str_of_n_str(" ", delimiter_start.len()));}
@@ -1335,6 +1337,7 @@ pub mod remove_comments{
                 new_content.push_str(&line[end_pos+delimiter_end.len()..]);
                 new_content.push('\n');
                 block_open = false;
+                multi_line = false;
                 push = true;
                 }
               }
@@ -1501,11 +1504,61 @@ pub mod remove_comments{
         let mut indexes_end: Vec<usize> = Vec::new();
         let mut line_indexes_end: usize = 0;
         let mut line_indexes_start: Vec<usize> = Vec::new();
+        let mut ignore_delimiter: bool = false;
+         if !ignore_content_between.0.is_empty() || !ignore_content_between.1.is_empty(){ignore_delimiter = true;}
+         let mut in_ignore = false;
+         let mut some_start_ignore: Vec<String> = Vec::new();
+         let mut delimiter_ignore = String::new();
+         let mut contains = false;
         // Iterate through each line in the content
         // This is a nested mode, so we must to handle nested comments
     for line in content.lines(){
          counter += 1;
-          let mut line_copy = line.to_string();
+         contains = false;
+          let mut line_copy: String = line.to_string();
+
+         //If we are in ignore content, search the end of this at the actual line
+           if ignore_delimiter{ 
+          if in_ignore{
+            if let Some(end) = line_copy.find(&delimiter_ignore){
+              if end == line_copy.len()-1 {continue;}
+              in_ignore = false;
+                let mut removed = delimiter_ignore.len();
+              line_copy.replace_range(..end+delimiter_ignore.len(), &str_of_n_str(" ", line_copy[..end+delimiter_ignore.len()].len()));               
+                  
+            }
+          }
+          //Else, check if the line contains some start ignore delimiter for process
+          if !in_ignore{
+            some_start_ignore.clear();
+            let mut j = 0;
+            if !ignore_content_between.0.is_empty(){
+             while j <= ignore_content_between.0.len()-1{
+              let mut sub_vec = general::sub_vec(&ignore_content_between.0, 2, j);
+              some_start_ignore.push(sub_vec[0].to_string());
+              sub_vec.clear();
+              j+=2;
+              }
+             }
+             j= 0;
+             if !ignore_content_between.1.is_empty(){
+             while j <= ignore_content_between.1.len()-1{
+              let mut sub_vec = general::sub_vec(&ignore_content_between.1, 2, j);
+              some_start_ignore.push(sub_vec[0].to_string());
+              sub_vec.clear();
+              j+=2;
+               } 
+             }
+            if !some_start_ignore.is_empty(){
+              for element in &some_start_ignore{
+              if line_copy.contains(element){
+                contains = true;
+                break;
+              }
+             }
+            }
+           }
+          }
           // Check if the line contains the start or end delimiter
         if line_copy.contains(delimiter_end) || line_copy.contains(delimiter_start){
           // If the line contains the end delimiter, find all occurrences of it
