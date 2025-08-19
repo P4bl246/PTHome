@@ -1175,6 +1175,8 @@ pub mod remove_comments{
                     //Because if you watch inside the function [`process`] the code just return in_ignore like true if some ignore delimiter start, is not closed and this are before the first delimiter found
                     //so we rewind the block_open flag, and continue to the nex line
                     if in_ignore{
+                      line_num = counter;
+                      line_content = line.to_string();
                       block_open = false;
                       new_content.push_str(&line.to_string());
                       new_content.push('\n');
@@ -1228,6 +1230,8 @@ pub mod remove_comments{
                     //If we are in ignore content that means the start_pos are not found because some start ignore content delimiter already open an not closely in the same line
                     //So not found anyone start delimiter
                     if in_ignore{
+                      line_num = counter;
+                      line_content = line.to_string();
                       block_open = false;
                       multi_line = false;
                       new_content.push_str(&line[end_pos+delimiter_end.len()..]);
@@ -1274,6 +1278,12 @@ pub mod remove_comments{
                     else{
                       start_pos = line_copy.len();
                       block_open = true;
+                      if in_ignore {
+                        block_open = false;
+                        line_num = counter;
+                      line_content = line.to_string();
+                       new_content.push_str(&line[end_pos+delimiter_end.len()..start_pos]);
+                      }
                       break;
                     }
                   }
@@ -1331,6 +1341,10 @@ pub mod remove_comments{
                     let for_verify_ignore = content_between(ignore_content_between.0, ignore_content_between.1, delimiter_end, &line_copy);
                     in_ignore = for_verify_ignore.1;
                     delimiter_ignore = for_verify_ignore.0;
+                    if in_ignore{
+                      line_num = counter;
+                      line_content = line.to_string();
+                    }
                   }
                   
                      
@@ -1358,6 +1372,8 @@ pub mod remove_comments{
               in_ignore = last_verify_ignore.1;
               delimiter_ignore = last_verify_ignore.0;
               if in_ignore{
+                line_num = counter;
+                line_content = line.to_string();
                 new_content.push('\n');
               }
             }
