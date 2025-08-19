@@ -1735,8 +1735,10 @@ pub mod remove_comments{
                   }
                 }
                 //remove all delimiter end between block comments for avoid problems
+                let mut removed = 0; //indexes removed for consider the decrement
                 for n in remove_end_between{
-                  indexes_end.remove(n);
+                  indexes_end.remove(n-removed);
+                  removed+=1;
                 }
                  new_content.push_str(&line[indexes_end[i]+delimiter_end.len()..indexes[i+1]]);
                  indexes_end.remove(i);
@@ -1790,10 +1792,35 @@ pub mod remove_comments{
          new_content.push('\n');
        }
      }
-        if in_block_comment || block_comment_level > 0{
-          println!("Error: Block comment without end delimiter in line '{}': '{}'\n MISSING COMMENTS TO CLOSE: {}", line_num, line_content, block_comment_level);
-          return Err(2);
-        }
+         match manage_close{
+          ManageClose::Both=>{
+               // if some ignore are open after process all the file, print an error
+              if in_ignore{
+                println!("Error in the line: '{}': '{}'. missing close delimiter: {}", line_num, line_content, delimiter_ignore);
+                return Err(2);
+              }
+              // If a block comment is open at the end of the content, return an error
+              if in_block_comment || block_comment_level > 0{
+                println!("Error: Block comment without end delimiter in line '{}': '{}'\n MISSING COMMENTS TO CLOSE: {}", line_num, line_content, block_comment_level);
+                return Err(2);
+              }
+          }, 
+          ManageClose::Comment =>{
+            // If a block comment is open at the end of the content, return an error
+              if in_block_comment || block_comment_level > 0{
+                println!("Error: Block comment without end delimiter in line '{}': '{}'\n MISSING COMMENTS TO CLOSE: {}", line_num, line_content, block_comment_level);
+                return Err(2);
+              }
+          }, 
+          ManageClose::Ignore  =>{
+            if in_ignore{
+                println!("Error in the line: '{}': '{}'. missing close delimiter: {}", line_num, line_content, delimiter_ignore);
+                return Err(2);
+              }
+          }, 
+          ManageClose::None=>{},
+          _ => {panic!("¡FATAL ERROR!: The enum can be 'Ignore', 'Comment' or 'Both'");},
+         };
         return Ok(new_content);
     
         
