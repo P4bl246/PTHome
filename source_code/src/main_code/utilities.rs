@@ -1782,6 +1782,10 @@ pub mod remove_comments{
 
             }
           }
+          //Last verify of ignore delimiters
+          let last_verify = content_between(ignore_content_between.0, ignore_content_between.1, delimiter_start, &line_copy);
+          in_ignore = last_verify.1;
+          delimiter_ignore = last_verify.0;
         }
         if !in_block_comment && !processed{
          new_content.push_str(&line.to_string());
