@@ -1727,6 +1727,8 @@ pub mod remove_comments{
                 // If the end delimiter is less than the next start delimiter, and not its a nested block comment, or we are not be in a block comment
                 // We need to push the content between the end delimiter and the next start delimiter to the new content
                 // And remove this level, from the vectors and block_comment_level counter
+                //Here we use indexes 0 or 1 because in each iterate we remove the index 0 of the vectors, and the level 1 or first level of block comment, manage down of this part
+                // We just made this comprobation the line becuase we just need make this in the same line, can't have content between comments in multiple lines
                if indexes_end[i] < indexes[i+1] && !in_block_comment && line_indexes_start[i+1] == line_indexes_end{
                 let mut remove_end_between: Vec<usize> = Vec::new();
                 for (s, n) in indexes_end.iter().enumerate(){
