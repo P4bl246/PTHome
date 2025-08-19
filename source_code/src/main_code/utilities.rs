@@ -1663,7 +1663,9 @@ pub mod remove_comments{
                 line_copy.replace_range(..indexes_end[0]+delimiter_end.len(), &general::str_of_n_str(" ", line_copy[..indexes_end[0]+delimiter_end.len()].len()));
                 loop{
                   if let Some(mut start_pos) = line_copy.find(delimiter_start){
-                    //Check if the start_pos index are in ignore content and fix this where it is
+                    //Check if the start_pos index are in ignore content and fix this when it is
+                    //We no need manage case like this '/*hello */ "heilo /*"*/ /* */' because the content_between, return all the line if not found the delimiter start
+                    //or the string before the first appear of the start_delimtier and recognize this case in the line '"heilo/*"*/ /*"*/' and know the first appear if in the index 24 an not the index 18
                     let verify_start = content_between(ignore_content_between.0, ignore_content_between.1, delimiter_start, &line_copy);
                     //if not found some start delimiter
                     if verify_start.2.len() == line_copy.len(){
