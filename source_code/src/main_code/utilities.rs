@@ -946,7 +946,7 @@ pub mod remove_comments{
                           if let Some(pos_end2) = copy2.find(&sub_vec2[1]){
                             //check if the delimiter are after a scape character 
                             if scape_characters.contains(&line.to_string().chars().nth(pos_end2-1).unwrap()){
-                            copy2.replace_range(ignore_start+sub_vec2[0].len()..ignore_end+sub_vec2[1].len(), &general::str_of_n_str(" ", copy2[ignore_start+sub_vec2[0].len()..ignore_end+sub_vec2[1].len()].len()));
+                            copy2.replace_range(ignore_start+sub_vec2[0].len()..pos_end2+sub_vec2[1].len(), &general::str_of_n_str(" ", copy2[ignore_start+sub_vec2[0].len()..pos_end2+sub_vec2[1].len()].len()));
                             }else{
                               ignore_end = pos_end2;
                               break;

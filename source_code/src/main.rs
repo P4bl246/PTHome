@@ -9,7 +9,7 @@ fn main() {
     let ignore_this2 = ["'", "'"].to_vec();
     let ignore = (&ignore_this, &ignore_this2);
     let content = fs::read_to_string(file_path).expect(&format!("Failed to read the file '{}'", file_path));  
-    let scape = ['?'].to_vec();
+    let scape = ['\\'].to_vec();
     let n = remove_comments::block_comments(&content, "/*", "*/", ignore,&scape, remove_comments::ModeBlock::Single, remove_comments::ManageClose::Both);
     
     match n{
