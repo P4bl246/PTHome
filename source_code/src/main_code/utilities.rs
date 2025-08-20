@@ -446,6 +446,7 @@ pub mod remove_comments{
     /// * `ignore_content_between: (&Vec<char>, &Vec<&str>)` - A tuple containing two vectors:
     ///   - A vector of characters that should be ignored the content between this when removing comments.
     ///   - A vector of strings that should be ignored the content between this when removing comments.
+    /// * `scape_characters:&Vec<char>` - A vector of chars for define the scape characters for ignore end delimiters  
     /// * `manage_close: bool` - Ensure the close of the ignore_content_between tuple
     /// # Return
     /// Returns an `Option<String>`:
@@ -462,8 +463,9 @@ pub mod remove_comments{
     /// let content = fs::read_to_string(input_file).expect(&format!("Failed to read the file '{}'", input_file));
     /// let vec_char:Vec<char> = Vec::new();
     /// let vec_str:Vec<String> = Vec::new();
-    /// let tuple = (vec_char, vec_str):
-    /// let new_content = remove_comments::remove_simple_comments(content, "//", tuple, false);
+    /// let scape = [].to_vec()
+    /// let tuple = (&vec_char, &vec_str):
+    /// let new_content = remove_comments::remove_simple_comments(content, "//", tuple, &scape, false);
     /// }
     /// ```
     /// # Errors
@@ -682,6 +684,7 @@ pub mod remove_comments{
     /// # Arguments
     /// * `delimiters_array_char: &Vec<char>` - Array of chars to indicate pairs that indicate a start and end delimiter of a conent must be are ignored
     /// * `delimiters_array_str: &Vec<&str>` - Array of Strings to indicate pairs that indicate a start and end delimiter of a conent must be are ignored
+    /// * `scape_characters:&Vec<char>` - A vector of chars for define the scape characters for ignore end delimiters  
     /// * `delimiter:&str` - comment delimiter
     /// * `line: &str` - line to process
     /// # Return
@@ -733,6 +736,7 @@ pub mod remove_comments{
     /// # Arguments
     /// * `in_ignore:bool` - Flag to indicate if are be in ignore content
     /// * `delimiters_array:&Vec<String>` - Array that contains the delimiters to indicate when the content are must be ignored
+    /// * `scape_characters:&Vec<char>` - A vector of chars for define the scape characters for ignore end delimiters  
     /// * `line:&str` - Line to process
     /// * `pos:usize` - Position of the comment delimiter in the line
     /// * `delimiter:&str` - Comment delimiter 
@@ -1034,6 +1038,7 @@ pub mod remove_comments{
     /// * `start_delimiter: &str` - The starting delimiter of the block comment.
     /// * `end_delimiter: &str` - The ending delimiter of the block comment.
     /// * `ignore_content_between: (&Vec<char>, &Vec<&str>)` - A tuple containing two vectors: `Vec<char>` and `Vec<&str>`.
+    /// * `scape_characters:&Vec<char>` - A vector of chars for define the scape characters for ignore end delimiters.
     /// * `mode: ModeBlock` - The mode of block comment removal, either [`ModeBlock::Nested`] or [`ModeBlock::Single`]
     /// * `manage_close: ManageClose` - The mode of ensure the content has his block comments and ignore content correctly close or not, either [`ManageClose::Both`], [`ManageClose::Comment`], [`ManageClose::Ignore`] or [`ManageClose::None`]
     /// # Example
@@ -1044,8 +1049,9 @@ pub mod remove_comments{
     /// let content = "example.txt/*fadfjs*/";
     /// let vec_char:Vec<char> = Vec::new();
     /// let vec_str:Vec<String> = Vec::new();
-    /// let tuple = (vec_char, vec_str):
-    /// let result = remove_comments::remove_block_comments(content, "/*", "*/", tuple, remove_comments::ModeBlock::Single, remove_comments::ManageClose::Both);
+    /// let tuple = (&vec_char, &vec_str);
+    /// let scape:Vec<char> = Vec::new();
+    /// let result = remove_comments::remove_block_comments(content, "/*", "*/", tuple, &scape, remove_comments::ModeBlock::Single, remove_comments::ManageClose::Both);
     /// }
     /// ```
     /// The result is a file with block comments removed.
@@ -1179,6 +1185,7 @@ pub mod remove_comments{
     /// * `delimiter_end: &str` - The ending delimiter of the block comment.
     /// * `delimiter_start: &str` - The starting delimiter of the block comment.
     /// * `ignore_content_between: (&Vec<char>, &Vec<&str>)` - A tuple containing two vectors: `Vec<char>` and `Vec<&str>`.
+    /// * `scape_characters:&Vec<char>` - A vector of chars for define the scape characters for ignore end delimiters.  
     /// * `manage_close: ManageClose` - The mode of ensure the content has his block comments and ignore content correctly close or not, either [`ManageClose::Both`], [`ManageClose::Comment`], [`ManageClose::Ignore`] or [`ManageClose::None`]
     /// * **NOTE:** This is use in his API [`block_comments`] fuction.
     /// # Return
@@ -1581,6 +1588,7 @@ pub mod remove_comments{
     /// * `delimiter_start: &str` - The starting delimiter of the block comment.
     /// * `delimiter_end: &str` - The ending delimiter of the block comment.
     /// * `ignore_content_between: (&Vec<char>, &Vec<&str>)` - A tuple containing two vectors: `Vec<char>` and `Vec<&str>`.
+    /// * `scape_characters:&Vec<char>` - A vector of chars for define the scape characters for ignore end delimiters.  
     /// * `manage_close: ManageClose` - The mode of ensure the content has his block comments and ignore content correctly close or not, either [`ManageClose::Both`], [`ManageClose::Comment`], [`ManageClose::Ignore`] or [`ManageClose::None`]
     /// * **NOTE:** This is use in his API [`block_comments`] fuction.
     /// # Return
@@ -1598,10 +1606,13 @@ pub mod remove_comments{
     /// use crate::main_code::utilities::remove_comments;
     /// use std::fs;
     /// use  std::io::Write;
-    /// let mut file = fs::File::create("example.txt").expect("Failed to create the file");
     /// let content = "This is a test /* This is a nested*/ between /* comment /* block comment */*/line/*/*.";
     /// file.write_all(content.as_bytes()).expect("Failed to write to the file");
-    /// let result = remove_comments::block_comments("example.txt", "/*", "*/", remove_comments::ModeBlock::Nested);
+    /// let vec_char:Vec<char> = Vec::new();
+    /// let vec_str:Vec<String> = Vec::new();
+    /// let tuple = (&vec_char, &vec_str);
+    /// let scape:Vec<char> = Vec::new(); 
+    /// let result = remove_comments::block_comments(content, "/*", "*/", tuple, &scape, remove_comments::ModeBlock::Nested, remove_comments::ManageClose::Both);
     /// match result {
     ///    0 => println!("Content without block comments: {}", new_content),
     ///   -1 => println!("Error removing block comments: {}", e),
