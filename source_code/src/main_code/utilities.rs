@@ -471,7 +471,7 @@ pub mod remove_comments{
     /// # Note
     /// The function will remove everything after the first occurrence of the comment delimiter in each line.
     
-     pub fn simple_comments(content: &str, delimiter: &str, ignore_content_between: (&Vec<char>, &Vec<&str>), manage_close: bool)-> Option<String>{
+     pub fn simple_comments(content: &str, delimiter: &str, ignore_content_between: (&Vec<char>, &Vec<&str>), scape_characters:&Vec<char>,manage_close: bool)-> Option<String>{
        use crate::main_code::utilities::general;
         println!("REMOVING SIMPLE COMMENTS FROM CONTENT: {}", content);
         if delimiter.is_empty() || delimiter.contains(" "){
@@ -479,6 +479,12 @@ pub mod remove_comments{
         }
         if content.is_empty(){
           panic!("Error: The content cannot be an empty string.");
+        }
+        if scape_characters.len()>0{
+          if scape_characters.contains(&' '){
+            println!("Error: The scape characters vector '{:?}' cannot contains some space character (' ')", scape_characters);
+            return None;
+          }
         }
         let mut i: usize = ignore_content_between.0.len()/2;
         if !(ignore_content_between.0.is_empty() && ignore_content_between.1.is_empty()){
@@ -491,7 +497,13 @@ pub mod remove_comments{
           if *ch == ' '{
               println!("Error: The ignore delimiter '{}' cannot be a space (' ') the ignore characters vector '{:?}'", *ch, ignore_content_between.0);
                return None;
-            }  
+            }
+            if scape_characters.len() >0{
+             if scape_characters.contains(ch){
+              println!("Error: The ignore delimiter '{}' cannot contains a scape character ('{:?}') the ignore characters vector '{:?}'", *ch, scape_characters, ignore_content_between.0);
+               return None;
+             }
+           }  
           }
           //Chekc if the vector ignore_content_between.0 has an even number of elements
           //Becuase is a pair start-end, so, all the characters must be in pairs, like this: ['{', '}'], ['(', ')'], ['[', ']']
@@ -510,6 +522,14 @@ pub mod remove_comments{
           if ch.contains(" "){
           println!("Error: The ignore delimiter '{}' cannot contains a space (' ') the ignore characters vector '{:?}'", *ch, ignore_content_between.1);
             return None;
+          }
+           if scape_characters.len() >0{
+            for char in ch.chars(){
+             if scape_characters.contains(&char){
+              println!("Error: The ignore delimiter '{}' cannot contains a scape character ('{:?}') the ignore characters vector '{:?}'", *ch, scape_characters, ignore_content_between.1);
+               return None;
+             }
+            }
           }
          }
          // Chekc if the vector ignore_content_between.1 has an even number of elements
@@ -584,7 +604,7 @@ pub mod remove_comments{
           }
           if copy.contains(delimiter) && !in_ignore && contains{
             if !ignore_content_between.0.is_empty() || !ignore_content_between.1.is_empty(){
-            let result = content_between(ignore_content_between.0, ignore_content_between.1, delimiter, &copy);
+            let result = content_between(ignore_content_between.0, ignore_content_between.1, scape_characters, delimiter, &copy);
             delimiter_ignore = result.0;
             in_ignore = result.1;
             new_content.push_str(&line[..result.2.len()]);
@@ -649,7 +669,7 @@ pub mod remove_comments{
     /// - `2:String`. Is the string result to the process
     /// # Note 
     /// This is use in the functions [`simple_comments`], [`single_mode`] and [`nested_mode`]
-    fn content_between(delimiters_array_char: &Vec<char>, delimiters_array_str: &Vec<&str>, delimiter: &str, line: &str) -> (String, bool, String){
+    fn content_between(delimiters_array_char: &Vec<char>, delimiters_array_str: &Vec<&str>, scape_characters:&Vec<char>, delimiter: &str, line: &str) -> (String, bool, String){
        let mut new_line2 = String::new();
        let mut in_ignore = false;
        let mut result:(String, bool, String);
@@ -669,7 +689,7 @@ pub mod remove_comments{
              }
             }
             // process the char array.
-            let result1 = process(in_ignore, &delimiters_array, line, pos, delimiter);
+            let result1 = process(in_ignore, &delimiters_array, scape_characters, line, pos, delimiter);
             if !result1.1{
                 new_line2 = result1.2;
                   result = ("".to_string(), false, new_line2.to_string());
@@ -702,7 +722,7 @@ pub mod remove_comments{
     /// # Note 
     /// This is use in the function [`content_between`] 
 
-    fn process(mut in_ignore:bool, delimiters_array:&Vec<String>, line:&str, mut pos:usize, delimiter:&str)->(String, bool, String){
+    fn process(mut in_ignore:bool, delimiters_array:&Vec<String>, scape_characters:&Vec<char>, line:&str, mut pos:usize, delimiter:&str)->(String, bool, String){
       use crate::main_code::utilities::general;
       if !in_ignore{
       let mut copy = line.to_string(); // create a mutable copy of the input line
@@ -752,8 +772,42 @@ pub mod remove_comments{
                 copy2 = new_copy.to_string();
                 i2 = 0;
                 // Search the pos of the end delimiter if have
-                 if let Some(pos_end) = copy2.find(&delimiters_array[n+1]){
+                 if let Some(mut pos_end) = copy2.find(&delimiters_array[n+1]){
                   start_ignore_index.push(pos_start);
+                  if scape_characters.len() >0{
+                    if pos_end>0{
+                    //check if the delimiter are after a scape character 
+                    if scape_characters.contains(&line.to_string().chars().nth(pos_end-1).unwrap()){
+                      let mut not_found = false;
+                      //remove the last value push in the vector
+                      copy2.replace_range(pos_start+i.len()..pos_end+delimiters_array[n+1].len(), &general::str_of_n_str(" ", copy2[pos_start+i.len()..pos_end+delimiters_array[n+1].len()].len()));
+                      loop{
+                        // Search the pos of the end delimiter if have
+                          if let Some(pos_end2) = copy2.find(&delimiters_array[n+1]){
+                            //check if the delimiter are after a scape character 
+                            if scape_characters.contains(&line.to_string().chars().nth(pos_end2-1).unwrap()){
+                              copy2.replace_range(pos_start+i.len()..pos_end2+delimiters_array[n+1].len(), &general::str_of_n_str(" ", copy2[pos_start+i.len()..pos_end2+delimiters_array[n+1].len()].len()));
+                            }else{
+                              pos_end = pos_end2;
+                              break;
+                            }
+                          }else{
+                           not_found = true;
+                           break;
+                          }
+                      }
+                      if not_found{
+                        start_ignore_index.remove(start_ignore_index.len()-1); //remove the last value push in the vector
+                        //If not found end delimiter
+                        without_end.push(pos_start);
+                        expected.push(delimiters_array[n+1].clone()); 
+                        copy = copy2.to_string();
+                        continue;
+                      }
+
+                     }
+                    }
+                  }
                   end_ignore_index.push(pos_end);
                   removed = copy[pos_start..pos_end+delimiters_array[n+1].len()].len();
                   let mut before = pos_start;
@@ -852,10 +906,40 @@ pub mod remove_comments{
                       in_ignore=true;
                       copy2 = copy2.replacen(&sub_vec2[0], "", 1);
                       //search the end ignore delimiter and remove the content and the delimiters for the line copy
-                      if let Some(ignore_end) = copy2.find(&sub_vec2[1]){
+                      if let Some(mut ignore_end) = copy2.find(&sub_vec2[1]){
+                        if scape_characters.len() >0{
+                          if ignore_end>0{
+                    //check if the delimiter are after a scape character 
+                          if scape_characters.contains(&line.to_string().chars().nth(ignore_end-1).unwrap()){
+                             let mut not_found = false;
+                      //remove the last value push in the vector
+                            copy.replace_range(ignore_start+sub_vec2[0].len()..ignore_end+sub_vec2[1].len(), &general::str_of_n_str(" ", copy[ignore_start+sub_vec2[0].len()..ignore_end+sub_vec2[1].len()].len()));
+                            loop{
+                        // Search the pos of the end delimiter if have
+                          if let Some(pos_end2) = copy.find(&sub_vec2[1]){
+                            //check if the delimiter are after a scape character 
+                            if scape_characters.contains(&line.to_string().chars().nth(pos_end2-1).unwrap()){
+                            copy.replace_range(ignore_start+sub_vec2[0].len()..ignore_end+sub_vec2[1].len(), &general::str_of_n_str(" ", copy[ignore_start+sub_vec2[0].len()..ignore_end+sub_vec2[1].len()].len()));
+                            }else{
+                              ignore_end = pos_end2;
+                              break;
+                              }
+                            }else{
+                           not_found = true;
+                           break;
+                            }
+                          }
+                            if not_found{
+                              //If not found end delimiter
+                                continue;
+                              }
+
+                            }
+                          }
+                        }
                       sub_vec_start = 0;
                       in_ignore = false;
-                      copy.replace_range(ignore_start..ignore_end+sub_vec2[1].len()+sub_vec2[0].len(), "");
+                      copy.replace_range(ignore_start..ignore_end+sub_vec2[1].len(), "");
                       }
                     }
                     else{
@@ -949,13 +1033,19 @@ pub mod remove_comments{
     /// * `None` - If there is a block comment without an end delimiter.
     /// * `Some(String)` - If the block comments were successfully removed.
     
-    pub fn block_comments(content: &str, start_delimiter: &str, end_delimiter: &str, ignore_content_between: (&Vec<char>, &Vec<&str>), mode: ModeBlock, manage_close: ManageClose) -> Option<String>{
+    pub fn block_comments(content: &str, start_delimiter: &str, end_delimiter: &str, ignore_content_between: (&Vec<char>, &Vec<&str>), scape_characters:&Vec<char>, mode: ModeBlock, manage_close: ManageClose) -> Option<String>{
       if content.is_empty(){
         panic!("Error: the argument 'conten't is empty");
       }
       if start_delimiter.is_empty() || start_delimiter.contains(" ") || end_delimiter.is_empty() || end_delimiter.contains(" "){
         panic!("Error: start delimiter or end delimiter is empty. Or some comment delimiter contains (' ')");
       }
+      if scape_characters.len()>0{
+          if scape_characters.contains(&' '){
+            println!("Error: The scape characters vector '{:?}' cannot contains some space character (' ')", scape_characters);
+            return None;
+          }
+        }
 
       if !(ignore_content_between.0.is_empty() && ignore_content_between.1.is_empty()){
        if !ignore_content_between.0.is_empty(){
@@ -968,6 +1058,12 @@ pub mod remove_comments{
             println!("Error: The ignore character '{}' cannot be a space (' ') in the ignore character vector '{:?}'", *ch, ignore_content_between.0);
             return None;
             }
+            if scape_characters.len() >0{
+             if scape_characters.contains(ch){
+              println!("Error: The ignore delimiter '{}' cannot contains a scape character ('{:?}') the ignore characters vector '{:?}'", *ch, scape_characters, ignore_content_between.0);
+               return None;
+             }
+           } 
 
           }
           //Chekc if the vector ignore_content_between.0 has an even number of elements
@@ -987,6 +1083,14 @@ pub mod remove_comments{
           if str.contains(" "){
             println!("Error: The ignore string '{}' cannot contains a space (' ') in the ignore string vector '{:?}'", *str, ignore_content_between.1);
             return None;
+          }
+          if scape_characters.len() >0{
+            for char in str.chars(){
+             if scape_characters.contains(&char){
+              println!("Error: The ignore delimiter '{}' cannot contains a scape character ('{:?}') the ignore characters vector '{:?}'", *str, scape_characters, ignore_content_between.1);
+               return None;
+             }
+            }
           } 
          }
          // Chekc if the vector ignore_content_between.1 has an even number of elements
@@ -1010,13 +1114,13 @@ pub mod remove_comments{
       let mut new_content = String::new();
       match mode{
       ModeBlock::Single =>{
-        match single_mode(&content, start_delimiter, end_delimiter, ignore_content_between, manage_close){
+        match single_mode(&content, start_delimiter, end_delimiter, ignore_content_between,scape_characters, manage_close){
             Ok(content2) =>  new_content.push_str(&content2) ,
             Err(_) => return None
         }
        }
        ModeBlock::Nested =>{
-        match nested_mode(&content, start_delimiter, end_delimiter, ignore_content_between, manage_close){
+        match nested_mode(&content, start_delimiter, end_delimiter, ignore_content_between, scape_characters, manage_close){
           Ok(content2) => new_content.push_str(&content2),
           Err(_) => return None
         }
@@ -1060,7 +1164,7 @@ pub mod remove_comments{
     /// * `Err(i32)` - If there is an error, returns an `i32` error code:
     ///   - `-1` - If the start and end delimiters are the same or content vector is empty.
     ///   - `2` - If the block comment are not closed and arrive to the end of content vector, with an error message indicating the line number and content of the line.
- fn single_mode(content: &str, delimiter_start: &str, delimiter_end: &str, ignore_content_between: (&Vec<char>, &Vec<&str>), manage_close: ManageClose) -> Result<String, i32>{
+ fn single_mode(content: &str, delimiter_start: &str, delimiter_end: &str, ignore_content_between: (&Vec<char>, &Vec<&str>),scape_characters:&Vec<char>, manage_close: ManageClose) -> Result<String, i32>{
       use crate::main_code::utilities::{general, remove_comments::ManageClose};
         if delimiter_start == delimiter_end{
             println!("Error: The start and end delimiters are the same.");
@@ -1156,7 +1260,7 @@ pub mod remove_comments{
                 if !block_open {
                   //If line contains some start delimiter ignore, check if the start_pos are be into some contento to ignore, and search some start_ignore that not are into ignore content
                   if contains{  
-                    let string_before = content_between(ignore_content_between.0, ignore_content_between.1, delimiter_start, &line_copy);
+                    let string_before = content_between(ignore_content_between.0, ignore_content_between.1, scape_characters, delimiter_start, &line_copy);
                     //Upload in_ignore flag
                     in_ignore = string_before.1;
                     delimiter_ignore = string_before.0;
@@ -1224,7 +1328,7 @@ pub mod remove_comments{
                   }
                   //If the line contains some start ignore delimiter
                    if contains{
-                    let string_before_start = content_between(ignore_content_between.0, ignore_content_between.1, delimiter_start, &line_copy);
+                    let string_before_start = content_between(ignore_content_between.0, ignore_content_between.1,scape_characters, delimiter_start, &line_copy);
                     in_ignore = string_before_start.1;//upload in_ignore flag
                     delimiter_ignore = string_before_start.0;//upload delimiter_ignore
                     //If we are in ignore content that means the start_pos are not found because some start ignore content delimiter already open an not closely in the same line
@@ -1265,7 +1369,7 @@ pub mod remove_comments{
                   let string_after = line_copy[end_pos+delimiter_end.len()..].to_string();
                   //call content_between, for aovid start_pos are into ignore content
                   if contains{
-                    let verify_ignore = content_between(ignore_content_between.0, ignore_content_between.1, delimiter_start, &string_after);
+                    let verify_ignore = content_between(ignore_content_between.0, ignore_content_between.1, scape_characters, delimiter_start, &string_after);
                   
 
                   in_ignore = verify_ignore.1;//upload in _ignore
@@ -1282,7 +1386,9 @@ pub mod remove_comments{
                         block_open = false;
                         line_num = counter;
                       line_content = line.to_string();
+                      push = true;
                        new_content.push_str(&line[end_pos+delimiter_end.len()..start_pos]);
+                       new_content.push('\n');
                       }
                       break;
                     }
@@ -1318,7 +1424,7 @@ pub mod remove_comments{
                   }
                 // if the line contains some ignore delimiter check this but now with the end comment delimiter
                      if contains{
-                      let string_before_first_end = content_between(ignore_content_between.0, ignore_content_between.1, delimiter_end, &line_copy);
+                      let string_before_first_end = content_between(ignore_content_between.0, ignore_content_between.1, scape_characters, delimiter_end, &line_copy);
                       //if not found a end delimiter in the same line
                       if string_before_first_end.2.len() == line_copy.len(){
                         block_open = true;
@@ -1338,7 +1444,7 @@ pub mod remove_comments{
                   }
                   //verify all ignore start content delimiter are correctly close
                   if contains{
-                    let for_verify_ignore = content_between(ignore_content_between.0, ignore_content_between.1, delimiter_end, &line_copy);
+                    let for_verify_ignore = content_between(ignore_content_between.0, ignore_content_between.1, scape_characters, delimiter_end, &line_copy);
                     in_ignore = for_verify_ignore.1;
                     delimiter_ignore = for_verify_ignore.0;
                     if in_ignore{
@@ -1357,6 +1463,7 @@ pub mod remove_comments{
                 multi_line = false;
                 push = true;
                 }
+                line_copy.replace_range(..end_pos+delimiter_end.len(), &str_of_n_str(" ", line_copy[..end_pos+delimiter_end.len()].len()));
               }
               //indicate its a multi-line block comment
             else{
@@ -1367,18 +1474,17 @@ pub mod remove_comments{
               }
              }
              //verify if some start ignore content delimiter already open
-             if contains{
-             let last_verify_ignore = content_between(ignore_content_between.0, ignore_content_between.1, delimiter_start, &line_copy);
+             if contains && !block_open{
+             let last_verify_ignore = content_between(ignore_content_between.0, ignore_content_between.1, scape_characters,delimiter_start, &line_copy);
               in_ignore = last_verify_ignore.1;
               delimiter_ignore = last_verify_ignore.0;
               if in_ignore{
                 line_num = counter;
                 line_content = line.to_string();
-                new_content.push('\n');
               }
             }
              // If the line doesn't contain the start delimiter and a block comment is not open, push the line to the new content
-            else if (!block_open && !push) || in_ignore{
+             if (!block_open || in_ignore) && !push {
              new_content.push_str(&line);
              new_content.push('\n');
            }
@@ -1499,7 +1605,7 @@ pub mod remove_comments{
         
     /// ```
     /// And this occurs with any end delimiter and start delimiter
-  fn nested_mode(content: &str, delimiter_start: &str, delimiter_end: &str, ignore_content_between: (&Vec<char>, &Vec<&str>), manage_close: ManageClose)-> Result<String, i32>{
+  fn nested_mode(content: &str, delimiter_start: &str, delimiter_end: &str, ignore_content_between: (&Vec<char>, &Vec<&str>), scape_characters:&Vec<char>, manage_close: ManageClose)-> Result<String, i32>{
        use crate::main_code::utilities::general;
        if content.is_empty(){
         println!("Error: The content vector is empty");
@@ -1592,7 +1698,7 @@ pub mod remove_comments{
            if line_copy.contains(delimiter_start){
             let mut found_before = false;
             if !in_block_comment && contains{
-              let search_first_start = content_between(ignore_content_between.0, ignore_content_between.1, delimiter_start, &line_copy);
+              let search_first_start = content_between(ignore_content_between.0, ignore_content_between.1, scape_characters, delimiter_start, &line_copy);
               in_ignore = search_first_start.1;
               delimiter_ignore = search_first_start.0;
               if search_first_start.2.len() == line.len() || in_ignore{
@@ -1682,7 +1788,7 @@ pub mod remove_comments{
                     //Check if the start_pos index are in ignore content and fix this when it is
                     //We no need manage case like this '/*hello */ "heilo /*"*/ /* */' because the content_between, return all the line if not found the delimiter start
                     //or the string before the first appear of the start_delimtier and recognize this case in the line '"heilo/*"*/ /*"*/' and know the first appear if in the index 24 an not the index 18
-                    let verify_start = content_between(ignore_content_between.0, ignore_content_between.1, delimiter_start, &line_copy);
+                    let verify_start = content_between(ignore_content_between.0, ignore_content_between.1, scape_characters,delimiter_start, &line_copy);
                     //if not found some start delimiter
                     if verify_start.2.len() == line_copy.len(){
                       //upload in_ignore flag
@@ -1803,7 +1909,7 @@ pub mod remove_comments{
             }
           }
           //Last verify of ignore delimiters
-          let last_verify = content_between(ignore_content_between.0, ignore_content_between.1, delimiter_start, &line_copy);
+          let last_verify = content_between(ignore_content_between.0, ignore_content_between.1, scape_characters, delimiter_start, &line_copy);
           in_ignore = last_verify.1;
           delimiter_ignore = last_verify.0;
         }
