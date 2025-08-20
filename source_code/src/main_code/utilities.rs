@@ -567,10 +567,33 @@ pub mod remove_comments{
           let mut copy = line.to_string();
          if ignore_delimiters{ 
           if in_ignore{
-            if let Some(end) = copy.find(&delimiter_ignore){
-              if end == copy.len()-1 {continue;}
+            if let Some(mut end) = copy.find(&delimiter_ignore){
+              let mut not_found = false;
+              if end > 0{
+                if scape_characters.len() > 0{
+                  if scape_characters.contains(&line.to_string().chars().nth(end-1).unwrap()){
+                  copy.replace_range(..end+delimiter_ignore.len(), &str_of_n_str(" ", copy[..end+delimiter_ignore.len()].len()));
+                    loop {
+                      if let Some(end2) = copy.find(&delimiter_ignore){
+                        if scape_characters.contains(&line.to_string().chars().nth(end2-1).unwrap()){
+                          copy.replace_range(..end2+delimiter_ignore.len(), &str_of_n_str(" ", copy[..end2+delimiter_ignore.len()].len()));
+                        }else{
+                          end = end2;
+                          break;
+                        }
+                        
+                      }else{
+                        not_found = true;
+                        break;
+                      }
+                    }
+                  }
+                }
+              }
+              if !not_found{
               in_ignore = false;
-              copy.replace_range(..end+delimiter_ignore.len(), &str_of_n_str(" ", copy[..end+delimiter_ignore.len()].len()));               
+              copy.replace_range(..end+delimiter_ignore.len(), &str_of_n_str(" ", copy[..end+delimiter_ignore.len()].len()));    
+              }           
             }
           }
           if !in_ignore{
@@ -904,7 +927,7 @@ pub mod remove_comments{
                   //search the start ignore delimiter and remove themm
                   if let Some(ignore_start) = copy.find(&sub_vec2[0]){
                       in_ignore=true;
-                      copy2 = copy2.replacen(&sub_vec2[0], "", 1);
+                      copy2 = copy2.replacen(&sub_vec2[0], &general::str_of_n_str(" ", sub_vec2[0].len()), 1);
                       //search the end ignore delimiter and remove the content and the delimiters for the line copy
                       if let Some(mut ignore_end) = copy2.find(&sub_vec2[1]){
                         if scape_characters.len() >0{
@@ -913,13 +936,13 @@ pub mod remove_comments{
                           if scape_characters.contains(&line.to_string().chars().nth(ignore_end-1).unwrap()){
                              let mut not_found = false;
                       //remove the last value push in the vector
-                            copy.replace_range(ignore_start+sub_vec2[0].len()..ignore_end+sub_vec2[1].len(), &general::str_of_n_str(" ", copy[ignore_start+sub_vec2[0].len()..ignore_end+sub_vec2[1].len()].len()));
+                            copy2.replace_range(ignore_start+sub_vec2[0].len()..ignore_end+sub_vec2[1].len(), &general::str_of_n_str(" ", copy2[ignore_start+sub_vec2[0].len()..ignore_end+sub_vec2[1].len()].len()));
                             loop{
                         // Search the pos of the end delimiter if have
-                          if let Some(pos_end2) = copy.find(&sub_vec2[1]){
+                          if let Some(pos_end2) = copy2.find(&sub_vec2[1]){
                             //check if the delimiter are after a scape character 
                             if scape_characters.contains(&line.to_string().chars().nth(pos_end2-1).unwrap()){
-                            copy.replace_range(ignore_start+sub_vec2[0].len()..ignore_end+sub_vec2[1].len(), &general::str_of_n_str(" ", copy[ignore_start+sub_vec2[0].len()..ignore_end+sub_vec2[1].len()].len()));
+                            copy2.replace_range(ignore_start+sub_vec2[0].len()..ignore_end+sub_vec2[1].len(), &general::str_of_n_str(" ", copy2[ignore_start+sub_vec2[0].len()..ignore_end+sub_vec2[1].len()].len()));
                             }else{
                               ignore_end = pos_end2;
                               break;
@@ -939,7 +962,7 @@ pub mod remove_comments{
                         }
                       sub_vec_start = 0;
                       in_ignore = false;
-                      copy.replace_range(ignore_start..ignore_end+sub_vec2[1].len(), "");
+                      copy.replace_range(ignore_start..ignore_end+sub_vec2[1].len(), &general::str_of_n_str(" ", copy[ignore_start..ignore_end+sub_vec2[1].len()].len()));
                       }
                     }
                     else{
@@ -1199,11 +1222,33 @@ pub mod remove_comments{
            //If we are in ignore content, search the end of this at the actual line
            if ignore_delimiter{ 
           if in_ignore{
-            if let Some(end) = line_copy.find(&delimiter_ignore){
-              if end == line_copy.len()-1 {continue;}
+            if let Some(mut end) = line_copy.find(&delimiter_ignore){
+              let mut not_found = false;
+              if end > 0{
+                if scape_characters.len() > 0{
+                  if scape_characters.contains(&line.to_string().chars().nth(end-1).unwrap()){
+                  line_copy.replace_range(..end+delimiter_ignore.len(), &str_of_n_str(" ", line_copy[..end+delimiter_ignore.len()].len()));
+                    loop {
+                      if let Some(end2) = line_copy.find(&delimiter_ignore){
+                        if scape_characters.contains(&line.to_string().chars().nth(end2-1).unwrap()){
+                          line_copy.replace_range(..end2+delimiter_ignore.len(), &str_of_n_str(" ", line_copy[..end2+delimiter_ignore.len()].len()));
+                        }else{
+                          end = end2;
+                          break;
+                        }
+                        
+                      }else{
+                        not_found = true;
+                        break;
+                      }
+                    }
+                  }
+                }
+              }
+              if !not_found{
               in_ignore = false;
-                let mut removed = delimiter_ignore.len();
-              line_copy.replace_range(..end+delimiter_ignore.len(), &str_of_n_str(" ", line_copy[..end+delimiter_ignore.len()].len()));               
+              line_copy.replace_range(..end+delimiter_ignore.len(), &str_of_n_str(" ", line_copy[..end+delimiter_ignore.len()].len()));    
+              }               
                   
             }
           }
@@ -1645,11 +1690,33 @@ pub mod remove_comments{
          //If we are in ignore content, search the end of this at the actual line
            if ignore_delimiter{ 
           if in_ignore{
-            if let Some(end) = line_copy.find(&delimiter_ignore){
-              if end == line_copy.len()-1 {continue;}
+            if let Some(mut end) = line_copy.find(&delimiter_ignore){
+              let mut not_found = false;
+              if end > 0{
+                if scape_characters.len() > 0{
+                  if scape_characters.contains(&line.to_string().chars().nth(end-1).unwrap()){
+                  line_copy.replace_range(..end+delimiter_ignore.len(), &str_of_n_str(" ", line_copy[..end+delimiter_ignore.len()].len()));
+                    loop {
+                      if let Some(end2) = line_copy.find(&delimiter_ignore){
+                        if scape_characters.contains(&line.to_string().chars().nth(end2-1).unwrap()){
+                          line_copy.replace_range(..end2+delimiter_ignore.len(), &str_of_n_str(" ", line_copy[..end2+delimiter_ignore.len()].len()));
+                        }else{
+                          end = end2;
+                          break;
+                        }
+                        
+                      }else{
+                        not_found = true;
+                        break;
+                      }
+                    }
+                  }
+                }
+              }
+              if !not_found{
               in_ignore = false;
-                let mut removed = delimiter_ignore.len();
-              line_copy.replace_range(..end+delimiter_ignore.len(), &str_of_n_str(" ", line_copy[..end+delimiter_ignore.len()].len()));               
+              line_copy.replace_range(..end+delimiter_ignore.len(), &str_of_n_str(" ", line_copy[..end+delimiter_ignore.len()].len()));    
+              }               
                   
             }
           }
