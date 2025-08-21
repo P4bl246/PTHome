@@ -693,9 +693,76 @@ pub mod remove_comments{
     /// - `0:String`. Is a void string if the start delimiter ignore are correctly closely in the same line, else is the start delimiter ignore not closed
     /// - `1:bool`. Is `true` if the some ignore pair are be open but not closely, else its `false`
     /// - `2:String`. Is the string result to the process
+    /// 
+    /// * Panic with a message indicate the error
     /// # Note 
     /// This is use in the functions [`simple_comments`], [`single_mode`] and [`nested_mode`]
-    fn content_between(delimiters_array_char: &Vec<char>, delimiters_array_str: &Vec<&str>, scape_characters:&Vec<char>, delimiter: &str, line: &str) -> (String, bool, String){
+    pub fn content_between(delimiters_array_char: &Vec<char>, delimiters_array_str: &Vec<&str>, scape_characters:&Vec<char>, delimiter: &str, line: &str) -> (String, bool, String){
+
+       if delimiter.contains(" "){
+            panic!("Error: The delimiter cannot contains a space (' ').");
+        }
+        if scape_characters.len()>0{
+          if scape_characters.contains(&' '){
+            panic!("Error: The scape characters vector '{:?}' cannot contains some space character (' ')", scape_characters);
+          }
+        }
+        let mut i: usize = delimiters_array_char.len()/2;
+        if !(delimiters_array_char.is_empty() && delimiters_array_str.is_empty()){
+       if !delimiters_array_char.is_empty(){
+        for ch in delimiters_array_char{
+          if delimiter.contains(*ch){
+            panic!("Error: The delimiter '{}' cannot be in the ignore characters vector '{:?}'", delimiter, delimiters_array_char);
+            }
+          if *ch == ' '{
+              panic!("Error: The ignore delimiter '{}' cannot be a space (' ') the ignore characters vector '{:?}'", *ch, delimiters_array_char);
+
+            }
+            if scape_characters.len() >0{
+             if scape_characters.contains(ch){
+              panic!("Error: The ignore delimiter '{}' cannot contains a scape character ('{:?}') the ignore characters vector '{:?}'", *ch, scape_characters, delimiters_array_char);
+             }
+           }  
+          }
+          //Chekc if the vector delimiters_array_char has an even number of elements
+          //Becuase is a pair start-end, so, all the characters must be in pairs, like this: ['{', '}'], ['(', ')'], ['[', ']']
+          let i = delimiters_array_char.len();
+         if i % 2 != 0{
+            panic!("Error: The ignore characters vector '{:?}' must have an even number of elements", delimiters_array_char);
+         }
+        }
+        if !delimiters_array_str.is_empty(){
+        for ch in delimiters_array_str{
+          if delimiter.contains(*ch){
+            panic!("Error: The delimiter '{}' cannot be in the ignore strings vector '{:?}'", delimiter, delimiters_array_str);
+          }
+          if ch.contains(" "){
+          panic!("Error: The ignore delimiter '{}' cannot contains a space (' ') the ignore characters vector '{:?}'", *ch, delimiters_array_str);
+          }
+           if scape_characters.len() >0{
+            for char in ch.chars(){
+             if scape_characters.contains(&char){
+              panic!("Error: The ignore delimiter '{}' cannot contains a scape character ('{:?}') the ignore characters vector '{:?}'", *ch, scape_characters,delimiters_array_str);
+             }
+            }
+          }
+         }
+         // Chekc if the vector delimiters_array_str has an even number of elements
+        //Becuase is a pair start-end, so, all the strings must be in pairs, like this: ["{", "}"], ["(", ")"], ["[", "]"]
+          let i = delimiters_array_str.len();
+
+          if i % 2 != 0{
+            panic!("Error: The ignore strings vector '{:?}' must have an even number of elements", delimiters_array_str);
+          }
+        }
+        if !delimiters_array_char.is_empty() && !delimiters_array_str.is_empty(){
+        for ch in delimiters_array_char{
+          if delimiters_array_str.contains(&&(*ch.to_string())){
+            panic!("Error: The ignore characters vector '{:?}' cannot contain the same characters as the ignore strings vector '{:?}'", delimiters_array_char,delimiters_array_str);
+          }
+        }
+       }
+      }
        let mut new_line2 = String::new();
        let mut in_ignore = false;
        let mut result:(String, bool, String);
