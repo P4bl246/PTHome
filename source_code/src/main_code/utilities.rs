@@ -14,7 +14,7 @@ pub mod general{
     /// mod main_code;
     /// fn main (){
     /// use crate::main_code::utilities::general;
-    /// let input_file = "example.txt";
+    /// let input_file = "example\n \n";
     /// general::remove_empty_lines(input_file);
     /// }
     /// ```
@@ -22,18 +22,19 @@ pub mod general{
     /// # Errors
     /// If the file cannot be read or written, the function will panic with an error message.
    pub fn remove_empty_lines(content: &str) -> String{
-    println!("REMOVING VOID LINES FROM CONTENT: {}", content);
+    println!("REMOVING VOID LINES");
      let mut new_content = String::new();
      {       
        for line in content.lines(){
-         if line.is_empty(){
+         if line.trim().is_empty(){
              continue;
          }
-         new_content.push_str(&format!("{}\n",line));
+         new_content.push_str(&line.to_string());
+         new_content.push('\n');
        }
 
      }
-     println!("VOID LINES REMOVED FROM FILE: {}", content);
+     println!("VOID LINES REMOVED");
      return new_content;
    }
 //------------------------------------------------------------------------------------------
@@ -63,7 +64,7 @@ pub mod general{
     /// mod main_code;
     /// fn main (){
     /// use crate::main_code::utilities::general;
-    /// let instance = general::NumLines::new("example.txt\n   \nsdf", " - ");
+    /// let instance = general::NumLines::new("example\n   \nsdf", " - ");
     /// }
     /// ```
     /// # Return
@@ -95,7 +96,7 @@ pub mod general{
        /// # Return
        /// String with the `content` str numerated
        pub fn numerate_lines(&self) -> String{
-        println!("NUMERATING LINES FROM CONTENT: {}", self.content);
+        println!("NUMERATING LINES FROM CONTENT");
         let mut new_content = String::new();
 
         {
@@ -127,12 +128,14 @@ pub mod general{
         /// let mut rmv_num = instance.remove_num_lines();
         /// //Upload content just as here
         /// instance.set_content(&rmv_num);
+        /// let removed = instace.remove_num_lines();
         /// }   
         /// ```
         /// # Return
         /// String with the `content` cleaned of numeber of lines
+        /// The same content if the `content` haven't any delimiter
         pub fn remove_num_lines(&self) -> String{
-            println!("REMOVING LINE NUMBERS FROM CONTENT: {}", self.content);
+            println!("REMOVING LINE NUMBERS FROM CONTENT");
             let mut new_content = String::new();
             {
                 for line in self.content.lines() {
@@ -140,9 +143,15 @@ pub mod general{
                         if let Some(pos) = line.find(' ') {
                             new_content.push_str(&line[pos + 1..]);
                     }
+                    else{
+                      new_content.push_str(&line);
+                    }
                   }else{
                     if let Some(pos) = line.find(self.delimiter) {
                         new_content.push_str(&line[pos + self.delimiter.len()..]);
+                    }
+                    else{
+                      new_content.push_str(&line);
                     }
                 }
                 new_content.push('\n');
@@ -169,7 +178,7 @@ pub mod general{
         /// ```
         /// # Return
         /// Return a `String` with the line without the line numbers.
-        /// Return an empty `String` if the delimiter is not found.
+        /// Return the same line if the delimiter is not found.
         pub fn skip_num_line(&self, line:&str) -> String{
             let mut new_content = String::new();
             if self.delimiter.is_empty(){
@@ -181,8 +190,7 @@ pub mod general{
             if let Some(pos) = line.find(self.delimiter) {
                         new_content.push_str(&line[pos + self.delimiter.len()..]);
                     }else{
-                        println!("Delimiter '{}' not found in line: '{}'", self.delimiter, line);
-                        return "".to_string();
+                        return line.to_string();
                     }
                 }
                 
@@ -227,10 +235,10 @@ pub mod general{
         }
 //---------------------------------------------------------------------   
        /// # `get_input_file`
-       /// Gets the input file path.
+       /// Gets the content.
        /// # Return
-       /// Returns the input file path as a `String`.
-       pub fn get_input_file(&self) -> String{
+       /// Returns the content as a `String`.
+       pub fn get_content(&self) -> String{
             self.content.to_string()
         }
 //---------------------------------------------------------------------
@@ -245,7 +253,7 @@ pub mod general{
        /// # `set_content`
        /// Sets the input file path.
        /// # Arguments
-       /// * `input_file: &'a str` - The new input file path to be set.
+       /// * `new_value: &'a str` - The new content to from make set.
        /// # Example
        /// ```rust
        /// mod main_code;
@@ -426,7 +434,182 @@ pub mod general{
     }
     return new_str;
   }
+//-------------------------------------------------------------------------------------------------
+#[cfg(test)]
+///# Tests
+  mod tests{
+      use super::*;
+      #[test]
+       /// # [`super::remove_empty_lines`] Test
+       ///The result expected have a '\n' at the end because within the function in each iteration push the content of the line and add '\n' on the end 
+        fn test_remove_empty_lines(){
+          let str= &"This is my test\n            \n The test is made for ensure the function \n \n remove_empyt_lines".to_string();
+          let expected ="This is my test\n The test is made for ensure the function \n remove_empyt_lines\n".to_string();
+          assert_eq!(expected, super::remove_empty_lines(str));
+        }
+
+      #[test]
+      /// # [`super::NumLines::numerate_lines`] Test
+       fn test_numerate_lines(){
+        let new_instance = super::NumLines::new("This is the content''\n to numerate'\n this is the line three'\n", "");
+        assert_eq!("1 This is the content''\n2  to numerate'\n3  this is the line three'\n".to_string(), new_instance.numerate_lines());
+      }
+
+      #[test]
+      /// # [`super::NumLines::remove_num_lines`] Test
+       fn test_remove_num_lines(){
+        let mut new_instance = super::NumLines::new("This is the content''\n to numerate'\n this is the line three'\n", "-");
+        let numerated = new_instance.numerate_lines();
+        new_instance.set_content(&numerated);
+        let expected = "This is the content''\n to numerate'\n this is the line three'\n".to_string();
+        assert_eq!(expected, new_instance.remove_num_lines());
+      }
+      #[test]
+      /// # [`super::NumLines::remove_num_lines`] Test 2
+      /// Here we test the function with a string not numerated before and without de delimiter
+      fn test_2_remove_num_lines(){
+        let mut new_instance = super::NumLines::new("This is the content''\n to numerate'\n this is the line three'\n", "-");
+        //Not set the content
+        let expected = "This is the content''\n to numerate'\n this is the line three'\n".to_string();
+        assert_eq!(expected, new_instance.remove_num_lines());
+      }
+      #[test]
+      /// # [`super::NumLines::remove_num_lines`] Test 3
+      /// Here we test the function with a delimiter just like space (' '), so the function remove all after and the first delmiter appear found for each line
+        fn test_3_remove_num_lines(){
+        let mut new_instance = super::NumLines::new("This is the content''\n to numerate'\n this is the line three'\n", "");
+        //Not set the content
+        let expected = "is the content''\nto numerate'\nthis is the line three'\n".to_string();
+        assert_eq!(expected, new_instance.remove_num_lines());
+      }
+
+      #[test]
+      /// # [`super::NumLines::skip_num_line`] Test
+       fn test_skip_num_line(){
+        let mut new_instance = super::NumLines::new("This is the content''\n to numerate'\n this is the line three'\n", "");
+        let numerated = new_instance.numerate_lines();
+        let mut num_line_skiped = String::new();
+        for line in numerated.lines(){
+          num_line_skiped.push_str(&new_instance.skip_num_line(line));
+          num_line_skiped.push('\n');
+        }
+        assert_eq!("This is the content''\n to numerate'\n this is the line three'\n".to_string(),num_line_skiped);
+      }
+      #[test]
+      /// # [`super::NumLines::skip_num_line`] Test 2
+      /// Here we test the function with a string without end delimiter use
+       fn test_2_skip_num_line(){
+        let mut new_instance = super::NumLines::new("This is the content''\n to numerate'\n this is the line three'\n", "-");
+      
+        let mut num_line_skiped = String::new();
+        for line in new_instance.content.lines(){
+          num_line_skiped.push_str(&new_instance.skip_num_line(line));
+          num_line_skiped.push('\n');
+        }
+        assert_eq!("This is the content''\n to numerate'\n this is the line three'\n".to_string(),num_line_skiped);
+      }
+
+      #[test]
+      /// # [`super::NumLines::get_num_line`] Test
+       fn test_get_num_line(){
+        let mut new_instance = super::NumLines::new("This is the content''\n to numerate'\n this is the line three'\n", "-");
+         let numerated = new_instance.numerate_lines();
+        let mut num_line:Vec<i32> = Vec::new();
+        for line in numerated.lines(){
+          num_line.push(new_instance.get_num_line(line));
+        }
+        assert_eq!([1, 2, 3].to_vec(),num_line);
+      }
+      #[test]
+      /// # [`super::NumLines::get_num_line`] Test  2
+      /// test the function without the content numerated before
+      /// expected -1 at the end of the vector, because not found in the string a delimiter expected '-'
+       fn test_2_get_num_line(){
+        let mut new_instance = super::NumLines::new("1-This is the content''\n2- to numerate'\n3 this is the line three'\n", "-");
+        let mut num_line:Vec<i32> = Vec::new();
+        for line in new_instance.content.lines(){
+          num_line.push(new_instance.get_num_line(line));
+        }
+        assert_eq!([1, 2, -1].to_vec(),num_line);
+      }
+      #[test]
+      #[should_panic]
+      /// # [`super::NumLines::get_num_line`] Test  3
+      /// test the function without the content numerated before
+      /// expected panic because can convert 'This' to i32
+       fn test_3_get_num_line(){
+        let mut new_instance = super::NumLines::new("This is the content''", "");
+        assert_eq!(1,new_instance.get_num_line("This is the content''"));
+      }
+
+      #[test]
+      /// # [`super::NumLines::get_content`] Test
+     fn test_get_content(){
+        let new_instance = super::NumLines::new("1-This is the content''", "");
+        assert_eq!("1-This is the content''".to_string(), new_instance.get_content());
+      }
+
+      #[test]
+      /// # [`super::NumLines::get_delimiter`] Test
+       fn test_get_delimiter(){
+        let new_instance = super::NumLines::new("1-This is the content''", "");
+        assert_eq!("".to_string(), new_instance.get_delimiter());
+      }
+      #[test]
+      /// # [`super::NumLines::set_content`] Test
+       fn test_set_content(){
+        let mut new_instance = super::NumLines::new("1-This is the content''", "");
+        new_instance.set_content("Set To This");
+        assert_eq!("Set To This".to_string(), new_instance.get_content());
+      }
+      
+      #[test]
+      /// # [`super::NumLines::set_delimiter`] Test
+       fn test_set_delimiter(){
+        let mut new_instance = super::NumLines::new("1-This is the content''", "");
+        new_instance.set_delimiter("-");
+        assert_eq!("-".to_string(), new_instance.get_delimiter());
+      }
+
+      #[test]
+      /// # [`super::all_appears_index`] Test
+     fn test_all_appears_index(){
+        let vec:Vec<usize> = vec![5, 7, 10];
+        assert_eq!(vec, super::all_appears_index("This - -  -" , "-"));
+      }
+
+      #[test]
+      /// # [`super::str_of_n_str`] Test
+       fn test_str_of_n_str(){
+        assert_eq!("------".to_string(),super::str_of_n_str("-", 6));
+      }
+
+      #[test]
+      /// # [`super::sub_vec`] Test
+       fn test_sub_vec(){
+        assert_eq!([6, 8].to_vec(), super::sub_vec(&[-1, 5, 6, 8].to_vec(), 3, 2));
+      }
+      
+      #[test]
+      /// # [`super::replace_index`] Test
+       fn test_replace_index(){
+        let str = "Edit This? 'hi'";
+        let index = str.find("?").unwrap();
+        assert_eq!("Edit This/Hello 'hi'".to_string(), super::replace_index(str, "/Hello", index));
+      }
+      #[test]
+      /// # [`super::replace_index`] Test 2
+      /// test when the index is greather than the str.len()-1
+       fn test_2_replace_index(){
+        let str = "Edit This? 'hi'";
+        let index = str.find("?").unwrap();
+        assert_eq!("Edit This? 'hi'".to_string(), super::replace_index(str, "/Hello", str.len()));
+      }
+
+  }
+
 }
+
 //------------------------------------------------------------------
 /// # Mod `remove_comments` from `utilities.rs`
 /// This module provides functions to remove comments from files.   
@@ -2103,5 +2286,146 @@ pub mod remove_comments{
   }
 
 //------------------------------------------------------------------------------------------
+#[cfg(test)]
+  mod tests{
+     use super::*;
+       #[test]
+       /// # [`super::simple_comments`] Test
+      fn test_simple_comments(){
+        let str = "Not remove this // remove this\nother // abcdefghijklm";
+        let scape:Vec<char> = Vec::new(); //without scape characters
+       let vec_str:Vec<&str> = Vec::new();
+       let vec_char:Vec<char> = Vec::new();
+       let ignore = (&vec_char, &vec_str); //tuple with empty vectors
+       assert_eq!("Not remove this \nother \n".to_string(), super::simple_comments(str, "//", ignore, &scape, true).unwrap());
+      }
+       
+      #[test]
+      /// # [`super::simple_comments`] Test 2
+      /// test using scape characters and ignore content characters
+      fn test_2_simple_comments(){
+        let str = "Not remove this 'this is a string// \\'' //remove this\nother // abcdefghijklm";
+        let scape:Vec<char> = vec!['\\']; //without scape characters
+       let vec_str:Vec<&str> = vec!["'", "'"];
+       let vec_char:Vec<char> = vec![];
+       let ignore = (&vec_char, &vec_str); //tuple with empty vectors
+       assert_eq!("Not remove this 'this is a string// \\'' \nother \n".to_string(), super::simple_comments(str, "//", ignore, &scape, true).unwrap());
+      }
 
+      #[test]
+      /// # [`super::simple_comments`] Test 3
+      /// test where the ignore delimiter is not closed, expect an error
+      fn test_3_simple_comments(){
+        let str = "Not remove this 'this is a string// \\' //remove this\nother // abcdefghijklm";
+        let scape:Vec<char> = vec!['\\']; //without scape characters
+       let vec_str:Vec<&str> = vec!["'", "'"];
+       let vec_char:Vec<char> = vec![];
+       let ignore = (&vec_char, &vec_str); //tuple with empty vectors
+       assert_eq!(None, super::simple_comments(str, "//", ignore, &scape, true));
+      }
+
+      #[test]
+      /// # [`super::simple_comments`] Test 4
+      /// test where the ignore delimiter is not closed, but not manage this error
+      fn test_4_simple_comments(){
+        let str = "Not remove this 'this is a string// \\' //remove this\nother // abcdefghijklm";
+        let scape:Vec<char> = vec!['\\']; //without scape characters
+       let vec_str:Vec<&str> = vec!["'", "'"];
+       let vec_char:Vec<char> = vec![];
+       let ignore = (&vec_char, &vec_str); //tuple with empty vectors
+       assert_eq!("Not remove this 'this is a string// \\' //remove this\nother // abcdefghijklm\n", super::simple_comments(str, "//", ignore, &scape, false).unwrap());
+      }
+
+      #[test]
+      /// # [`super::simple_comments`] Test 5
+      /// test where the ignore delimiters aren't correctly structured
+      fn test_5_simple_comments(){
+        let str = "Not remove this 'this is a string// \\' //remove this\nother // abcdefghijklm";
+        let scape:Vec<char> = vec!['\\']; //without scape characters
+       let vec_str:Vec<&str> = vec!["'"];
+       let vec_char:Vec<char> = vec![];
+       let ignore = (&vec_char, &vec_str); //tuple with empty vectors
+       assert_eq!(None, super::simple_comments(str, "//", ignore, &scape, false));
+      }
+
+      #[test]
+      /// # [`super::simple_comments`] Test 6
+      /// test where the delimiter ignore contains space trigger an error
+      fn test_6_simple_comments(){
+        let str = "Not remove this 'this is a string// \\' //remove this\nother // abcdefghijklm";
+        let scape:Vec<char> = vec!['\\']; //without scape characters
+       let vec_str:Vec<&str> = vec!["' ", "'"];
+       let vec_char:Vec<char> = vec![];
+       let ignore = (&vec_char, &vec_str); //tuple with empty vectors
+       assert_eq!(None, super::simple_comments(str, "//", ignore, &scape, true));
+      }
+
+      #[test]
+      #[should_panic]
+      /// # [`super::simple_comments`] Test 7
+      /// test where the delimiter contains space trigger an error
+      fn test_7_simple_comments(){
+        let str = "Not remove this 'this is a string// \\' //remove this\nother // abcdefghijklm";
+        let scape:Vec<char> = vec!['\\']; //without scape characters
+       let vec_str:Vec<&str> = vec!["'", "'"];
+       let vec_char:Vec<char> = vec![];
+       let ignore = (&vec_char, &vec_str); //tuple with empty vectors
+       assert_eq!(None, super::simple_comments(str, "// ", ignore, &scape, true));
+      }
+
+      #[test]
+      /// # [`super::simple_comments`] Test 8
+      /// test where the scape character contains space trigger an error
+      fn test_8_simple_comments(){
+        let str = "Not remove this 'this is a string// \\' //remove this\nother // abcdefghijklm";
+        let scape:Vec<char> = vec!['\\', ' ']; //without scape characters
+       let vec_str:Vec<&str> = vec!["'", "'"];
+       let vec_char:Vec<char> = vec![];
+       let ignore = (&vec_char, &vec_str); //tuple with empty vectors
+       assert_eq!(None, super::simple_comments(str, "//", ignore, &scape, true));
+      }
+
+      #[test]
+      /// # [`super::content_between`] Test
+      fn test_content_between(){
+        let str = "Not remove this 'this is a string// \\'' //remove this";
+        let scape:Vec<char> = vec!['\\']; //without scape characters
+       let vec_str:Vec<&str> = vec!["'", "'"];
+       let vec_char:Vec<char> = vec![];
+       assert_eq!(("".to_string(), false, "Not remove this 'this is a string// \\'' ".to_string()), super::content_between(&vec_char, &vec_str, &scape, "//", str));
+      }
+
+      #[test]
+      /// # [`super::content_between`] Test 2
+      /// test where the ignore delimiter is not closed
+      fn test_2_content_between(){
+        let str = "Not remove this 'this is a string// \\' //remove this";
+        let scape:Vec<char> = vec!['\\']; //without scape characters
+       let vec_str:Vec<&str> = vec!["'", "'"];
+       let vec_char:Vec<char> = vec![];
+       assert_eq!(("'".to_string(), true, "Not remove this 'this is a string// \\' //remove this".to_string()), super::content_between(&vec_char, &vec_str, &scape, "//", str));
+      }
+
+      #[test]
+      #[should_panic]
+      /// # [`super::content_between`] Test 3
+      /// test where occurs an error, because the delimiter contains, or delimiter, o scape characters conatins the space character ' ' or str are empty
+      fn test_3_content_between(){
+        let str = "Not remove this 'this is a string// \\' //remove this";
+        let scape:Vec<char> = vec!['\\']; //without scape characters
+       let vec_str:Vec<&str> = vec!["'", "' "];
+       let vec_char:Vec<char> = vec![];
+       assert_eq!(("'".to_string(), true, "Not remove this 'this is a string// \\' //remove this".to_string()), super::content_between(&vec_char, &vec_str, &scape, "", str));
+      }
+
+      #[test]
+      /// # [`super::block_comments`] Test 
+      fn test_block_comments(){
+
+      }
+
+
+
+
+  }
 }

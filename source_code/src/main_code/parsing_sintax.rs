@@ -6,8 +6,7 @@ pub mod normalize_file{
     #![allow(unused)]
     use std::fs;
     use crate::main_code::utilities::{general, remove_comments};
-    pub fn normalize_file(path: &str) -> Option<String> {
-        
+    pub fn normalize_file(path: &str) -> Option<String> {      
          let remove_chr = vec!['"', '"'];
          let rmv_str = vec!["'", "'"];
          let mut processed = String::new();
@@ -30,8 +29,8 @@ pub mod normalize_file{
         let mut new_content = String::new();
         for line in processed.lines(){
             let line2 = num_line.skip_num_line(line);
-            if !line.is_empty(){
-                new_content.push_str(&line2);
+            if !line2.is_empty(){
+                new_content.push_str(line);
             }
          }
          processed = new_content;
@@ -39,4 +38,8 @@ pub mod normalize_file{
         return Some(processed);  
     }
     
-} 
+}
+
+ pub mod parser{
+    
+ }
