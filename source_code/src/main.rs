@@ -1,8 +1,9 @@
 
 mod main_code;
 fn main() {
-  use crate::main_code::utilities::remove_comments;
-      use std::io::Write;
+  //use crate::main_code::utilities::remove_comments;
+  use crate::main_code::parsing_sintax::parser;
+     // use std::io::Write;
   use std::fs::{self};
     let file_path = "C:/Users/cr1pt/Vscode_clonados/PTHome/source_code/src/example.txt";
     let ignore_this = ['"', '"'].to_vec();
@@ -10,14 +11,12 @@ fn main() {
     let ignore = (&ignore_this, &ignore_this2);
     let content = fs::read_to_string(file_path).expect(&format!("Failed to read the file '{}'", file_path));  
     let scape = ['\\'].to_vec();
-    let n = remove_comments::block_comments(&content, "/*", "*/", ignore,&scape, remove_comments::ModeBlock::Single, remove_comments::ManageClose::Both);
+    let search = vec![":", "="];
+    let n = parser::filter_lines(&content, &search, &scape, ignore);
     
     match n{
         None => println!("Error"),
         Some(i)=> {
-          fs::remove_file(file_path).expect(&format!("Error trying to remove the file '{}'",file_path));
-            let mut new_file = fs::File::create(file_path).expect(&format!("Error trying to create the file '{}'", file_path));
-            new_file.write_all(i.as_bytes()).expect(&format!("Error trying to write in the file '{}'", file_path));
           println!("{:#?}", i);
       }
 

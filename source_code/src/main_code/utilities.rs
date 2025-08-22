@@ -627,10 +627,10 @@ pub mod remove_comments{
     /// * `content: &str` - The string which simple comments will be removed.
     /// * `delimiter: &str` - The delimiter used to identify simple comments.
     /// * `ignore_content_between: (&Vec<char>, &Vec<&str>)` - A tuple containing two vectors:
-    ///   - A vector of characters that should be ignored the content between this when removing comments.
-    ///   - A vector of strings that should be ignored the content between this when removing comments.
-    /// * `scape_characters:&Vec<char>` - A vector of chars for define the scape characters for ignore end delimiters  
-    /// * `manage_close: bool` - Ensure the close of the ignore_content_between tuple
+    ///   - A vector of characters that should be ignored the content between this when removing comments.(can be empty)
+    ///   - A vector of strings that should be ignored the content between this when removing comments.(can be empty)
+    /// * `scape_characters:&Vec<char>` - A vector of chars for define the scape characters for ignore end delimiters (can be empty)  
+    /// * `manage_close: bool` - Ensure the close of the ignore_content_between tuple 
     /// # Return
     /// Returns an `Option<String>`:
     /// * `Some(String)` - If the simple comments were successfully removed, returns `Some(new_content)`.
@@ -865,9 +865,9 @@ pub mod remove_comments{
     /// # `content_between`
     /// process the line with comment delimiters, management the secuence
     /// # Arguments
-    /// * `delimiters_array_char: &Vec<char>` - Array of chars to indicate pairs that indicate a start and end delimiter of a conent must be are ignored
-    /// * `delimiters_array_str: &Vec<&str>` - Array of Strings to indicate pairs that indicate a start and end delimiter of a conent must be are ignored
-    /// * `scape_characters:&Vec<char>` - A vector of chars for define the scape characters for ignore end delimiters  
+    /// * `delimiters_array_char: &Vec<char>` - Array of chars to indicate pairs that indicate a start and end delimiter of a conent must be are ignored (can be empty)
+    /// * `delimiters_array_str: &Vec<&str>` - Array of Strings to indicate pairs that indicate a start and end delimiter of a conent must be are ignored (can be empty)
+    /// * `scape_characters:&Vec<char>` - A vector of chars for define the scape characters for ignore end delimiters  (can be empty)
     /// * `delimiter:&str` - comment delimiter
     /// * `line: &str` - line to process
     /// # Return
@@ -985,8 +985,8 @@ pub mod remove_comments{
     /// process a string for identify the content to ignore and identify the comments in this string
     /// # Arguments
     /// * `in_ignore:bool` - Flag to indicate if are be in ignore content
-    /// * `delimiters_array:&Vec<String>` - Array that contains the delimiters to indicate when the content are must be ignored
-    /// * `scape_characters:&Vec<char>` - A vector of chars for define the scape characters for ignore end delimiters  
+    /// * `delimiters_array:&Vec<String>` - Array that contains the delimiters to indicate when the content are must be ignored (can be empty)
+    /// * `scape_characters:&Vec<char>` - A vector of chars for define the scape characters for ignore end delimiters  (can be empty)
     /// * `line:&str` - Line to process
     /// * `pos:usize` - Position of the comment delimiter in the line
     /// * `delimiter:&str` - Comment delimiter 
@@ -1287,8 +1287,8 @@ pub mod remove_comments{
     /// * `content: &str` - The string from which block comments will be removed.
     /// * `start_delimiter: &str` - The starting delimiter of the block comment.
     /// * `end_delimiter: &str` - The ending delimiter of the block comment.
-    /// * `ignore_content_between: (&Vec<char>, &Vec<&str>)` - A tuple containing two vectors: `Vec<char>` and `Vec<&str>`.
-    /// * `scape_characters:&Vec<char>` - A vector of chars for define the scape characters for ignore end delimiters.
+    /// * `ignore_content_between: (&Vec<char>, &Vec<&str>)` - A tuple containing two vectors: `Vec<char>` and `Vec<&str>`. (the vectors can be empty)
+    /// * `scape_characters:&Vec<char>` - A vector of chars for define the scape characters for ignore end delimiters. (can be empty)
     /// * `mode: ModeBlock` - The mode of block comment removal, either [`ModeBlock::Nested`] or [`ModeBlock::Single`]
     /// * `manage_close: ManageClose` - The mode of ensure the content has his block comments and ignore content correctly close or not, either [`ManageClose::Both`], [`ManageClose::Comment`], [`ManageClose::Ignore`] or [`ManageClose::None`]
     /// # Example
@@ -1307,12 +1307,13 @@ pub mod remove_comments{
     /// The result is a file with block comments removed.
     /// # Errors
     /// If the file cannot be read or written, the function will panic with an error message
-    /// If there is a block comment without end delimiter, the function will return -1 with an error message.
     /// # Return
-    /// * `None` - If there is a block comment without an end delimiter.
-    /// * `Some(String)` - If the block comments were successfully removed.
+    /// * `Err(2)` - If there is a block comment without an end delimiter.
+    /// * `Err(1)` - If there is a ignore content without close
+    /// * `Err(-1)` - If some parameter are corrupted
+    /// * `Ok(String)` - If the block comments were successfully removed.
     
-    pub fn block_comments(content: &str, start_delimiter: &str, end_delimiter: &str, ignore_content_between: (&Vec<char>, &Vec<&str>), scape_characters:&Vec<char>, mode: ModeBlock, manage_close: ManageClose) -> Option<String>{
+    pub fn block_comments(content: &str, start_delimiter: &str, end_delimiter: &str, ignore_content_between: (&Vec<char>, &Vec<&str>), scape_characters:&Vec<char>, mode: ModeBlock, manage_close: ManageClose) -> Result<String, i32>{
       if content.is_empty(){
         panic!("Error: the argument 'conten't is empty");
       }
@@ -1322,7 +1323,7 @@ pub mod remove_comments{
       if scape_characters.len()>0{
           if scape_characters.contains(&' '){
             println!("Error: The scape characters vector '{:?}' cannot contains some space character (' ')", scape_characters);
-            return None;
+            return Err(-1);
           }
         }
 
@@ -1331,16 +1332,16 @@ pub mod remove_comments{
         for ch in ignore_content_between.0{
           if start_delimiter.contains(*ch)||end_delimiter.contains(*ch){
             println!("Error: The start delimiter '{}' or end delimiter '{}' cannot be in the ignore characters vector '{:?}'", start_delimiter, end_delimiter, ignore_content_between.0);
-            return None;
+            return Err(-1);
             }
            if *ch == ' '{
             println!("Error: The ignore character '{}' cannot be a space (' ') in the ignore character vector '{:?}'", *ch, ignore_content_between.0);
-            return None;
+            return Err(-1);
             }
             if scape_characters.len() >0{
              if scape_characters.contains(ch){
               println!("Error: The ignore delimiter '{}' cannot contains a scape character ('{:?}') the ignore characters vector '{:?}'", *ch, scape_characters, ignore_content_between.0);
-               return None;
+               return Err(-1);
              }
            } 
 
@@ -1350,24 +1351,24 @@ pub mod remove_comments{
           let i = ignore_content_between.0.len();
          if i % 2 != 0{
             println!("Error: The ignore characters vector '{:?}' must have an even number of elements", ignore_content_between.0);
-            return None;
+            return Err(-1);
          }
         }
         if !ignore_content_between.1.is_empty(){
         for str in ignore_content_between.1{ 
           if start_delimiter.contains(*str) || end_delimiter.contains(*str){
             println!("Error: The start delimiter '{}' or end delimiter '{}' cannot be in the ignore strings vector '{:?}'", start_delimiter,end_delimiter, ignore_content_between.1);
-            return None;
+            return Err(-1);
            }
           if str.contains(" "){
             println!("Error: The ignore string '{}' cannot contains a space (' ') in the ignore string vector '{:?}'", *str, ignore_content_between.1);
-            return None;
+            return Err(-1);
           }
           if scape_characters.len() >0{
             for char in str.chars(){
              if scape_characters.contains(&char){
               println!("Error: The ignore delimiter '{}' cannot contains a scape character ('{:?}') the ignore characters vector '{:?}'", *str, scape_characters, ignore_content_between.1);
-               return None;
+               return Err(-1);
              }
             }
           } 
@@ -1377,14 +1378,14 @@ pub mod remove_comments{
           let i = ignore_content_between.1.len();
           if i % 2 != 0{
             println!("Error: The ignore strings vector '{:?}' must have an even number of elements", ignore_content_between.1);
-            return None;
+            return Err(-1);
           }
         }
         if !ignore_content_between.0.is_empty() && !ignore_content_between.1.is_empty(){
         for ch in ignore_content_between.0{
           if ignore_content_between.1.contains(&&(*ch.to_string())){
             println!("Error: The ignore characters vector '{:?}' cannot contain the same characters as the ignore strings vector '{:?}'", ignore_content_between.0, ignore_content_between.1);
-            return None;
+            return Err(-1);
           }
         }
        }
@@ -1395,18 +1396,18 @@ pub mod remove_comments{
       ModeBlock::Single =>{
         match single_mode(&content, start_delimiter, end_delimiter, ignore_content_between,scape_characters, manage_close){
             Ok(content2) =>  new_content.push_str(&content2) ,
-            Err(_) => return None
+            Err(i) => return Err(i)
         }
        }
        ModeBlock::Nested =>{
         match nested_mode(&content, start_delimiter, end_delimiter, ignore_content_between, scape_characters, manage_close){
           Ok(content2) => new_content.push_str(&content2),
-          Err(_) => return None
+          Err(i) => return Err(i)
         }
        }
       }
       println!("BLOCK COMMENTS REMOVED FROM CONTENT");
-      return Some(new_content);
+      return Ok(new_content);
     }
 //------------------------------------------------------------------------------------------
 
@@ -1434,8 +1435,8 @@ pub mod remove_comments{
     /// * `content: &Vec<&str>` - A vector of lines from content from which block comments will be removed.
     /// * `delimiter_end: &str` - The ending delimiter of the block comment.
     /// * `delimiter_start: &str` - The starting delimiter of the block comment.
-    /// * `ignore_content_between: (&Vec<char>, &Vec<&str>)` - A tuple containing two vectors: `Vec<char>` and `Vec<&str>`.
-    /// * `scape_characters:&Vec<char>` - A vector of chars for define the scape characters for ignore end delimiters.  
+    /// * `ignore_content_between: (&Vec<char>, &Vec<&str>)` - A tuple containing two vectors: `Vec<char>` and `Vec<&str>`. (the vectors can be empty)
+    /// * `scape_characters:&Vec<char>` - A vector of chars for define the scape characters for ignore end delimiters. (can be empty)
     /// * `manage_close: ManageClose` - The mode of ensure the content has his block comments and ignore content correctly close or not, either [`ManageClose::Both`], [`ManageClose::Comment`], [`ManageClose::Ignore`] or [`ManageClose::None`]
     /// * **NOTE:** This is use in his API [`block_comments`] fuction.
     /// # Return
@@ -1838,8 +1839,8 @@ pub mod remove_comments{
     /// * `content: &str` - A string containing the content from which block comments will be removed.
     /// * `delimiter_start: &str` - The starting delimiter of the block comment.
     /// * `delimiter_end: &str` - The ending delimiter of the block comment.
-    /// * `ignore_content_between: (&Vec<char>, &Vec<&str>)` - A tuple containing two vectors: `Vec<char>` and `Vec<&str>`.
-    /// * `scape_characters:&Vec<char>` - A vector of chars for define the scape characters for ignore end delimiters.  
+    /// * `ignore_content_between: (&Vec<char>, &Vec<&str>)` - A tuple containing two vectors: `Vec<char>` and `Vec<&str>`. (vectors can be empty)
+    /// * `scape_characters:&Vec<char>` - A vector of chars for define the scape characters for ignore end delimiters.  (can be empty)
     /// * `manage_close: ManageClose` - The mode of ensure the content has his block comments and ignore content correctly close or not, either [`ManageClose::Both`], [`ManageClose::Comment`], [`ManageClose::Ignore`] or [`ManageClose::None`]
     /// * **NOTE:** This is use in his API [`block_comments`] fuction.
     /// # Return
