@@ -1443,7 +1443,8 @@ pub mod remove_comments{
     /// * `Ok(String)` - If the block comments were successfully removed, returns a `String` with the content without block comments.
     /// * `Err(i32)` - If there is an error, returns an `i32` error code:
     ///   - `-1` - If the start and end delimiters are the same or content vector is empty.
-    ///   - `2` - If the block comment are not closed and arrive to the end of content vector, with an error message indicating the line number and content of the line.
+    ///   - `2` - If the block comment are not closed and arrive to the end of content, with an error message indicating the line number and content of the line.
+    ///   - `1` - If some ignore start delimiter are not closed and arrive to the end of the content.
  fn single_mode(content: &str, delimiter_start: &str, delimiter_end: &str, ignore_content_between: (&Vec<char>, &Vec<&str>),scape_characters:&Vec<char>, manage_close: ManageClose) -> Result<String, i32>{
       use crate::main_code::utilities::{general, remove_comments::ManageClose};
         if delimiter_start == delimiter_end{
@@ -1802,7 +1803,7 @@ pub mod remove_comments{
                // if some ignore are open after process all the file, print an error
               if in_ignore{
                 println!("Error in the line: '{}': '{}'. missing close delimiter: {}", line_num, line_content, delimiter_ignore);
-                return Err(2);
+                return Err(1);
               }
               // If a block comment is open at the end of the content, return an error
               if block_open {
@@ -1820,7 +1821,7 @@ pub mod remove_comments{
           ManageClose::Ignore  =>{
             if in_ignore{
                 println!("Error in the line: '{}': '{}'. missing close delimiter: {}", line_num, line_content, delimiter_ignore);
-                return Err(2);
+                return Err(1);
               }
           }, 
           ManageClose::None=>{},
@@ -1847,6 +1848,7 @@ pub mod remove_comments{
     /// * `Err(i32)` - If there is an error, returns an `i32` error code:
     ///   - `-1` - If the start and end delimiters are the same or content vector is empty.
     ///   - `2` - If the block comment are not closed and arrive to the
+    ///   - `1` - If some ignore start delimiter are not closed and arrive to the end of the content.
     /// # Use
     /// This function is used to handle nested block comments, where block comments can contain other block comments within them. It ensures that nested comments are properly closed and that the content between comments is preserved.
     /// ## Example
@@ -2255,7 +2257,7 @@ pub mod remove_comments{
                // if some ignore are open after process all the file, print an error
               if in_ignore{
                 println!("Error in the line: '{}': '{}'. missing close delimiter: {}", line_num, line_content, delimiter_ignore);
-                return Err(2);
+                return Err(1);
               }
               // If a block comment is open at the end of the content, return an error
               if in_block_comment || block_comment_level > 0{
@@ -2273,7 +2275,7 @@ pub mod remove_comments{
           ManageClose::Ignore  =>{
             if in_ignore{
                 println!("Error in the line: '{}': '{}'. missing close delimiter: {}", line_num, line_content, delimiter_ignore);
-                return Err(2);
+                return Err(1);
               }
           }, 
           ManageClose::None=>{},
