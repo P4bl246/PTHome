@@ -54,7 +54,18 @@ pub mod normalize_file{
       /// # Return 
       /// * Panic if the search_this or content parameter are empty or search_this contains some space.
       /// * `None` - if occurs some recupareble errors on the parameters.
-      /// * `Some(Vec<Vec<usize>>)` - Vector of vectors with the number of the lines from less than to greather than, and in order to the string in search_this vector.
+      /// * `Some(Vec<Vec<usize>>)` - Vector of vectors with the number of the lines from less to greater, and in order to the string in search_this vector.
+      /// # Example 
+      /// ```rust
+      /// mod main_code;
+      /// fn main(){
+      /// use crate::main_code::parsing_sintax;
+      /// let content = "Hello, this is\nHello, this is\nChao";
+      /// let scape:Vec<char> = Vec::new();
+      /// let indexes = parsing_sintax::filter_lines(content, &["Hello", "Chao", "-"].to_vec(), &scape, (&[].to_vec(), &[].to_vec())).unwrap();
+      /// println!("{:?}", indexes);
+      /// }
+      /// ```
     pub fn filter_lines(content:&str, search_this: &Vec<&str>, scape_characters: &Vec<char>, ignore_content_between:(&Vec<char>, &Vec<&str>)) -> Option<Vec<Vec<usize>>>{
     if  search_this.is_empty(){
             panic!("Error: The delimiter to search cannot be empty.");
@@ -65,75 +76,9 @@ pub mod normalize_file{
         if content.is_empty(){
           panic!("Error: The content cannot be an empty string.");
         }
-        if scape_characters.len()>0{
-          if scape_characters.contains(&' '){
-            println!("Error: The scape characters vector '{:?}' cannot contains some space character (' ')", scape_characters);
+        if !remove_comments::first_comprobation(ignore_content_between.0, ignore_content_between.1, scape_characters, search_this){
             return None;
-          }
         }
-        let mut i: usize = ignore_content_between.0.len()/2;
-        if !(ignore_content_between.0.is_empty() && ignore_content_between.1.is_empty()){
-       if !ignore_content_between.0.is_empty(){
-        for ch in ignore_content_between.0{
-          if search_this.contains(&&(*ch.to_string().as_str())){
-            println!("Error: The delimiters '{:?}' cannot be in the ignore characters vector '{:?}'", search_this, ignore_content_between.0);
-            return None;
-            }
-          if *ch == ' '{
-              println!("Error: The ignore delimiter '{}' cannot be a space (' ') the ignore characters vector '{:?}'", *ch, ignore_content_between.0);
-               return None;
-            }
-            if scape_characters.len() >0{
-             if scape_characters.contains(ch){
-              println!("Error: The ignore delimiter '{}' cannot contains a scape character ('{:?}') the ignore characters vector '{:?}'", *ch, scape_characters, ignore_content_between.0);
-               return None;
-             }
-           }  
-          }
-          //Chekc if the vector ignore_content_between.0 has an even number of elements
-          //Becuase is a pair start-end, so, all the characters must be in pairs, like this: ['{', '}'], ['(', ')'], ['[', ']']
-          let i = ignore_content_between.0.len();
-         if i % 2 != 0{
-            println!("Error: The ignore characters vector '{:?}' must have an even number of elements", ignore_content_between.0);
-            return None;
-         }
-        }
-        if !ignore_content_between.1.is_empty(){
-        for ch in ignore_content_between.1{
-          if search_this.contains(ch){
-            println!("Error: The delimiters '{:?}' cannot be in the ignore strings vector '{:?}'", search_this, ignore_content_between.1);
-            return None;
-          }
-          if ch.contains(" "){
-          println!("Error: The ignore delimiter '{}' cannot contains a space (' ') the ignore characters vector '{:?}'", *ch, ignore_content_between.1);
-            return None;
-          }
-           if scape_characters.len() >0{
-            for char in ch.chars(){
-             if scape_characters.contains(&char){
-              println!("Error: The ignore delimiter '{}' cannot contains a scape character ('{:?}') the ignore characters vector '{:?}'", *ch, scape_characters, ignore_content_between.1);
-               return None;
-             }
-            }
-          }
-         }
-         // Chekc if the vector ignore_content_between.1 has an even number of elements
-        //Becuase is a pair start-end, so, all the strings must be in pairs, like this: ["{", "}"], ["(", ")"], ["[", "]"]
-          let i = ignore_content_between.1.len();
-          if i % 2 != 0{
-            println!("Error: The ignore strings vector '{:?}' must have an even number of elements", ignore_content_between.1);
-            return None;
-          }
-        }
-        if !ignore_content_between.0.is_empty() && !ignore_content_between.1.is_empty(){
-        for ch in ignore_content_between.0{
-          if ignore_content_between.1.contains(&&(*ch.to_string())){
-            println!("Error: The ignore characters vector '{:?}' cannot contain the same characters as the ignore strings vector '{:?}'", ignore_content_between.0, ignore_content_between.1);
-            return None;
-          }
-        }
-       }
-      }
 
       println!("FILTERING LINES");
         let mut lines_slice:Vec<Vec<usize>> = Vec::new();
@@ -184,33 +129,7 @@ pub mod normalize_file{
           }
           //Else, check if the line contains some ignore delimiter
             if !in_ignore{
-            let mut j = 0;
-            let mut some_start_ignore:Vec<String> = Vec::new();
-            if !ignore_content_between.0.is_empty(){
-             while j <= ignore_content_between.0.len()-1{
-              let mut sub_vec = general::sub_vec(&ignore_content_between.0, 2, j);
-              some_start_ignore.push(sub_vec[0].to_string());
-              sub_vec.clear();
-              j+=2;
-              }
-             }
-             j= 0;
-             if !ignore_content_between.1.is_empty(){
-             while j <= ignore_content_between.1.len()-1{
-              let mut sub_vec = general::sub_vec(&ignore_content_between.1, 2, j);
-              some_start_ignore.push(sub_vec[0].to_string());
-              sub_vec.clear();
-              j+=2;
-               } 
-             }
-            if !some_start_ignore.is_empty(){
-              for element in some_start_ignore{
-              if copy.contains(&element){
-                contains = true;
-                break;
-              }
-             }
-            }
+             contains = remove_comments::contains_ignore(ignore_content_between.0, ignore_content_between.1, &copy);
           }
         
           if !in_ignore{
@@ -245,10 +164,6 @@ pub mod normalize_file{
                 }
             }
           }
-          else{
-            index.push(last_push);
-            value.push(counter);
-          }
         }
 
       {
@@ -280,6 +195,75 @@ pub mod normalize_file{
 
         return Some((lines_slice)); 
     }
-    pub fn parse_equialites(){}
-    pub fn parse_classes(){}
+//------------------------------------------------------------------------------------
+    pub fn parser_classes(){}
+//------------------------------------------------------------------------------------
+    pub fn extract_str_before(content: &str, delimiter_slice:&Vec<&str>, scape_characters: &Vec<char>, ignore_content_between:(&Vec<char>, &Vec<&str>)) -> Option<Vec<String>>{
+         if content.is_empty(){
+            panic!("Error:The content cannot be an empty string");
+         }
+         if delimiter_slice.is_empty(){
+            panic!("Error: The indicator of the classes cannot be empty")
+         }
+         if delimiter_slice.contains(&&" "){
+            panic!("Error: The indicator of the classes '{:?}' cannot contains space", delimiter_slice);
+         }
+        if !remove_comments::first_comprobation(ignore_content_between.0, ignore_content_between.1, scape_characters, delimiter_slice){
+            return None;
+        }
+        println!("EXTRACTING CONTENT BEFORE DELIMITERS");
+        let mut contains = false;
+        let mut counter = 0;
+        let mut content_before:Vec<String> = Vec::new();
+        let mut in_ignore = false;
+        let mut delimiter_ignore = String::new();
+        for line in content.lines(){
+            counter += 1;
+            contains = false;
+        let mut copy = line.to_string();
+        //if we are into ignore content search the end delimiter ignore
+            if in_ignore{
+            if let Some(mut end) = copy.find(&delimiter_ignore){
+              let mut not_found = false;
+              if end > 0{
+                if scape_characters.len() > 0{
+                  if scape_characters.contains(&line.to_string().chars().nth(end-1).unwrap()){
+                  copy.replace_range(..end+delimiter_ignore.len(), &general::str_of_n_str(" ", copy[..end+delimiter_ignore.len()].len()));
+                    loop {
+                      if let Some(end2) = copy.find(&delimiter_ignore){
+                        if scape_characters.contains(&line.to_string().chars().nth(end2-1).unwrap()){
+                          copy.replace_range(..end2+delimiter_ignore.len(), &general::str_of_n_str(" ", copy[..end2+delimiter_ignore.len()].len()));
+                        }else{
+                          end = end2;
+                          break;
+                        }
+                        
+                      }else{
+                        not_found = true;
+                        break;
+                      }
+                    }
+                  }
+                }
+              }
+              if !not_found{
+              in_ignore = false;
+              copy.replace_range(..end+delimiter_ignore.len(), &general::str_of_n_str(" ", copy[..end+delimiter_ignore.len()].len()));    
+              }           
+            }
+          }
+          //Else, check if the line contains some ignore delimiter
+            if !in_ignore{
+             contains = remove_comments::contains_ignore(ignore_content_between.0, ignore_content_between.1, &copy);
+          }
+          if !in_ignore{
+            
+          }
+        }
+        
+         
+         return Some([].to_vec());
+    }
+//------------------------------------------------------------------------------------
+    pub fn parser_equialites(){}
  }

@@ -665,75 +665,9 @@ pub mod remove_comments{
         if content.is_empty(){
           panic!("Error: The content cannot be an empty string.");
         }
-        if scape_characters.len()>0{
-          if scape_characters.contains(&' '){
-            println!("Error: The scape characters vector '{:?}' cannot contains some space character (' ')", scape_characters);
-            return None;
-          }
+        if !first_comprobation(ignore_content_between.0, ignore_content_between.1, scape_characters, &[delimiter].to_vec()){
+          return None;
         }
-        let mut i: usize = ignore_content_between.0.len()/2;
-        if !(ignore_content_between.0.is_empty() && ignore_content_between.1.is_empty()){
-       if !ignore_content_between.0.is_empty(){
-        for ch in ignore_content_between.0{
-          if delimiter.contains(*ch){
-            println!("Error: The delimiter '{}' cannot be in the ignore characters vector '{:?}'", delimiter, ignore_content_between.0);
-            return None;
-            }
-          if *ch == ' '{
-              println!("Error: The ignore delimiter '{}' cannot be a space (' ') the ignore characters vector '{:?}'", *ch, ignore_content_between.0);
-               return None;
-            }
-            if scape_characters.len() >0{
-             if scape_characters.contains(ch){
-              println!("Error: The ignore delimiter '{}' cannot contains a scape character ('{:?}') the ignore characters vector '{:?}'", *ch, scape_characters, ignore_content_between.0);
-               return None;
-             }
-           }  
-          }
-          //Chekc if the vector ignore_content_between.0 has an even number of elements
-          //Becuase is a pair start-end, so, all the characters must be in pairs, like this: ['{', '}'], ['(', ')'], ['[', ']']
-          let i = ignore_content_between.0.len();
-         if i % 2 != 0{
-            println!("Error: The ignore characters vector '{:?}' must have an even number of elements", ignore_content_between.0);
-            return None;
-         }
-        }
-        if !ignore_content_between.1.is_empty(){
-        for ch in ignore_content_between.1{
-          if delimiter.contains(*ch){
-            println!("Error: The delimiter '{}' cannot be in the ignore strings vector '{:?}'", delimiter, ignore_content_between.1);
-            return None;
-          }
-          if ch.contains(" "){
-          println!("Error: The ignore delimiter '{}' cannot contains a space (' ') the ignore characters vector '{:?}'", *ch, ignore_content_between.1);
-            return None;
-          }
-           if scape_characters.len() >0{
-            for char in ch.chars(){
-             if scape_characters.contains(&char){
-              println!("Error: The ignore delimiter '{}' cannot contains a scape character ('{:?}') the ignore characters vector '{:?}'", *ch, scape_characters, ignore_content_between.1);
-               return None;
-             }
-            }
-          }
-         }
-         // Chekc if the vector ignore_content_between.1 has an even number of elements
-        //Becuase is a pair start-end, so, all the strings must be in pairs, like this: ["{", "}"], ["(", ")"], ["[", "]"]
-          let i = ignore_content_between.1.len();
-          if i % 2 != 0{
-            println!("Error: The ignore strings vector '{:?}' must have an even number of elements", ignore_content_between.1);
-            return None;
-          }
-        }
-        if !ignore_content_between.0.is_empty() && !ignore_content_between.1.is_empty(){
-        for ch in ignore_content_between.0{
-          if ignore_content_between.1.contains(&&(*ch.to_string())){
-            println!("Error: The ignore characters vector '{:?}' cannot contain the same characters as the ignore strings vector '{:?}'", ignore_content_between.0, ignore_content_between.1);
-            return None;
-          }
-        }
-       }
-      }
       let mut new_content = String::new();
       let mut counter = 0;
       let mut line_start = String::new();
@@ -782,33 +716,7 @@ pub mod remove_comments{
             }
           }
           if !in_ignore{
-            let mut j = 0;
-            let mut some_start_ignore:Vec<String> = Vec::new();
-            if !ignore_content_between.0.is_empty(){
-             while j <= ignore_content_between.0.len()-1{
-              let mut sub_vec = general::sub_vec(&ignore_content_between.0, 2, j);
-              some_start_ignore.push(sub_vec[0].to_string());
-              sub_vec.clear();
-              j+=2;
-              }
-             }
-             j= 0;
-             if !ignore_content_between.1.is_empty(){
-             while j <= ignore_content_between.1.len()-1{
-              let mut sub_vec = general::sub_vec(&ignore_content_between.1, 2, j);
-              some_start_ignore.push(sub_vec[0].to_string());
-              sub_vec.clear();
-              j+=2;
-               } 
-             }
-            if !some_start_ignore.is_empty(){
-              for element in some_start_ignore{
-              if copy.contains(&element){
-                contains = true;
-                break;
-              }
-             }
-            }
+            contains = contains_ignore(ignore_content_between.0, ignore_content_between.1, &copy);
           }
           if copy.contains(delimiter) && !in_ignore && contains{
             if !ignore_content_between.0.is_empty() || !ignore_content_between.1.is_empty(){
@@ -882,70 +790,9 @@ pub mod remove_comments{
     /// This is use in the functions [`simple_comments`], [`single_mode`] and [`nested_mode`]
     pub fn content_between(delimiters_array_char: &Vec<char>, delimiters_array_str: &Vec<&str>, scape_characters:&Vec<char>, delimiter: &str, line: &str) -> (String, bool, String){
 
-       if delimiter.contains(" "){
-            panic!("Error: The delimiter cannot contains a space (' ').");
-        }
-        if scape_characters.len()>0{
-          if scape_characters.contains(&' '){
-            panic!("Error: The scape characters vector '{:?}' cannot contains some space character (' ')", scape_characters);
-          }
-        }
-        let mut i: usize = delimiters_array_char.len()/2;
-        if !(delimiters_array_char.is_empty() && delimiters_array_str.is_empty()){
-       if !delimiters_array_char.is_empty(){
-        for ch in delimiters_array_char{
-          if delimiter.contains(*ch){
-            panic!("Error: The delimiter '{}' cannot be in the ignore characters vector '{:?}'", delimiter, delimiters_array_char);
-            }
-          if *ch == ' '{
-              panic!("Error: The ignore delimiter '{}' cannot be a space (' ') the ignore characters vector '{:?}'", *ch, delimiters_array_char);
-
-            }
-            if scape_characters.len() >0{
-             if scape_characters.contains(ch){
-              panic!("Error: The ignore delimiter '{}' cannot contains a scape character ('{:?}') the ignore characters vector '{:?}'", *ch, scape_characters, delimiters_array_char);
-             }
-           }  
-          }
-          //Chekc if the vector delimiters_array_char has an even number of elements
-          //Becuase is a pair start-end, so, all the characters must be in pairs, like this: ['{', '}'], ['(', ')'], ['[', ']']
-          let i = delimiters_array_char.len();
-         if i % 2 != 0{
-            panic!("Error: The ignore characters vector '{:?}' must have an even number of elements", delimiters_array_char);
-         }
-        }
-        if !delimiters_array_str.is_empty(){
-        for ch in delimiters_array_str{
-          if delimiter.contains(*ch){
-            panic!("Error: The delimiter '{}' cannot be in the ignore strings vector '{:?}'", delimiter, delimiters_array_str);
-          }
-          if ch.contains(" "){
-          panic!("Error: The ignore delimiter '{}' cannot contains a space (' ') the ignore characters vector '{:?}'", *ch, delimiters_array_str);
-          }
-           if scape_characters.len() >0{
-            for char in ch.chars(){
-             if scape_characters.contains(&char){
-              panic!("Error: The ignore delimiter '{}' cannot contains a scape character ('{:?}') the ignore characters vector '{:?}'", *ch, scape_characters,delimiters_array_str);
-             }
-            }
-          }
-         }
-         // Chekc if the vector delimiters_array_str has an even number of elements
-        //Becuase is a pair start-end, so, all the strings must be in pairs, like this: ["{", "}"], ["(", ")"], ["[", "]"]
-          let i = delimiters_array_str.len();
-
-          if i % 2 != 0{
-            panic!("Error: The ignore strings vector '{:?}' must have an even number of elements", delimiters_array_str);
-          }
-        }
-        if !delimiters_array_char.is_empty() && !delimiters_array_str.is_empty(){
-        for ch in delimiters_array_char{
-          if delimiters_array_str.contains(&&(*ch.to_string())){
-            panic!("Error: The ignore characters vector '{:?}' cannot contain the same characters as the ignore strings vector '{:?}'", delimiters_array_char,delimiters_array_str);
-          }
-        }
+       if !first_comprobation(delimiters_array_char, delimiters_array_str, scape_characters, &[delimiter].to_vec()){
+        panic!("Error in the parameters");
        }
-      }
        let mut new_line2 = String::new();
        let mut in_ignore = false;
        let mut result:(String, bool, String);
@@ -1320,76 +1167,9 @@ pub mod remove_comments{
       if start_delimiter.is_empty() || start_delimiter.contains(" ") || end_delimiter.is_empty() || end_delimiter.contains(" "){
         panic!("Error: start delimiter or end delimiter is empty. Or some comment delimiter contains (' ')");
       }
-      if scape_characters.len()>0{
-          if scape_characters.contains(&' '){
-            println!("Error: The scape characters vector '{:?}' cannot contains some space character (' ')", scape_characters);
-            return Err(-1);
-          }
-        }
-
-      if !(ignore_content_between.0.is_empty() && ignore_content_between.1.is_empty()){
-       if !ignore_content_between.0.is_empty(){
-        for ch in ignore_content_between.0{
-          if start_delimiter.contains(*ch)||end_delimiter.contains(*ch){
-            println!("Error: The start delimiter '{}' or end delimiter '{}' cannot be in the ignore characters vector '{:?}'", start_delimiter, end_delimiter, ignore_content_between.0);
-            return Err(-1);
-            }
-           if *ch == ' '{
-            println!("Error: The ignore character '{}' cannot be a space (' ') in the ignore character vector '{:?}'", *ch, ignore_content_between.0);
-            return Err(-1);
-            }
-            if scape_characters.len() >0{
-             if scape_characters.contains(ch){
-              println!("Error: The ignore delimiter '{}' cannot contains a scape character ('{:?}') the ignore characters vector '{:?}'", *ch, scape_characters, ignore_content_between.0);
-               return Err(-1);
-             }
-           } 
-
-          }
-          //Chekc if the vector ignore_content_between.0 has an even number of elements
-          //Becuase is a pair start-end, so, all the characters must be in pairs, like this: ['{', '}'], ['(', ')'], ['[', ']']
-          let i = ignore_content_between.0.len();
-         if i % 2 != 0{
-            println!("Error: The ignore characters vector '{:?}' must have an even number of elements", ignore_content_between.0);
-            return Err(-1);
-         }
-        }
-        if !ignore_content_between.1.is_empty(){
-        for str in ignore_content_between.1{ 
-          if start_delimiter.contains(*str) || end_delimiter.contains(*str){
-            println!("Error: The start delimiter '{}' or end delimiter '{}' cannot be in the ignore strings vector '{:?}'", start_delimiter,end_delimiter, ignore_content_between.1);
-            return Err(-1);
-           }
-          if str.contains(" "){
-            println!("Error: The ignore string '{}' cannot contains a space (' ') in the ignore string vector '{:?}'", *str, ignore_content_between.1);
-            return Err(-1);
-          }
-          if scape_characters.len() >0{
-            for char in str.chars(){
-             if scape_characters.contains(&char){
-              println!("Error: The ignore delimiter '{}' cannot contains a scape character ('{:?}') the ignore characters vector '{:?}'", *str, scape_characters, ignore_content_between.1);
-               return Err(-1);
-             }
-            }
-          } 
-         }
-         // Chekc if the vector ignore_content_between.1 has an even number of elements
-        //Becuase is a pair start-end, so, all the strings must be in pairs, like this: ["{", "}"], ["(", ")"], ["[", "]"]
-          let i = ignore_content_between.1.len();
-          if i % 2 != 0{
-            println!("Error: The ignore strings vector '{:?}' must have an even number of elements", ignore_content_between.1);
-            return Err(-1);
-          }
-        }
-        if !ignore_content_between.0.is_empty() && !ignore_content_between.1.is_empty(){
-        for ch in ignore_content_between.0{
-          if ignore_content_between.1.contains(&&(*ch.to_string())){
-            println!("Error: The ignore characters vector '{:?}' cannot contain the same characters as the ignore strings vector '{:?}'", ignore_content_between.0, ignore_content_between.1);
-            return Err(-1);
-          }
-        }
-       }
-      }
+     if !first_comprobation(ignore_content_between.0, ignore_content_between.1, scape_characters, &[start_delimiter, end_delimiter].to_vec()){
+      return Err(-1);
+     }
       println!("REMOVING BLOCK COMMENTS FROM CONTENT: {}", content);
       let mut new_content = String::new();
       match mode{
@@ -2288,6 +2068,151 @@ pub mod remove_comments{
   
   }
 
+//------------------------------------------------------------------------------------------
+  /// # `first_comprobation`
+  /// Contains a necesary comprobation when use content_between function for avoid problems after as a panic
+  /// # Arguments
+  /// * `delimiters_array_char: &Vec<char>` - Vector of chars for make the comprobation. (can be empty)
+  /// * `delimiters_array_str: &Vec<&str>` - Vector of string for make the comprobation. (can be empty)
+  /// * `scape_character: &Vec<char>` - Vector of chars for make the comprobation. (can be empty)
+  /// * `delimiter: &Vec<&str>` - delimiter for comprobation. (can be empty)
+  /// # Return
+  /// - `true` if all is fine
+  /// - `false` if occurs some error
+  /// # Note 
+  /// Use in internal functions, not recommended edit
+  pub fn first_comprobation(delimiters_array_char: &Vec<char>, delimiters_array_str: &Vec<&str>, scape_characters:&Vec<char>, delimiter: &Vec<&str>)-> bool{
+    let mut err = false;
+    if delimiter.contains(&&" "){
+            println!("Error: The delimiter cannot contains a space (' ').");
+            err = true;
+        }
+        if scape_characters.len()>0{
+          if scape_characters.contains(&' '){
+            println!("Error: The scape characters vector '{:?}' cannot contains some space character (' ')", scape_characters);
+            err = true;
+          }
+        }
+        let mut i: usize = 0;
+        if !(delimiters_array_char.is_empty() && delimiters_array_str.is_empty()){
+       if !delimiters_array_char.is_empty(){
+        let mut err_char = false;
+        for ch in delimiters_array_char{
+          if delimiter.contains(&&*ch.to_string()){
+            println!("Error: The delimiter or delimiters '{:?}' cannot be in the ignore characters vector '{:?}'", delimiter, delimiters_array_char);
+             err = true;
+             err_char = true;
+            }
+          if *ch == ' '{
+              println!("Error: The ignore delimiter '{}' cannot be a space (' ') the ignore characters vector '{:?}'", *ch, delimiters_array_char);
+              err = true;
+              err_char = true;
+            }
+            if scape_characters.len() >0{
+             if scape_characters.contains(ch){
+              println!("Error: The ignore delimiter '{}' cannot contains a scape character ('{:?}') the ignore characters vector '{:?}'", *ch, scape_characters, delimiters_array_char);
+              err = true;
+              err_char = true;
+             }
+           }
+           if err_char{break;}  
+          }
+          //Chekc if the vector delimiters_array_char has an even number of elements
+          //Becuase is a pair start-end, so, all the characters must be in pairs, like this: ['{', '}'], ['(', ')'], ['[', ']']
+          let i = delimiters_array_char.len();
+         if i % 2 != 0{
+            println!("Error: The ignore characters vector '{:?}' must have an even number of elements", delimiters_array_char);
+          err = true;
+         }
+        }
+        if !delimiters_array_str.is_empty(){
+          let mut err_str = false;
+        for ch in delimiters_array_str{
+          if delimiter.contains(ch){
+            println!("Error: The delimiter or delimiters '{:?}' cannot be in the ignore strings vector '{:?}'", delimiter, delimiters_array_str);
+          err = true;
+          err_str = true;
+          }
+          if ch.contains(" "){
+          println!("Error: The ignore delimiter '{}' cannot contains a space (' ') the ignore characters vector '{:?}'", *ch, delimiters_array_str);
+          err = true;
+           err_str = true;
+          }
+           if scape_characters.len() >0{
+            for char in ch.chars(){
+             if scape_characters.contains(&char){
+              println!("Error: The ignore delimiter '{}' cannot contains a scape character ('{:?}') the ignore characters vector '{:?}'", *ch, scape_characters,delimiters_array_str);
+              err = true;
+               err_str = true;
+             }
+            }
+          }
+          if err_str{break;}
+         }
+         // Chekc if the vector delimiters_array_str has an even number of elements
+        //Becuase is a pair start-end, so, all the strings must be in pairs, like this: ["{", "}"], ["(", ")"], ["[", "]"]
+          let i = delimiters_array_str.len();
+
+          if i % 2 != 0{
+            println!("Error: The ignore strings vector '{:?}' must have an even number of elements", delimiters_array_str);
+            err = true;
+          }
+        }
+        if !delimiters_array_char.is_empty() && !delimiters_array_str.is_empty(){
+        for ch in delimiters_array_char{
+          if delimiters_array_str.contains(&&(*ch.to_string())){
+            println!("Error: The ignore characters vector '{:?}' cannot contain the same characters as the ignore strings vector '{:?}'", delimiters_array_char,delimiters_array_str);
+            err = true;
+            break;
+          }
+        }
+       }
+      }
+      if err{return false;}
+    return true;
+  }
+//------------------------------------------------------------------------------------------
+  /// # `contains_ignore`
+  /// Verify if the line contains some ignore delimiter
+  /// # Arguments
+  /// * `delimiters_array_char: &Vec<char>` - Vector of chars. (can be empty)
+  /// * `delimiters_array_str: &Vec<&str>` - Vector of strings. (can be empty)
+  /// * `line: &str` - line to verify if contains ignore delimiter. 
+  /// # Return 
+  /// - `true` if contains some ignore delimiter
+  /// - `false` if not contains any ignore delimiter
+  pub fn contains_ignore(delimiters_array_char: &Vec<char>, delimiters_array_str: &Vec<&str>, line: &str) -> bool{
+    use crate::main_code::utilities::general;
+    let mut contains = false;
+    let mut j = 0;
+            let mut some_start_ignore:Vec<String> = Vec::new();
+            if !delimiters_array_char.is_empty(){
+             while j <= delimiters_array_char.len()-1{
+              let mut sub_vec = general::sub_vec(&delimiters_array_char, 2, j);
+              some_start_ignore.push(sub_vec[0].to_string());
+              sub_vec.clear();
+              j+=2;
+              }
+             }
+             j= 0;
+             if !delimiters_array_str.is_empty(){
+             while j <= delimiters_array_str.len()-1{
+              let mut sub_vec = general::sub_vec(&delimiters_array_str, 2, j);
+              some_start_ignore.push(sub_vec[0].to_string());
+              sub_vec.clear();
+              j+=2;
+               } 
+             }
+            if !some_start_ignore.is_empty(){
+              for element in some_start_ignore{
+              if line.contains(&element){
+                contains = true;
+                break;
+              }
+             }
+            }
+            return contains;
+  }
 //------------------------------------------------------------------------------------------
 #[cfg(test)]
   mod tests{
