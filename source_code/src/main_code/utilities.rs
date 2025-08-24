@@ -554,18 +554,14 @@ where
       return false;
     }
   }
-  pub fn set_qeue_element(&mut self, key: &T, index: usize, new_element: &U){
-    if let Some(vec) = self.duplicated.get_mut(key){
-     if!index>vec.len(){
-      for (i, value) in vec.iter().enumerate(){
-        if i == index{
-          vec[i] = new_element.clone();
-          break;
+  pub fn set_qeue_element(&mut self, key: &T, index: usize, new_element: &U) {
+    if let Some(vec) = self.duplicated.get_mut(key) {
+        if index <= vec.len()-1 {
+            vec[index] = new_element.clone();
         }
-       }
       }
-    }
   }
+
  }
 //-------------------------------------------------------------------------------------------------
 #[cfg(test)]
