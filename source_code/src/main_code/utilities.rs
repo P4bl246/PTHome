@@ -443,7 +443,7 @@ use std::collections::VecDeque;
 /// # Note  
 /// Here we call `qeue` a vector of values for a key, enable the support for multiples values for the same key. The values insert in vector are in last input in the 
 /// last field and for extract in FIFO order, properties from a `qeue`
-pub struct Map<T, U>
+pub struct Map<'a, T, U>
 where 
   T: Clone+ Eq + Hash, 
   U: Clone
@@ -452,10 +452,10 @@ where
   value: Option<U>,
   hash: HashMap<T, U>,
   duplicated: HashMap<T, VecDeque<U>>,
-  hash_ref: HashMap<T, &U>,
-  duplicated_ref: HashMap<T, VecDeque<&U>>
+  hash_ref: HashMap<T, &'a U>,
+  duplicated_ref: HashMap<T, VecDeque<&'a U>>
   }
- impl<T, U> Map<T, U>
+ impl<'a, T, U> Map<'a, T, U>
  where 
   T: Clone+ Eq +Hash , 
   U: Clone
@@ -572,7 +572,7 @@ where
   /// * `key: &T` - Key of the Value
   /// * `value: &U` - Value of the key 
   /// * `go_stack:bool` - Indicate if the value goes to the `qeue` or replace the actual visible value in the HashMap
-  pub fn insert_ref<'a>(&mut self, key: T, value: &'a U, go_qeue: bool){
+  pub fn insert_ref(&mut self, key: T, value: &'a U, go_qeue: bool){
     if self.hash.contains_key(&key) && go_qeue{
       if self.duplicated_ref.contains_key(&key){
    
@@ -595,7 +595,7 @@ where
   /// * `None` - If this key not exist
   /// * `&U` - A reference of the value
   pub fn get_ref(&self, key: &T)-> Option<&U>{
-   self.hash_ref.get(key)
+   self.hash_ref.get(key).map(|v| &(**v))
   }
   /// # `remove_ref` 
   /// Remove the element in the HashMap and replace this with a element in the `qeue`
@@ -616,11 +616,11 @@ where
   /// * `key:&T` - Key for search in the `qeue` and create and return the vector
   /// # Return 
   /// A empty vector if this key are not found in the `ref_qeue`, else a vector with the reference for the values for this key in the `ref_qeue`
-  pub fn get_all_ref(&self, key: &T)-> Vec<U>{
+  pub fn get_all_ref(&self, key: &T)-> Vec<&U>{
     let mut vec_ret = Vec::new();
     if let Some(i)  = self.duplicated_ref.get(key){
       for n in i{
-          vec_ret.push(n);
+          vec_ret.push(&(**n));
       }
     }
     return vec_ret;
@@ -630,8 +630,8 @@ where
   /// Set all the qeue
   /// # Arguments
   /// * `key: &T` - Key of the valu to set qeue if this have
-  /// * `new_vec: Vec<U>` - Vec for replace the actual qeue
-  pub fn set_qeue_ref(&mut self, key: &T, new_vec: &Vec<U>){
+  /// * `new_vec: Vec<&'a U>` - Vec for replace the actual qeue
+  pub fn set_qeue_ref(&mut self, key: &T, new_vec: &Vec<&'a U>){
     if let Some(vec) = self.duplicated_ref.get_mut(key){
       vec.clear();
       for i in new_vec{
@@ -652,7 +652,7 @@ where
       return false;
     }
   }
-  pub fn set_ref_qeue_element(&mut self, key: &T, index: usize, new_element: &U) {
+  pub fn set_ref_qeue_element(&mut self, key: &T, index: usize, new_element: &'a U) {
     if let Some(vec) = self.duplicated_ref.get_mut(key) {
         if index <= vec.len()-1 {
             vec[index] = new_element;

@@ -141,12 +141,12 @@ pub mod normalize_file{
                       delimiter_ignore = verify.0;
                       //If found the string to search
                       if verify.2.len() != copy.len(){
-                        map.insert(n, counter, true); //Store the index of the string found and the number of line
+                        map.insert(&n, &counter, true); //Store the index of the string found and the number of line
                       }
                     }
                     //Else, if the line haven't any start ignore delimiter
                     else{
-                       map.insert(n, counter, true);
+                       map.insert(&n, &counter, true);
                     } 
                 }
             }
@@ -270,13 +270,13 @@ pub mod normalize_file{
                   in_ignore = verify.1;
                   delimiter_ignore = verify.0;
                   if verify.2.len() != copy.len(){
-                    map.insert(i, line[..verify.2.len()].to_string(), true);
-                    num_line.insert(i, counter, true);
+                    map.insert(&i, &line[..verify.2.len()].to_string(), true);
+                    num_line.insert(&i, &counter, true);
                   }
                 }else{
                   if let Some(pos) = copy.find(delimiter){
-                    map.insert(i, line[..pos].to_string(), true);
-                    num_line.insert(i, counter, true);
+                    map.insert(&i,& line[..pos].to_string(), true);
+                    num_line.insert(&i, &counter, true);
                   }
                 }
               }
