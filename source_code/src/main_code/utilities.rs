@@ -438,24 +438,23 @@ pub mod general{
 use std::collections::HashMap;
 use std::hash::Hash;
 use std::collections::VecDeque;
+use std::rc::Rc;
 /// # `Map<T, U>`
 /// Map for support multiples values for a same key in a HashMap, with the same temporary complexity (O(1) aproximately)
 /// # Note  
 /// Here we call `qeue` a vector of values for a key, enable the support for multiples values for the same key. The values insert in vector are in last input in the 
 /// last field and for extract in FIFO order, properties from a `qeue`
-pub struct Map<'a, T, U>
+pub struct Map<T, U>
 where 
   T: Clone+ Eq + Hash, 
   U: Clone
   {
   key: Option<T>, 
   value: Option<U>,
-  hash: HashMap<T, U>,
-  duplicated: HashMap<T, VecDeque<U>>,
-  hash_ref: HashMap<T, &'a U>,
-  duplicated_ref: HashMap<T, VecDeque<&'a U>>
+  hash: HashMap<T, VecDeque<U>>,
+  hash_ref: HashMap<T, VecDeque<Rc<U>>>,
   }
- impl<'a, T, U> Map<'a, T, U>
+ impl<T, U> Map<T, U>
  where 
   T: Clone+ Eq +Hash , 
   U: Clone
@@ -467,9 +466,7 @@ where
       key: None,
       value: None,
       hash: HashMap::new(),
-      duplicated: HashMap::new(),
       hash_ref: HashMap::new(),
-      duplicated_ref: HashMap::new()
     }
   }
   /// # `insert`
@@ -477,21 +474,15 @@ where
   /// # Arguments
   /// * `key: &T` - Key of the Value
   /// * `value: &U` - Value of the key 
-  /// * `go_stack:bool` - Indicate if the value goes to the `qeue` or replace the actual visible value in the HashMap 
-  pub fn insert(&mut self, key: &T, value: &U, go_qeue:bool){
-    if self.hash.contains_key(&key) && go_qeue{
-      if self.duplicated.contains_key(&key){
-   
-       let upload_vec = self.duplicated.get_mut(&key).unwrap();
-      upload_vec.push_back(value.clone());
-      }else{
-        let mut vec_new: VecDeque<U> = VecDeque::new();
-        vec_new.push_back(value.clone());
-        self.duplicated.insert(key.clone(), vec_new);
-      }
-    }else{
-      self.hash.insert(key.clone(),value.clone());
+  pub fn insert(&mut self, key: &T, value: &U){
+    if let Some(vec) = self.hash.get_mut(key){
+      vec.push_back(value.clone());
     }
+    else{
+        let mut vec_new = VecDeque::new();
+      vec_new.push_back(value.clone());
+      self.hash.insert(key.clone(),vec_new);
+      }
   }
   /// # `get`
   /// Get the value for this key
@@ -500,20 +491,26 @@ where
   /// # Return    
   /// * `None` - If this key not exist
   /// * `&U` - A reference of the value
-  pub fn get(&self, key: &T)-> Option<&U>{
-   self.hash.get(key)
+  pub fn get(&mut self, key: &T)-> Option<&U>{
+    if let Some(value) = self.hash.get(key){
+      if value.len() <= 0{
+         self.hash.remove(key);
+          return None;
+      }
+    }
+   match &mut self.hash.get(key){
+    Some(i) => Some(&i[0]),
+    None => None
+   }
   }
   /// # `remove` 
   /// Remove the element in the HashMap and replace this with a element in the `qeue`
   /// # Arguments  
   /// * `key: &T` - Key for search and remove the key from the HashMap
   pub fn remove(&mut self, key: &T){
-    self.hash.remove(key);
-    if let Some(replace) = self.duplicated.get_mut(&key){ 
-        match replace.pop_front(){
-          None => {self.duplicated.remove(key);},
-          Some(i) => {self.hash.insert(key.clone(), i);},
-        }
+    if let Some(replace) = self.hash.get_mut(key){ 
+       if replace.len() > 0{replace.remove(0);}
+       else {self.hash.remove(key);} 
     }
   }
   /// # `get_all`
@@ -524,7 +521,7 @@ where
   /// A empty vector if this key are not found in the `qeue`, else a vector with the values for this key in the `qeue`
   pub fn get_all(&self, key: &T)-> Vec<U>{
     let mut vec_ret = Vec::new();
-    if let Some(i)  = self.duplicated.get(key){
+    if let Some(i)  = self.hash.get(key){
       for n in i{
           vec_ret.push(n.clone());
       }
@@ -537,29 +534,17 @@ where
   /// # Arguments
   /// * `key: &T` - Key of the valu to set qeue if this have
   /// * `new_vec: Vec<U>` - Vec for replace the actual qeue
-  pub fn set_qeue(&mut self, key: &T, new_vec: &Vec<U>){
-    if let Some(vec) = self.duplicated.get_mut(key){
+  pub fn set_value(&mut self, key: &T, new_vec: &Vec<U>){
+    if let Some(vec) = self.hash.get_mut(key){
       vec.clear();
       for i in new_vec{
         vec.push_back(i.clone());
       }
     }
   }
-  /// # `contains_qeue`
-  /// Indicate if the some key have a qeue
-  /// # Arguments
-  /// * `key:&T` - Key for search the qeue
-  /// # Return  
-  /// * `true` if have
-  /// * `false` if not haven't
-  pub fn contains_qeue(&self, key: &T)-> bool{
-    if self.duplicated.contains_key(key){return true;}
-    else{
-      return false;
-    }
-  }
-  pub fn set_qeue_element(&mut self, key: &T, index: usize, new_element: &U) {
-    if let Some(vec) = self.duplicated.get_mut(key) {
+
+  pub fn set_value_element(&mut self, key: &T, index: usize, new_element: &U) {
+    if let Some(vec) = self.hash.get_mut(key) {
         if index <= vec.len()-1 {
             vec[index] = new_element.clone();
         }
@@ -572,20 +557,16 @@ where
   /// * `key: &T` - Key of the Value
   /// * `value: &U` - Value of the key 
   /// * `go_stack:bool` - Indicate if the value goes to the `qeue` or replace the actual visible value in the HashMap
-  pub fn insert_ref(&mut self, key: T, value: &'a U, go_qeue: bool){
-    if self.hash.contains_key(&key) && go_qeue{
-      if self.duplicated_ref.contains_key(&key){
-   
-       let upload_vec = self.duplicated_ref.get_mut(&key).unwrap();
-      upload_vec.push_back(value);
-      }else{
-        let mut vec_new: VecDeque<&U> = VecDeque::new();
-        vec_new.push_back(value);
-        self.duplicated_ref.insert(key.clone(), vec_new);
-      }
-    }else{
-      self.hash_ref.insert(key.clone(),value);
+  pub fn insert_ref(&mut self, key: &T, value: U, go_qeue: bool){
+    if let Some(vec) = self.hash_ref.get_mut(key){
+      vec.push_back(Rc::new(value));
     }
+    else{
+    let mut vec_new = VecDeque::new();
+    let ref_value = Rc::new(value);
+      vec_new.push_back(ref_value.clone());
+      self.hash_ref.insert(key.clone(),vec_new);
+      }
   }
   /// # `get_ref`
   /// Get the value for this key
@@ -594,20 +575,26 @@ where
   /// # Return    
   /// * `None` - If this key not exist
   /// * `&U` - A reference of the value
-  pub fn get_ref(&self, key: &T)-> Option<&U>{
-   self.hash_ref.get(key).map(|v| &(**v))
+  pub fn get_ref(&mut self, key: &T)-> Option<&U>{
+    if let Some(value) = self.hash_ref.get(key){
+      if value.len() <= 0{
+         self.hash.remove(key);
+          return None;
+      }
+    }
+   match &mut self.hash_ref.get(key){
+    Some(i) => Some(&i[0]),
+    None => None
+   }
   }
   /// # `remove_ref` 
   /// Remove the element in the HashMap and replace this with a element in the `qeue`
   /// # Arguments  
   /// * `key: &T` - Key for search and remove the key from the HashMap
   pub fn remove_ref(&mut self, key: &T){
-    self.hash_ref.remove(key);
-    if let Some(replace) = self.duplicated_ref.get_mut(key){ 
-        match replace.pop_front(){
-          None => {self.duplicated_ref.remove(key);},
-          Some(i) => {self.hash_ref.insert(key.clone(), i);},
-        }
+      if let Some(replace) = self.hash_ref.get_mut(key){ 
+       if replace.len() > 0{replace.remove(0);}
+       else {self.hash_ref.remove(key);} 
     }
   }
   /// # `get_all_ref`
@@ -618,9 +605,9 @@ where
   /// A empty vector if this key are not found in the `ref_qeue`, else a vector with the reference for the values for this key in the `ref_qeue`
   pub fn get_all_ref(&self, key: &T)-> Vec<&U>{
     let mut vec_ret = Vec::new();
-    if let Some(i)  = self.duplicated_ref.get(key){
+    if let Some(i)  = self.hash_ref.get(key){
       for n in i{
-          vec_ret.push(&(**n));
+          vec_ret.push(&**n);
       }
     }
     return vec_ret;
@@ -631,11 +618,12 @@ where
   /// # Arguments
   /// * `key: &T` - Key of the valu to set qeue if this have
   /// * `new_vec: Vec<&'a U>` - Vec for replace the actual qeue
-  pub fn set_qeue_ref(&mut self, key: &T, new_vec: &Vec<&'a U>){
-    if let Some(vec) = self.duplicated_ref.get_mut(key){
+  pub fn set_value_ref(&mut self, key: &T, new_vec: Vec<U>){
+    if let Some(vec) = self.hash_ref.get_mut(key){
       vec.clear();
       for i in new_vec{
-        vec.push_back(i);
+        let rc = Rc::new(i);
+        vec.push_back(rc);
       }
     }
   }
@@ -646,16 +634,17 @@ where
   /// # Return  
   /// * `true` if have
   /// * `false` if not haven't
-  pub fn contains_qeue_ref(&self, key: &T)-> bool{
-    if self.duplicated_ref.contains_key(key){return true;}
+  pub fn contains_value_ref(&self, key: &T)-> bool{
+    if self.hash_ref.contains_key(key){return true;}
     else{
       return false;
     }
   }
-  pub fn set_ref_qeue_element(&mut self, key: &T, index: usize, new_element: &'a U) {
-    if let Some(vec) = self.duplicated_ref.get_mut(key) {
+  pub fn set_ref_value_element(&mut self, key: &T, index: usize, new_element: U) {
+    if let Some(vec) = self.hash_ref.get_mut(key) {
         if index <= vec.len()-1 {
-            vec[index] = new_element;
+          let rc = Rc::new(new_element);
+            vec[index] = rc;
         }
       }
   }
