@@ -89,8 +89,7 @@ pub mod normalize_file{
         let mut last_push = 0;
         let mut counter = 0;
          if !ignore_content_between.0.is_empty() || !ignore_content_between.1.is_empty(){ignore_delimiters = true;}
-        let mut index:Vec<usize> = Vec::new();
-        let mut value:Vec<usize> = Vec::new();
+        let mut map:general::Map<usize, usize> = general::Map::new();
         //iterate in each line
         for line in content.lines(){
             counter += 1;
@@ -135,8 +134,6 @@ pub mod normalize_file{
           if !in_ignore{
             //Iterate in each search string for search this at the actual line
             for (n , i) in search_this.iter().enumerate(){
-                //If the line contains a string to search
-                if copy.contains(*i){
                 //If the line contains some start ignore delimiter
                     if contains{
                       let verify = remove_comments::content_between(ignore_content_between.0, ignore_content_between.1, &scape_characters, i, &copy);
@@ -144,51 +141,30 @@ pub mod normalize_file{
                       delimiter_ignore = verify.0;
                       //If found the string to search
                       if verify.2.len() != copy.len(){
-                        index.push(n); //Store the index of the string found
-                        value.push(counter);//Put the line, this have the index as a key
-                        //remove the index found
-                      copy.replace_range(verify.2.len()..verify.2.len()+i.len(), &general::str_of_n_str(" ", copy[verify.2.len()..verify.2.len()+i.len()].len()));
-                      last_push = n;
+                        map.insert(n, counter, true); //Store the index of the string found and the number of line
                       }
-                      //Else, if the line haven't any string to search
-                      
                     }
                     //Else, if the line haven't any start ignore delimiter
                     else{
-                       index.push(n);
-                        value.push(counter);
-                        if let Some(pos) = copy.find(*i){
-                    copy.replace_range(pos..pos+i.len(), &general::str_of_n_str(" ", copy[pos..pos+i.len()].len()));
-                        }
+                       map.insert(n, counter, true);
                     } 
                 }
             }
-          }
         }
 
       {
         //agrupe the lines with the same delimiter for search
         for i in search_this.iter().enumerate(){
         let mut buffer = Vec::new();//buffer 
-        let mut remove = Vec::new();
          // search all the lines with the delimiter
-            if index.contains(&i.0){
-                for (s, n) in index.iter().enumerate(){
-                    if *n == i.0{
-                        buffer.push(value[s].clone());
-                        remove.push(s);
-                    }
+              loop{
+                let tempo = map.get(&i.0);
+                match tempo{
+                  Some(n) => {buffer.push(*n); map.remove(&i.0);},
+                  None => {break;}
                 }
-                let mut fix_dcr = 0;
-                //Remove the indexes processed
-                for n in remove{
-                    index.remove(n-fix_dcr);
-                    value.remove(n-fix_dcr);
-                    fix_dcr += 1;
-                }
-            }
-                lines_slice.push(buffer.clone());
-            
+              }
+              lines_slice.push(buffer);
         }
       }
       println!("LINES FILTERED");
@@ -196,9 +172,35 @@ pub mod normalize_file{
         return Some((lines_slice)); 
     }
 //------------------------------------------------------------------------------------
-    pub fn parser_classes(){}
+    pub fn parser_classes(content: &str){
+      
+    }
 //------------------------------------------------------------------------------------
-    pub fn extract_str_before(content: &str, delimiter_slice:&Vec<&str>, scape_characters: &Vec<char>, ignore_content_between:(&Vec<char>, &Vec<&str>)) -> Option<Vec<String>>{
+    /// # `extract_str_before`
+      /// Search strings delimiters and extract the string or content before the first delimiter appear.
+      /// # Arguments
+      /// * `content:&str` - string from filter the content.
+      /// * `delimiter_slice: &Vec<&str>` - vector of strings than indicate the delimiters.
+      /// * `scape_characters` - vector of character than indicate the scape character for ignore end delimiters. (can be empty)
+      /// * `ignore_content_between:(&Vec<char>, &Vec<&str>)` - delimiters than indicate content to ignore between those. (the vectors can be empty)
+      /// # Return 
+      /// * Panic if the delimiter_slice or content parameter are empty or delimiter_slice contains some space.
+      /// * `None` - if occurs some recupareble errors on the parameters.
+      /// * `Some((Vec<Vec<String>>, Vec<Vec<usize>>))` - tuple of vectors:
+      ///   * `Vec<Vec<String>>` - Vector of content before extracting, in order of the delimiter_slice vector.
+      ///   * `Vec<Vec<usize>>` - Number of line where found that delimiter and extract that string. (in order of delimiter_slice vector)
+      /// # Example 
+      /// ```rust
+      /// mod main_code;
+      /// fn main(){
+      /// use crate::main_code::parsing_sintax;
+      /// let content = "Hello, this is\nHello, this is\nChao";
+      /// let scape:Vec<char> = Vec::new();
+      /// let indexes = parsing_sintax::extract_str_before(content, &["t"].to_vec(), &scape, (&[].to_vec(), &[].to_vec())).unwrap();
+      /// println!("{:?}", indexes);
+      /// }
+      /// ```
+    pub fn extract_str_before(content: &str, delimiter_slice:&Vec<&str>, scape_characters: &Vec<char>, ignore_content_between:(&Vec<char>, &Vec<&str>)) -> Option<(Vec<Vec<String>>, Vec<Vec<usize>>)>{
          if content.is_empty(){
             panic!("Error:The content cannot be an empty string");
          }
@@ -214,9 +216,13 @@ pub mod normalize_file{
         println!("EXTRACTING CONTENT BEFORE DELIMITERS");
         let mut contains = false;
         let mut counter = 0;
-        let mut content_before:Vec<String> = Vec::new();
+        let mut content_before:Vec<Vec<String>> = Vec::new();
         let mut in_ignore = false;
         let mut delimiter_ignore = String::new();
+
+        let mut num_line: general::Map<usize, usize> = general::Map::new();
+        let mut indexes: Vec<Vec<usize>> = Vec::new();
+        let mut map:general::Map<usize, String> = general::Map::new();
         for line in content.lines(){
             counter += 1;
             contains = false;
@@ -257,12 +263,53 @@ pub mod normalize_file{
              contains = remove_comments::contains_ignore(ignore_content_between.0, ignore_content_between.1, &copy);
           }
           if !in_ignore{
-            
+            for (i, delimiter) in delimiter_slice.iter().enumerate(){
+             if copy.contains(delimiter){
+                if contains{
+                  let verify = remove_comments::content_between(ignore_content_between.0, ignore_content_between.1, scape_characters, delimiter, &copy);
+                  in_ignore = verify.1;
+                  delimiter_ignore = verify.0;
+                  if verify.2.len() != copy.len(){
+                    map.insert(i, line[..verify.2.len()].to_string(), true);
+                    num_line.insert(i, counter, true);
+                  }
+                }else{
+                  if let Some(pos) = copy.find(delimiter){
+                    map.insert(i, line[..pos].to_string(), true);
+                    num_line.insert(i, counter, true);
+                  }
+                }
+              }
+            }
           }
         }
-        
+        {
+          
+          for (i, s) in delimiter_slice.iter().enumerate(){
+            let mut buffer: Vec<usize> = Vec::new();
+            let mut buffer_values: Vec<String> = Vec::new();
+
+            //Agrupe strings before and the num of line where it found
+            loop{
+               match map.get(&i){
+                Some(n) => {buffer_values.push(n.clone()); map.remove(&i);},
+                None => {break;},
+               };
+              }
+            loop{  
+              match num_line.get(&i){
+                Some(n) => {buffer.push(n.clone()); num_line.remove(&i);},
+                None => {break;}
+              };
+            }
+              content_before.push(buffer_values.clone());
+            indexes.push(buffer.clone());
+            }
+            
+          }
+        println!("CONTENT BEFORE DELIMITERS EXTRACTED");
          
-         return Some([].to_vec());
+         return Some((content_before, indexes));
     }
 //------------------------------------------------------------------------------------
     pub fn parser_equialites(){}

@@ -435,6 +435,139 @@ pub mod general{
     return new_str;
   }
 //-------------------------------------------------------------------------------------------------
+use std::collections::HashMap;
+use std::hash::Hash;
+use std::collections::VecDeque;
+/// # `Map<T, U>`
+/// Map for support multiples values for a same key in a HashMap, with the same temporary complexity (O(1) aproximately)
+/// # Note  
+/// Here we call `qeue` a vector of values for a key, enable the support for multiples values for the same key. The values insert in vector are in last input in the 
+/// last field and for extract in FIFO order, properties from a `qeue`
+pub struct Map<T, U>
+where 
+  T: Clone+ Eq + Hash, 
+  U: Clone
+  {
+  key: Option<T>, 
+  value: Option<U>,
+  hash: HashMap<T, U>,
+  duplicated: HashMap<T, VecDeque<U>>
+  }
+ impl<T, U> Map<T, U>
+ where 
+  T: Clone+ Eq +Hash , 
+  U: Clone
+ {
+  /// # `new`
+  /// Create a new instance of Map struct
+  pub fn new() -> Self{
+    Self{
+      key: None,
+      value: None,
+      hash: HashMap::new(),
+      duplicated: HashMap::new()
+    }
+  }
+  /// # `insert`
+  /// Insert a new element in the Map, if the value are push before the value go to the `qeue`  
+  /// # Arguments
+  /// * `key: T` - Key of the Value
+  /// * `value: U` - Value of the key 
+  /// * `go_stack:bool` - Indicate if the value goes to the `qeue` or replace the actual visible value in the HashMap 
+  pub fn insert(&mut self, key: T, value: U, go_qeue:bool){
+    if self.hash.contains_key(&key) && go_qeue{
+      if self.duplicated.contains_key(&key){
+   
+       let upload_vec = self.duplicated.get_mut(&key).unwrap();
+      upload_vec.push_back(value.clone());
+      }else{
+        let mut vec_new: VecDeque<U> = VecDeque::new();
+        vec_new.push_back(value);
+        self.duplicated.insert(key, vec_new);
+      }
+    }else{
+      self.hash.insert(key.clone(),value.clone());
+    }
+  }
+  /// # `get`
+  /// Get the value for this key
+  /// # Arguments
+  /// * `key: &T` - key for get the value
+  /// # Return    
+  /// * `None` - If this key not exist
+  /// * `&U` - A reference of the value
+  pub fn get(&self, key: &T)-> Option<&U>{
+   self.hash.get(key)
+  }
+  /// # `remove` 
+  /// Remove the element in the HashMap and replace this with a element in the `qeue`
+  /// # Arguments  
+  /// * `key` - Key for search and remove the key from the HashMap
+  pub fn remove(&mut self, key: &T){
+    self.hash.remove(key);
+    if let Some(replace) = self.duplicated.get_mut(&key){ 
+        match replace.pop_front(){
+          None => {self.duplicated.remove(key);},
+          Some(i) => {self.hash.insert(key.clone(), i);},
+        }
+    }
+  }
+  /// # `get_all`
+  /// Get all the values assigned for that key except the value in the HashMap
+  /// # Argumtes
+  /// * `key:&T` - Key for search in the `qeue` and create and return the vector
+  /// # Return 
+  /// A empty vector if this key are not found in the `qeue`, else a vector with the values for this key in the `qeue`
+  pub fn get_all(&self, key: &T)-> Vec<U>{
+    let mut vec_ret = Vec::new();
+    if let Some(i)  = self.duplicated.get(key){
+      for n in i{
+          vec_ret.push(n.clone());
+      }
+    }
+    return vec_ret;
+  }
+  
+  /// # `set_qeue`
+  /// Set all the qeue
+  /// # Arguments
+  /// * `key: &T` - Key of the valu to set qeue if this have
+  /// * `new_vec: Vec<U>` - Vec for replace the actual qeue
+  pub fn set_qeue(&mut self, key: &T, new_vec: &Vec<U>){
+    if let Some(vec) = self.duplicated.get_mut(key){
+      vec.clear();
+      for i in new_vec{
+        vec.push_back(i.clone());
+      }
+    }
+  }
+  /// # `contains_qeue`
+  /// Indicate if the some key have a qeue
+  /// # Arguments
+  /// * `key:&T` - Key for search the qeue
+  /// # Return  
+  /// * `true` if have
+  /// * `false` if not haven't
+  pub fn contains_qeue(&self, key: &T)-> bool{
+    if self.duplicated.contains_key(key){return true;}
+    else{
+      return false;
+    }
+  }
+  pub fn set_qeue_element(&mut self, key: &T, index: usize, new_element: &U){
+    if let Some(vec) = self.duplicated.get_mut(key){
+     if!index>vec.len(){
+      for (i, value) in vec.iter().enumerate(){
+        if i == index{
+          vec[i] = new_element.clone();
+          break;
+        }
+       }
+      }
+    }
+  }
+ }
+//-------------------------------------------------------------------------------------------------
 #[cfg(test)]
 ///# Tests
   mod tests{

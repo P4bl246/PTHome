@@ -11,8 +11,8 @@ fn main() {
     let ignore = (&ignore_this, &ignore_this2);
     let content = fs::read_to_string(file_path).expect(&format!("Failed to read the file '{}'", file_path));  
     let scape = ['\\'].to_vec();
-    let search = vec![":", "="];
-    let n = parser::filter_lines(&content, &search, &scape, ignore);
+    let search: Vec<&'static str> = vec![":", "="];
+    let n = parser::extract_str_before(&content, &search, &scape, ignore);
     
     match n{
         None => println!("Error"),

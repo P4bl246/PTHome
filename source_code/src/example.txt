@@ -1,4 +1,4 @@
-1"/*\"'/*'/*This is a line comment\"*/"*/"/s" = : 
+1"/*\"'/*'/*This is a line comment\"*/"*/"/s" = \: 
 "\"="sss :
 2/*this/**/*/
 F/*This is a/*other/*chars/*/**/22*/ */N
