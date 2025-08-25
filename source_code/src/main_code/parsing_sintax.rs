@@ -242,20 +242,20 @@ pub mod normalize_file{
                     for r in l{
                       if let Some(l2) = keys.get(&d){
                         for r2 in l2{
-                            match map_classes.get_ref_to_all(&r2.to_string()){
-                              Some(i)=> if !i.contains(&r.to_string()){
-                                map_classes.insert(&r2.to_string(), &r.to_string());
+                            match map_classes.get_ref_to_all(&r2.trim().to_string()){
+                              Some(i)=> if !i.contains(&r.trim().to_string()){
+                                map_classes.insert(&r2.trim().to_string(), &r.trim().to_string());
                               },
-                              None=>{map_classes.insert(&r2.to_string(), &r.to_string());}
+                              None=>{map_classes.insert(&r2.trim().to_string(), &r.trim().to_string());}
                             
                             }              
                         }
                       }else{
-                        match map_classes.get_ref_to_all(&n){
-                              Some(i)=> if !i.contains(&r.to_string()){
-                                map_classes.insert(n, &r.to_string());
+                        match map_classes.get_ref_to_all(&n.trim().to_string()){
+                              Some(i)=> if !i.contains(&r.trim().to_string()){
+                                map_classes.insert(&n.trim().to_string(), &r.trim().to_string());
                               },
-                              None=>{map_classes.insert(n, &r.to_string());}
+                              None=>{map_classes.insert(&n.trim().to_string(), &r.trim().to_string());}
                             
                             }
                       }
@@ -265,20 +265,20 @@ pub mod normalize_file{
                     for r in l{
                       if let Some(l2) = keys.get(&d){
                         for r2 in l2{
-                           match map_classes.get_ref_to_all(&r2.to_string()){
-                              Some(i)=> if !i.contains(&r.to_string()){
-                                map_classes.insert(&r2.to_string(), &r.to_string());
+                           match map_classes.get_ref_to_all(&r2.trim().to_string()){
+                              Some(i)=> if !i.contains(&r.trim().to_string()){
+                                map_classes.insert(&r2.trim().to_string(), &r.trim().to_string());
                               },
-                              None=>{map_classes.insert(&r2.to_string(), &r.to_string());}
+                              None=>{map_classes.insert(&r2.trim().to_string(), &r.trim().to_string());}
                             
                             } 
                         }
                       }else {
-                        match map_classes.get_ref_to_all(&n){
-                              Some(i)=> if !i.contains(&r.to_string()){
-                                map_classes.insert(n, &r.to_string());
+                        match map_classes.get_ref_to_all(&n.trim().to_string()){
+                              Some(i)=> if !i.contains(&r.trim().to_string()){
+                                map_classes.insert(&n.trim().to_string(), &r.trim().to_string());
                               },
-                              None=>{map_classes.insert(n, &r.to_string());}
+                              None=>{map_classes.insert(&n.trim().to_string(), &r.trim().to_string());}
                             
                             }
                       }
@@ -298,20 +298,20 @@ pub mod normalize_file{
                     for r in l{
                       if let Some(l2) = keys.get(&d){
                         for r2 in l2{
-                           match map_equal.get_ref_to_all(&r2.to_string()){
-                              Some(i)=> if !i.contains(&r.to_string()){
-                                map_equal.insert(&r2.to_string(), &r.to_string());
+                           match map_equal.get_ref_to_all(&r2.trim().to_string()){
+                              Some(i)=> if !i.contains(&r.trim().to_string()){
+                                map_equal.insert(&r2.trim().to_string(), &r.trim().to_string());
                               },
-                              None=>{map_equal.insert(&r2.to_string(), &r.to_string());}
+                              None=>{map_equal.insert(&r2.trim().to_string(), &r.trim().to_string());}
                             
                             } 
                         }
                       }else {
-                        match map_equal.get_ref_to_all(&n){
-                              Some(i)=> if !i.contains(&r.to_string()){
-                                map_equal.insert(n, &r.to_string());
+                        match map_equal.get_ref_to_all(&n.trim().to_string()){
+                              Some(i)=> if !i.contains(&r.trim().to_string()){
+                                map_equal.insert(&n.trim().to_string(), &r.trim().to_string());
                               },
-                              None=>{map_equal.insert(n, &r.to_string());}
+                              None=>{map_equal.insert(&n.trim().to_string(), &r.trim().to_string());}
                             
                             }
                       }
@@ -321,20 +321,20 @@ pub mod normalize_file{
                     for r in l{
                       if let Some(l2) = keys.get(&d){
                         for r2 in l2{
-                         match map_equal.get_ref_to_all(&r2.to_string()){
-                              Some(i)=> if !i.contains(&r.to_string()){
-                                map_equal.insert(&r2.to_string(), &r.to_string());
+                         match map_equal.get_ref_to_all(&r2.trim().to_string()){
+                              Some(i)=> if !i.contains(&r.trim().to_string()){
+                                map_equal.insert(&r2.trim().to_string(), &r.trim().to_string());
                               },
-                              None=>{map_equal.insert(&r2.to_string(), &r.to_string());}
+                              None=>{map_equal.insert(&r2.trim().to_string(), &r.trim().to_string());}
                             
                             }
                         }
                       }else {
-                        match map_equal.get_ref_to_all(&n){
-                              Some(i)=> if !i.contains(&r.to_string()){
-                                map_equal.insert(n, &r.to_string());
+                        match map_equal.get_ref_to_all(&n.trim().to_string()){
+                              Some(i)=> if !i.contains(&r.trim().to_string()){
+                                map_equal.insert(&n.trim().to_string(), &r.trim().to_string());
                               },
-                              None=>{map_equal.insert(n, &r.to_string());}
+                              None=>{map_equal.insert(&n.trim().to_string(), &r.trim().to_string());}
                             
                             }
                       }
