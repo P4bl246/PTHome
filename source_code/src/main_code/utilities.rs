@@ -453,12 +453,15 @@ where
   {
   hash: HashMap<T, VecDeque<U>>,
   hash_ref: HashMap<T, VecDeque<Rc<U>>>,
-  order: Vec<T>,
+  order: HashMap<T, VecDeque<usize>>,
+  order_o1: HashMap<usize, T>,
   order_hash : bool,
   store_last_insert_key:bool,
   order_hash_ref: bool,
   store_last_insert_ref_key:bool,
-  iter: usize
+  preserve_before: bool,
+  iter: usize,
+  counter: usize
   }
  impl<T, U> Map<T, U>
  where 
@@ -471,12 +474,15 @@ where
     Self{
       hash: HashMap::new(),
       hash_ref: HashMap::new(),
-      order: Vec::new(),
+      order: HashMap::new(),
+      order_o1: HashMap::new(),
       order_hash : false, 
       store_last_insert_key:false,
       order_hash_ref:false,
       store_last_insert_ref_key:false,
+      preserve_before:false,
       iter: 0,
+      counter: 0
     }
   }
   /// # `insert`
@@ -485,7 +491,8 @@ where
   /// * `key: &T` - Key of the Value
   /// * `value: &U` - Value of the key
   /// # IMPORTANT
-  /// The order is in the same vector, so if you select push all the inserts of the key in the order and after change for just last insert for key, all values store before are be removed and just store the last insert for key.
+  /// The order is in the same vector, so if you select push all the inserts of the key in the order and after change for just last insert for key, all values store before are be removed and just store the last insert for key
+  /// if you want avoid this active the preserve before flag.
   /// And the order not distingue between insert in hash of clones or insert in hash of refs
   pub fn insert(&mut self, key: &T, value: &U){
     if let Some(vec) = self.hash.get_mut(key){
@@ -498,24 +505,51 @@ where
       }
       if self.order_hash{
       if self.store_last_insert_key{
-        if self.order.contains(key){
-          let mut remove = Vec::new();
-          for (i, n) in self.order.iter().enumerate(){
-            if n == key{
-             remove.push(i); 
+        if self.preserve_before{
+          if let Some(vec) = self.order.get_mut(key){
+            let last = vec.back();
+            if self.order_o1.contains_key(last.unwrap()){
+              self.order_o1.remove(last.unwrap());
+            }
+            let n = vec.back_mut().unwrap();
+            *n = self.counter;
+            
+          }
+          else{
+            let mut new_vec = VecDeque::new();
+          new_vec.push_front(self.counter);
+          self.order.insert(key.clone(), new_vec);            
+          }
+          self.order_o1.insert(self.counter, key.clone());
+
+        }
+        else{
+          if let Some(vec) = self.order.get_mut(key){
+            for i in vec{
+              if self.order_o1.contains_key(i){
+                self.order_o1.remove(i);
+              }
             }
           }
-          let mut dcr = 0;
-          for i in remove{
-           self.order.remove(i-dcr);
-           dcr += 1;
+          let mut new_vec = VecDeque::new();
+          new_vec.push_front(self.counter);
+          self.order.insert(key.clone(), new_vec); 
+          self.order_o1.insert(self.counter, key.clone());
           }
+      
+    }else{
+       if let Some(vec) = self.order.get_mut(key){
+        vec.push_back(self.counter);
+       }
+        else{
+          let mut new_vec = VecDeque::new();
+          new_vec.push_front(self.counter);
+          self.order.insert(key.clone(), new_vec);
         }
-        self.order.push(key.clone()); 
-      }else{
-        self.order.push(key.clone());
+        self.order_o1.insert(self.counter, key.clone());
       }
-    }    
+       self.counter+=1;    
+   }
   }
   /// # `get`
   /// Get the value for some key
@@ -637,6 +671,7 @@ where
   /// * `value: &U` - Value of the key
   /// # IMPORTANT
   /// The order is in the same vector, so if you select push all the inserts of the key in the order and after change for just last insert for key, all values store before are be removed and just store the last insert for key.
+  /// if you want avoid this active the preserve before flag.
   /// And the order not distingue between insert in hash of clones or insert in hash of refs
   pub fn insert_ref(&mut self, key: &T, value: U){
     if let Some(vec) = self.hash_ref.get_mut(key){
@@ -650,24 +685,51 @@ where
       }
     if self.order_hash_ref{
       if self.store_last_insert_ref_key{
-        if self.order.contains(key){
-          let mut remove = Vec::new();
-          for (i, n) in self.order.iter().enumerate(){
-            if n == key{
-             remove.push(i); 
+        if self.preserve_before{
+          if let Some(vec) = self.order.get_mut(key){
+            let last = vec.back();
+            if self.order_o1.contains_key(last.unwrap()){
+              self.order_o1.remove(last.unwrap());
+            }
+            let n = vec.back_mut().unwrap();
+            *n = self.counter;
+            
+          }
+          else{
+            let mut new_vec = VecDeque::new();
+          new_vec.push_front(self.counter);
+          self.order.insert(key.clone(), new_vec);            
+          }
+          self.order_o1.insert(self.counter, key.clone());
+
+        }
+        else{
+          if let Some(vec) = self.order.get_mut(key){
+            for i in vec{
+              if self.order_o1.contains_key(i){
+                self.order_o1.remove(i);
+              }
             }
           }
-          let mut dcr = 0;
-          for i in remove{
-           self.order.remove(i-dcr);
-           dcr += 1;
+          let mut new_vec = VecDeque::new();
+          new_vec.push_front(self.counter);
+          self.order.insert(key.clone(), new_vec); 
+          self.order_o1.insert(self.counter, key.clone());
           }
+      
+    }else{
+       if let Some(vec) = self.order.get_mut(key){
+        vec.push_back(self.counter);
+       }
+        else{
+          let mut new_vec = VecDeque::new();
+          new_vec.push_front(self.counter);
+          self.order.insert(key.clone(), new_vec);
         }
-        self.order.push(key.clone()); 
-      }else{
-        self.order.push(key.clone());
+        self.order_o1.insert(self.counter, key.clone());
       }
-    }    
+       self.counter+=1;    
+   }
   }
   /// # `get_ref`
   /// Get the value for this key in the HashMap of references
@@ -785,29 +847,35 @@ where
   /// If you want enable the register for a single `HashMap` use [`enable_order_for_ref`] (for `HashMap of refs`) or [`enable_order`] (for `HashMap of copies`)
   /// # Arguments
   /// * `last_insert_of_key: bool` - Indicate if the register just store the last insert for key
-  pub fn enable_global_order(&mut self, last_insert_of_key: bool){
+  /// * `preserve_content_before_order` - Indicate if you want to preserve the register store before for key, and just aplicate the `las_insert_of_key` flag about moment when you change this flag
+  pub fn enable_global_order(&mut self, last_insert_of_key: bool, preserve_content_before_order: bool){
     self.order_hash = true;
     self.order_hash_ref = true;
     self.store_last_insert_key = last_insert_of_key;
     self.store_last_insert_ref_key = last_insert_of_key;
+    self.preserve_before = preserve_content_before_order;
   }
   /// # `enable_order_for_ref`
   /// Enables the global order register of the insert in keys, for the `HashMap of refs`
   /// If you want enable the register for both `HashMaps` use [`enable_global_order`] (for `HashMap of refs` and `HashMap of copys`) or [`enable_order`] (for `HashMap of copies`)
   /// # Arguments
   /// * `last_insert_of_key: bool` - Indicate if the register just store the last insert for this key
-  pub fn enable_order_for_ref(&mut self, last_insert_of_key: bool){
+  /// * `preserve_content_before_order` - (This flag aplicate for both, HashMap of reference and HashMap of copies) Indicate if you want to preserve the register store before for key, and just aplicate the `las_insert_of_key` flag about moment when you change this flag
+  pub fn enable_order_for_ref(&mut self, last_insert_of_key: bool, preserve_content_before_order: bool){
     self.order_hash_ref = true;
     self.store_last_insert_ref_key = last_insert_of_key;
+    self.preserve_before =  preserve_content_before_order;
   }
   /// # `enable_order`
   /// Enables the global order register of the insert in keys, for the `HashMap of copies`
   /// If you want enable the register for both `HashMaps` use [`enable_global_order`] (for `HashMap of refs` and `HashMap of copies`) or [`enable_order_for_ref`] (for `HashMap of refs`)
   /// # Arguments
   /// * `last_insert_of_key: bool` - Indicate if the register just store the last insert for this key
-  pub fn enable_order(&mut self, last_insert_of_key: bool){
+  /// * `preserve_content_before_order` - (This flag aplicate for both, HashMap of reference and HashMap of copies) Indicate if you want to preserve the register store before for key, and just aplicate the `las_insert_of_key` flag about moment when you change this flag
+  pub fn enable_order(&mut self, last_insert_of_key: bool,  preserve_content_before_order:bool){
     self.order_hash = true;
     self.store_last_insert_key = last_insert_of_key;
+    self.preserve_before =  preserve_content_before_order;
   }
   /// # `disable_global_order`
   /// Disable continue register the global insert order, but the vector for order conserve the values when the order are be enable
@@ -826,19 +894,40 @@ where
     self.order_hash = false;
   }
   /// # `get_order`
-  /// Get the copy of order vector
+  /// Get the copy of order vector, in order to first-last insert key
   /// # Rerturn
   /// A property of order vector
   pub fn get_order(&self)->Vec<T>{
-    self.order.clone()
+    let mut order_vec = Vec::new();
+    let mut counter2 = 0;
+    while counter2 < self.counter{
+      match self.order_o1.get(&counter2).clone(){
+        None => {continue;}
+        Some(i) =>{
+          order_vec.push(i.clone());
+        }
+      };
+      counter2 +=1;
+    }
+    return order_vec;
   }
   /// # `get_order_mut_ref`
-  /// Get a mutable reference for the order vector
+  /// Get a mutable reference for the order HashMaps
   /// # Return 
-  /// A mutable reference for the order vector
-  pub fn get_order_mut_ref(&mut self) -> &mut Vec<T>{
-    &mut self.order
+  /// A tuple with mutable references for the order HashMap
+  /// * `&mut HashMap<T, VecDeque<usize>>` - HashMap store all the insertion number asociate for key (Here you can search the insertion register for key)
+  /// * `&mut HashMap<usize, T>` - HashMap store all the insertion for a key asociate for a number of insertion (Here you can search the insertion register for insertion number)
+  pub fn get_order_mut_ref(&mut self) -> (&mut HashMap<T, VecDeque<usize>>, &mut HashMap<usize, T>){
+    (&mut self.order, &mut self.order_o1)
   }
+  /// #  `remove_order`
+  /// Reset the order HashMaps to empty
+  pub fn remove_order(&mut self){
+    self.order.clear();
+    self.order_o1.clear();
+    self.counter = 0;
+  }
+
   
   /// # `get_key_ref`
   /// Get the keys where some value appears in a HashMap of refs
@@ -1030,7 +1119,26 @@ where
       else {return None;}
     }else {return None;}
  }
- 
+ pub fn clear_hash(&mut self){
+  self.hash.clear();
+ }
+ pub fn clear_hash_ref(&mut self){
+  self.hash_ref.clear();
+ }
+  pub fn reset_all(&mut self){
+  self.hash_ref.clear();
+  self.hash.clear();
+  self.order.clear();
+  self.order_o1.clear();
+  self.order_hash =false;
+  self.store_last_insert_key=false;
+  self.order_hash_ref=false;
+  self.store_last_insert_ref_key=false;
+  self.preserve_before=false;
+  self.iter= 0;
+  self.counter= 0;
+
+  }
  }
    impl<T, U> Iterator for Map<T, U>
     where 
@@ -1038,13 +1146,16 @@ where
   U: Clone + PartialEq
   {
 
-    type Item = (HashMap<T, VecDeque<U>>, HashMap<T, VecDeque<Rc<U>>>);
+    type Item = ( HashMap<T, VecDeque<U>>, HashMap<T, VecDeque<Rc<U>>>,  HashMap<T, VecDeque<usize>>,  HashMap<usize, T>);
       fn next(&mut self)-> Option<Self::Item>{
         if self.iter <= 0{
           self.iter+=1;
-          Some((self.hash.clone(), self.hash_ref.clone()))
+          Some( (self.hash.clone(),  self.hash_ref.clone(),  self.order.clone(), self.order_o1.clone()))
         }
-        else {None}
+        else {
+          self.iter = 0;
+          None
+        }
       }
   }
 //-------------------------------------------------------------------------------------------------
