@@ -576,7 +576,7 @@ where
   /// * `key: &T` - Key for search and remove the key from the HashMap
   pub fn remove(&mut self, key: &T){
     if let Some(replace) = self.hash.get_mut(key){ 
-       if replace.len() > 0{replace.remove(0);}
+       if replace.len() > 0{replace.pop_front();}
        else {self.hash.remove(key);} 
     }
   }
@@ -658,8 +658,9 @@ where
         if index <= vec.len()-1 {
           if index == 0{
             vec.push_front(new_element.clone());
-          }
+          }else{
             vec[index] = new_element.clone();
+            }
         }
       }
   }
@@ -737,7 +738,7 @@ where
   /// * `key: &T` - key for get the value
   /// # Return    
   /// * `None` - If this key not exist
-  /// * `&U` - A reference of the value
+  /// * `Some(&U)` - A reference of the value
   pub fn get_ref(&mut self, key: &T)-> Option<&U>{
     if let Some(value) = self.hash_ref.get(key){
       if value.len() <= 0{
@@ -746,7 +747,7 @@ where
       }
     }
    match &mut self.hash_ref.get(key){
-    Some(i) => Some(&i[0]),
+    Some(i) => Some(&*i[0]),
     None => None
    }
   }
@@ -756,7 +757,7 @@ where
   /// * `key: &T` - Key for search and remove the key from the HashMap
   pub fn remove_ref(&mut self, key: &T){
       if let Some(replace) = self.hash_ref.get_mut(key){ 
-       if replace.len() > 0{replace.remove(0);}
+       if replace.len() > 0{replace.pop_front();}
        else {self.hash_ref.remove(key);} 
     }
   }
@@ -837,8 +838,11 @@ where
   pub fn set_value_element_ref(&mut self, key: &T, index: usize, new_element: U) {
     if let Some(vec) = self.hash_ref.get_mut(key) {
         if index <= vec.len()-1 {
-          let rc = Rc::new(new_element);
-            vec[index] = rc;
+          if index == 0{
+            vec.push_front(Rc::new(new_element));
+          }else{
+            vec[index] = Rc::new(new_element);
+            }         
         }
       }
   }
@@ -902,7 +906,7 @@ where
     let mut counter2 = 0;
     while counter2 < self.counter{
       match self.order_o1.get(&counter2).clone(){
-        None => {continue;}
+        None => {counter2+=1; continue;}
         Some(i) =>{
           order_vec.push(i.clone());
         }
@@ -1001,7 +1005,7 @@ where
  pub fn get_value_ref(&self, key: &T, index:usize)->Option<&U>{
    if let Some(vec)=self.hash_ref.get(key){
      if index > vec.len()-1{return None;}
-      Some(&vec[index])
+      Some(&*vec[index])
    }else{
     None
    }
@@ -1105,7 +1109,11 @@ where
      }
    }else {return None;}
  }
-
+ /// # `peek`
+ /// Look the next value in the queue of a key, that replace when use [`remove`] method 
+ /// # Return 
+ /// * `None` - If not exist the key or not exist any next value
+ /// * `Some(&U)` - References to the next value in the queue of that key
  pub fn peek(&self, key:&T)->Option<&U>{
     if let Some(next) = self.hash.get(key){
       if next.len() > 1{
@@ -1113,18 +1121,29 @@ where
       }else {return None;}
     }else {return None;}
  }
+ /// # `peek_ref`
+ /// Look the next value in the queue of a key, that replace when use [`remove_ref`] method 
+ /// # Return 
+ /// * `None` - If not exist the key or not exist any next value
+ /// * `Some(&U)` - References to the next value in the queue of that key
  pub fn peek_ref(&self, key:&T)->Option<&U>{
     if let Some(next) = self.hash_ref.get(key){
       if next.len() > 1 {return Some(&next[1]);}
       else {return None;}
     }else {return None;}
  }
+ /// # `clear_hash`
+ /// Clear all the hash  of copies of values and keys
  pub fn clear_hash(&mut self){
   self.hash.clear();
  }
+ /// # `celar_hash_ref`
+ /// Clear all the hash of refs of values and keys
  pub fn clear_hash_ref(&mut self){
   self.hash_ref.clear();
  }
+  /// # `reset_all`
+  /// Reset all the struct to the orignial values, as a new instance of the struct 
   pub fn reset_all(&mut self){
   self.hash_ref.clear();
   self.hash.clear();
@@ -1331,7 +1350,26 @@ where
       }
 
   }
-
+  #[cfg(test)]
+  mod test_map{
+    use crate::main_code::utilities::general;
+   #[test]
+   fn test_insert(){
+     let mut n = general::Map::new();
+     n.insert(&3,& "hello".to_string());
+     n.insert(&3,& "world".to_string());
+     n.insert(&3, &"chao".to_string());
+     assert_eq!(["hello".to_string(), "world".to_string(), "chao".to_string()].to_vec(), n.get_all(&3));
+   }
+   fn test_insert_ref(){
+    let mut n = general::Map::new();
+     n.insert_ref(&3, "hello".to_string());
+     n.insert_ref(&3, "world".to_string());
+     n.insert_ref(&3, "chao".to_string());
+     assert_eq!(["hello".to_string(), "world".to_string(), "chao".to_string()].to_vec(), n.get_all(&3));
+   }
+   fn test_get(){} 
+  }
 }
 
 //------------------------------------------------------------------
