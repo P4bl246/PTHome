@@ -812,7 +812,7 @@ where
   }
   /// # `disable_order_for_ref`
   /// Disable continue register the insert order in `HashMap refs`, but the vector for order conserve the values when the order are be enable
-  pub fn disable_order_for_fer(&mut self){
+  pub fn disable_order_for_ref(&mut self){
     self.order_hash_ref = false;
   }
   /// # `disable_order`
@@ -862,7 +862,7 @@ where
     let mut keys = Vec::new();
       for i in self.hash.keys(){
         let mut vec = self.hash.get(i).unwrap();
-        if vec.contains(&Rc::new(value_search.clone())){
+        if vec.contains(value_search){
           keys.push(i);
           continue;
         }
@@ -1004,7 +1004,7 @@ where
       None => None,
       Some(i) => {
         if last.len() <= 0{
-          self.hash.remove(key);
+          self.hash_ref.remove(key);
         }
         return Some(i);
       }
