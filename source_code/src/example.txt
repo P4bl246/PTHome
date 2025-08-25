@@ -1,5 +1,8 @@
 1"/*\"'/*'/*This is a line comment\"*/"*"/s" = \: 
-"\"="sss :
+"\"="sss : hello, world, tio
+Esta es mi clase"="2 vr1e: khkjguih
+Esta es mi calse, otra, otra2,Esta es mi calse: yyyyyy, ssss, test_content_betwee
+Esta es mi eq, otra_eq, eee = dksjdok, ssss, DO
 2/*this/**/*/
 F/*This is a/*other/*chars/*/**/22*/ */N
 F/*this is*/in"/*"/*ishodk*/b"/**/*/"locks/*dhsin/*sijd/**/*/*/12 

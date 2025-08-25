@@ -172,7 +172,7 @@ pub mod normalize_file{
         return Some((lines_slice)); 
     }
 //------------------------------------------------------------------------------------
-    pub fn filter_classes(content: &str)-> Option<general::Map<String, String>>{
+    pub fn slice_classes_equ(content: &str)-> Option<(general::Map<String, String>,general::Map<String, String>)>{
       let mut n = extract_str_before(content, &["=", ":"].to_vec(),&['\\'].to_vec(), 
       (&['"', '"'].to_vec(),&["'", "'", "{", "}", "(", ")", "[", "]" ,"/", "/", "--", "--"].to_vec()));
       match n {
@@ -193,8 +193,10 @@ pub mod normalize_file{
                 i.2[1].remove(n-dcr);
                 dcr += 1;
               }
-              let mut identificators_value = general::Map::new();
+              
               let mut values = general::Map::new();
+          {
+            let mut identificators_value = general::Map::new();
               for n in i.1[1].iter().enumerate(){
                 identificators_value.insert_ref(&n.0, &i.2[1][n.0]);
               }
@@ -204,28 +206,145 @@ pub mod normalize_file{
                 for s in n{
                   if s.contains(","){
                     values.insert(&c, &(s.split(",").collect::<Vec<_>>()));
-                  }else{values.insert_ref(&c, [s.as_str()].to_vec())}
+                  }else{values.insert_ref(&c, [s.as_str()].to_vec());}
                   c +=1;
                 }
               }else{break;}
             }
+          }
+          let mut values2 = general::Map::new();
+          { 
+            let mut identificators_value = general::Map::new();
+            for n in i.1[0].iter().enumerate(){
+              identificators_value.insert_ref(&n.0, &i.2[0][n.0]);
+            }
+            let mut c = 0;
+            loop{
+              if let Some(n) = identificators_value.get_ref_to_all_ref(&c){
+                for s in n{
+                  if s.contains(","){
+                    values2.insert(&c, &(s.split(",").collect::<Vec<_>>()));
+                  }else{values2.insert_ref(&c, [s.as_str()].to_vec());}
+                  c+=1;
+                }
+              }else{break;}
+            }
+          }
               let mut map_classes = general::Map::new();
+              let mut map_equal = general::Map::new();
               for (d, n) in i.0[1].iter().enumerate(){
                loop{
+                let mut keys = general::Map::new();
+                if n.contains(","){
+                  keys.insert(&d, &(n.split(",").collect::<Vec<_>>()));
+                }
                  if let Some(l) = values.get(&d){
                     for r in l{
-                      map_classes.insert(n, &r.to_string());
+                      if let Some(l2) = keys.get(&d){
+                        for r2 in l2{
+                            match map_classes.get_ref_to_all(&r2.to_string()){
+                              Some(i)=> if !i.contains(&r.to_string()){
+                                map_classes.insert(&r2.to_string(), &r.to_string());
+                              },
+                              None=>{map_classes.insert(&r2.to_string(), &r.to_string());}
+                            
+                            }              
+                        }
+                      }else{
+                        match map_classes.get_ref_to_all(&n){
+                              Some(i)=> if !i.contains(&r.to_string()){
+                                map_classes.insert(n, &r.to_string());
+                              },
+                              None=>{map_classes.insert(n, &r.to_string());}
+                            
+                            }
+                      }
                     }
                     break;
                  }else if let Some(l) = values.get_ref(&d){
                     for r in l{
-                      map_classes.insert(n, &r.to_string());
+                      if let Some(l2) = keys.get(&d){
+                        for r2 in l2{
+                           match map_classes.get_ref_to_all(&r2.to_string()){
+                              Some(i)=> if !i.contains(&r.to_string()){
+                                map_classes.insert(&r2.to_string(), &r.to_string());
+                              },
+                              None=>{map_classes.insert(&r2.to_string(), &r.to_string());}
+                            
+                            } 
+                        }
+                      }else {
+                        match map_classes.get_ref_to_all(&n){
+                              Some(i)=> if !i.contains(&r.to_string()){
+                                map_classes.insert(n, &r.to_string());
+                              },
+                              None=>{map_classes.insert(n, &r.to_string());}
+                            
+                            }
+                      }
                     }
                     break;
                  }else {break;}
                }
               }
-              return Some(map_classes);
+
+              for (d, n) in i.0[0].iter().enumerate(){
+               loop{
+                let mut keys = general::Map::new();
+                if n.contains(","){
+                  keys.insert(&d, &(n.split(",").collect::<Vec<_>>()));
+                }
+                 if let Some(l) = values2.get(&d){
+                    for r in l{
+                      if let Some(l2) = keys.get(&d){
+                        for r2 in l2{
+                           match map_equal.get_ref_to_all(&r2.to_string()){
+                              Some(i)=> if !i.contains(&r.to_string()){
+                                map_equal.insert(&r2.to_string(), &r.to_string());
+                              },
+                              None=>{map_equal.insert(&r2.to_string(), &r.to_string());}
+                            
+                            } 
+                        }
+                      }else {
+                        match map_equal.get_ref_to_all(&n){
+                              Some(i)=> if !i.contains(&r.to_string()){
+                                map_equal.insert(n, &r.to_string());
+                              },
+                              None=>{map_equal.insert(n, &r.to_string());}
+                            
+                            }
+                      }
+                    }
+                    break;
+                 }else if let Some(l) = values2.get_ref(&d){
+                    for r in l{
+                      if let Some(l2) = keys.get(&d){
+                        for r2 in l2{
+                         match map_equal.get_ref_to_all(&r2.to_string()){
+                              Some(i)=> if !i.contains(&r.to_string()){
+                                map_equal.insert(&r2.to_string(), &r.to_string());
+                              },
+                              None=>{map_equal.insert(&r2.to_string(), &r.to_string());}
+                            
+                            }
+                        }
+                      }else {
+                        match map_equal.get_ref_to_all(&n){
+                              Some(i)=> if !i.contains(&r.to_string()){
+                                map_equal.insert(n, &r.to_string());
+                              },
+                              None=>{map_equal.insert(n, &r.to_string());}
+                            
+                            }
+                      }
+                    }
+                    break;
+                 }else {break;}
+               }
+              }
+              
+              return Some((map_classes, map_equal));
             }else{
               return None;
             }
