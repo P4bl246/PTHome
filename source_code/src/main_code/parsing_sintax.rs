@@ -172,8 +172,68 @@ pub mod normalize_file{
         return Some((lines_slice)); 
     }
 //------------------------------------------------------------------------------------
-    pub fn parser_classes(content: &str){
-      
+    pub fn filter_classes(content: &str)-> Option<general::Map<String, String>>{
+      let mut n = extract_str_before(content, &["=", ":"].to_vec(),&['\\'].to_vec(), 
+      (&['"', '"'].to_vec(),&["'", "'", "{", "}", "(", ")", "[", "]" ,"/", "/", "--", "--"].to_vec()));
+      match n {
+        None => None,
+        Some(mut i) => {
+          if !i.1.is_empty(){
+            if i.1.len() > 1{
+              let mut remove = Vec::new();
+              for (s, n) in  i.1[1].iter().enumerate(){
+                if i.1[0].contains(n){
+                  remove.push(s);
+                }
+              }
+              let mut dcr = 0;
+              for n in remove{
+                i.1[1].remove(n-dcr);
+                i.0[1].remove(n-dcr);
+                i.2[1].remove(n-dcr);
+                dcr += 1;
+              }
+              let mut identificators_value = general::Map::new();
+              let mut values = general::Map::new();
+              for n in i.1[1].iter().enumerate(){
+                identificators_value.insert_ref(&n.0, &i.2[1][n.0]);
+              }
+              let mut c = 0;
+              loop{
+              if let Some(n) = identificators_value.get_ref_to_all_ref(&c){
+                for s in n{
+                  if s.contains(","){
+                    values.insert(&c, &(s.split(",").collect::<Vec<_>>()));
+                  }else{values.insert_ref(&c, [s.as_str()].to_vec())}
+                  c +=1;
+                }
+              }else{break;}
+            }
+              let mut map_classes = general::Map::new();
+              for (d, n) in i.0[1].iter().enumerate(){
+               loop{
+                 if let Some(l) = values.get(&d){
+                    for r in l{
+                      map_classes.insert(n, &r.to_string());
+                    }
+                    break;
+                 }else if let Some(l) = values.get_ref(&d){
+                    for r in l{
+                      map_classes.insert(n, &r.to_string());
+                    }
+                    break;
+                 }else {break;}
+               }
+              }
+              return Some(map_classes);
+            }else{
+              return None;
+            }
+          }else{
+            return None;
+          }
+        }
+      }
     }
 //------------------------------------------------------------------------------------
     /// # `extract_str_before`
@@ -189,6 +249,7 @@ pub mod normalize_file{
       /// * `Some((Vec<Vec<String>>, Vec<Vec<usize>>))` - tuple of vectors:
       ///   * `Vec<Vec<String>>` - Vector of content before extracting, in order of the delimiter_slice vector.
       ///   * `Vec<Vec<usize>>` - Number of line where found that delimiter and extract that string. (in order of delimiter_slice vector)
+      ///   * `Vec<Vec<String>>` - Vecotr of content after, in order of the dleimiter_slice vector.
       /// # Example 
       /// ```rust
       /// mod main_code;
@@ -200,7 +261,7 @@ pub mod normalize_file{
       /// println!("{:?}", indexes);
       /// }
       /// ```
-    pub fn extract_str_before(content: &str, delimiter_slice:&Vec<&str>, scape_characters: &Vec<char>, ignore_content_between:(&Vec<char>, &Vec<&str>)) -> Option<(Vec<Vec<String>>, Vec<Vec<usize>>)>{
+    pub fn extract_str_before(content: &str, delimiter_slice:&Vec<&str>, scape_characters: &Vec<char>, ignore_content_between:(&Vec<char>, &Vec<&str>)) -> Option<(Vec<Vec<String>>, Vec<Vec<usize>>, Vec<Vec<String>>)>{
          if content.is_empty(){
             panic!("Error:The content cannot be an empty string");
          }
@@ -217,12 +278,14 @@ pub mod normalize_file{
         let mut contains = false;
         let mut counter = 0;
         let mut content_before:Vec<Vec<String>> = Vec::new();
+        let mut content_after = Vec::new();
         let mut in_ignore = false;
         let mut delimiter_ignore = String::new();
 
         let mut num_line: general::Map<usize, usize> = general::Map::new();
         let mut indexes: Vec<Vec<usize>> = Vec::new();
         let mut map:general::Map<usize, String> = general::Map::new();
+        let mut map_after = general::Map::new();
         for line in content.lines(){
             counter += 1;
             contains = false;
@@ -272,11 +335,13 @@ pub mod normalize_file{
                   if verify.2.len() != copy.len(){
                     map.insert(&i, &line[..verify.2.len()].to_string());
                     num_line.insert(&i, &counter);
+                    map_after.insert(&i, &line[verify.2.len()+delimiter.len()..].to_string());
                   }
                 }else{
                   if let Some(pos) = copy.find(delimiter){
                     map.insert(&i,& line[..pos].to_string());
                     num_line.insert(&i, &counter);
+                    map_after.insert(&i, &line[pos+delimiter.len()..].to_string());
                   }
                 }
               }
@@ -287,6 +352,7 @@ pub mod normalize_file{
           
           for (i, s) in delimiter_slice.iter().enumerate(){
             let mut buffer: Vec<usize> = Vec::new();
+            let mut buffer_after:Vec<String> = Vec::new();
             let mut buffer_values: Vec<String> = Vec::new();
 
             //Agrupe strings before and the num of line where it found
@@ -302,14 +368,22 @@ pub mod normalize_file{
                 None => {break;}
               };
             }
+            loop{
+              match map_after.get(&i){
+                Some(n) => {buffer_after.push(n.clone()); map_after.remove(&i);},
+                None => {break;}
+              }
+
+            }
               content_before.push(buffer_values.clone());
             indexes.push(buffer.clone());
+            content_after.push(buffer_after.clone());
             }
             
           }
         println!("CONTENT BEFORE DELIMITERS EXTRACTED");
          
-         return Some((content_before, indexes));
+         return Some((content_before, indexes, content_after));
     }
 //------------------------------------------------------------------------------------
     pub fn parser_equialites(){}
