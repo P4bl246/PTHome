@@ -89,7 +89,7 @@ pub mod normalize_file{
         let mut last_push = 0;
         let mut counter = 0;
          if !ignore_content_between.0.is_empty() || !ignore_content_between.1.is_empty(){ignore_delimiters = true;}
-        let mut map:general::Map<usize, usize> = general::Map::new();
+        let mut map:general::Map<usize, usize, i32> = general::Map::new();
         //iterate in each line
         for line in content.lines(){
             counter += 1;
@@ -172,188 +172,385 @@ pub mod normalize_file{
         return Some((lines_slice)); 
     }
 //------------------------------------------------------------------------------------
-    pub fn slice_classes_equ(content: &str)-> Option<(general::Map<String, String>,general::Map<String, String>)>{
-      let mut n = extract_str_before(content, &["=", ":"].to_vec(),&['\\'].to_vec(), 
+use std::collections::HashMap;
+use std::collections::VecDeque;
+  pub struct Tree
+  {
+    branch: HashMap<VecDeque<String>, fn(&str, &VecDeque<String>)->(bool, usize, VecDeque<String>, VecDeque<String>, String, String)>
+  }
+  impl Tree{
+    pub fn new()->Self{
+      Self{
+        branch:HashMap::new()
+      }
+    }
+    pub fn insert(&mut self, key:VecDeque<String>, value:fn(&str, &VecDeque<String>)->(bool, usize, VecDeque<String>, VecDeque<String>, String, String)){
+      self.branch.insert(key, value);
+    }
+    pub fn parse(content:&str){
+      let mut n = String::new();
+      let mut tree_hashs = Tree::new();
+      init_hashs(&mut tree_hashs);
+      while n.len() > 0{
+
+      }
+
+    }
+  }
+  pub fn init_hashs(tree_for_push_hash: &mut Tree){
+   /* let wave_keys = wave_keys;
+    {
+    let mut vec = VecDeque::new();
+    vec.push_back("{".to_string());
+    vec.push_back("}".to_string());
+    tree_for_push_hash.insert(vec, wave_keys);
+    }*/
+
+    {
+      let mut vec = VecDeque::new();
+    vec.push_back("'".to_string());
+    vec.push_back("'".to_string());
+    let literal = verify_liter;
+    tree_for_push_hash.insert(vec, literal);
+    }
+
+    {
+      let mut vec = VecDeque::new();
+      vec.push_back("[".to_string());
+      vec.push_back("]".to_string());
+      let el_pos = verify_el_pos;
+      tree_for_push_hash.insert(vec, el_pos);
+    }
+
+    {}
+
+    {}
+
+    {}
+
+    {}
+
+    {}
+
+    {}
+
+    {}
+
+    {}
+
+    {}
+  }
+  /*pub fn wave_keys(content: &str, vec:&VecDeque<String>)->(bool, usize, VecDeque<String>, VecDeque<String>, String, String){   
+    
+    return (false, 0, "".to_string(), "".to_string(), "".to_string())
+  }*/
+  
+  pub fn verify_liter(content: &str, vec:&VecDeque<String>)->(bool, usize, VecDeque<String>, VecDeque<String>, String, String){
+    let mut errs = VecDeque::new();
+    let mut warns = VecDeque::new();
+    if let Some(end) = content.find("'"){
+      let mut after = content.to_string();
+      after.replace_range(..end+"'".len(), "");
+      return (true, content[..end+"'".len()].len() ,errs, warns, "".to_string(), after);  
+    }
+    errs.push_back("FATAL ERROR:Not found end delimiter for the simbol \" ' \" than indicate the end of a ".to_string());
+   return (false, 0,errs , warns, "'".to_string(), "".to_string());
+  }
+  
+  /*pub fn verify_roudn_keys(content: &str, vec:&VecDeque<String>)->(bool, usize, VecDeque<String>, VecDeque<String>, String, String){
+    return (false, 0, "".to_string(), "".to_string(), "".to_string());
+  }*/
+
+  pub fn verify_el_pos(content: &str, elements: &VecDeque<String>)->(bool, usize, VecDeque<String>, VecDeque<String>, String, String){
+      let num_elem = elements.len();
+      let mut chars = content.chars();
+      let mut el = String::new();
+      let mut pos = String::new();
+      let mut in_pos = false;
+      let mut vec_warn = VecDeque::new();
+      let mut vec_errs = VecDeque::new();
+      let mut found_end = false;
+        vec_errs.push_back(format!("FATAL ERROR: The [El:Pos] '{}' instrucion haven't the close expected ']'", content.to_string()));
+    while let Some(c) = chars.next() {
+          if c != ':' && c != ']' && c != ',' && !in_pos{
+           el.push(c.clone());
+          }else if c == ':' && !in_pos{
+            in_pos = true;
+            match pos.parse::<usize>(){
+              Ok(digit) =>if digit > num_elem{
+            vec_warn.push_back(format!("PRIORITY WARNING!: In the [El:Pos] '{}' instruction, the `El` is: '{}', but the max of elements is '{}' ", content.to_string(),digit, num_elem));
+              },
+             
+             Err(_) => {vec_errs.push_back(format!("ERROR: The [El:Pos] '{}' instruction, the `El` contains a character diferent to digit", content.to_string()));}
+            };
+          }
+          if c != ':' && c != ']' && c != ',' && in_pos{
+            pos.push(c.clone());
+          }else if c == ']'{
+              match pos.parse::<usize>(){
+              Ok(digit) =>if digit > num_elem{
+            vec_warn.push_back(format!("PRIORITY WARNING!: In the [El:Pos] '{}' instruction, the `Pos` is: '{}', but the max of positions is '{}' ", content.to_string(),digit, num_elem));
+              },
+             
+             Err(_) => {vec_errs.push_back(format!("ERROR: The [El:Pos] '{}' instruction, the `Pos` contains a character diferent to digit", content.to_string()));}
+            
+          };
+            found_end = true;
+            break;
+          }else if c ==  ','{
+             in_pos = false;
+          }   
+      }
+      if found_end{
+        vec_errs.pop_front();
+        return (true, content.len(), vec_errs, vec_warn, "".to_string(), "".to_string());
+      }
+      return (false, content.len(), vec_errs, vec_warn, "".to_string(), "".to_string())
+
+  }
+  
+ /* pub fn verify_oblig_appears(content: &str, elements: &VecDeque<String>)->(bool, usize, VecDeque<String>, VecDeque<String>, String, String){
+     
+      }*/
+  //------------------------------------------------------------------------------------
+    pub fn parser_equ(equalities_map: &general::Map<String, String, i32>, classes_map: &general::Map<String, String, i32>){
+      for key in equalities_map.iter(){
+        for i in key.1 {
+          let mut value = i.trim().to_string();
+          //let all_fine = tree.parse(&value);
+        }
+      }
+    }
+
+ //--------------------------------------------------------------------------------------   
+    pub fn slice_classes_equ(content: &str)-> Option<(VecDeque<general::Map<String, String, i32>>, VecDeque<general::Map<VecDeque<String>, String, i32>>)>{
+      let mut n = extract_str_before(content, &["=", ":", "_"].to_vec(),&['\\'].to_vec(), 
       (&['"', '"'].to_vec(),&["'", "'", "{", "}", "(", ")", "[", "]" ,"/", "/", "--", "--"].to_vec()));
       match n {
         None => None,
         Some(mut i) => {
           if !i.1.is_empty(){
-            if i.1.len() > 1{
-              let mut remove = Vec::new();
-              for (s, n) in  i.1[1].iter().enumerate(){
-                if i.1[0].contains(n){
-                  remove.push(s);
-                }
-              }
-              let mut dcr = 0;
-              for n in remove{
-                i.1[1].remove(n-dcr);
-                i.0[1].remove(n-dcr);
-                i.2[1].remove(n-dcr);
-                dcr += 1;
-              }
-              
-              let mut values = general::Map::new();
-          {
-            let mut identificators_value = general::Map::new();
-              for n in i.1[1].iter().enumerate(){
-                identificators_value.insert_ref(&n.0, &i.2[1][n.0]);
-              }
-              let mut c = 0;
-              loop{
-              if let Some(n) = identificators_value.get_ref_to_all_ref(&c){
-                for s in n{
-                  if s.contains(","){
-                    values.insert(&c, &(s.split(",").collect::<Vec<_>>()));
-                  }else{values.insert_ref(&c, [s.as_str()].to_vec());}
-                  c +=1;
-                }
-              }else{break;}
-            }
-          }
-          let mut values2 = general::Map::new();
-          { 
-            let mut identificators_value = general::Map::new();
-            for n in i.1[0].iter().enumerate(){
-              identificators_value.insert_ref(&n.0, &i.2[0][n.0]);
-            }
-            let mut c = 0;
-            loop{
-              if let Some(n) = identificators_value.get_ref_to_all_ref(&c){
-                for s in n{
-                  if s.contains(","){
-                    values2.insert(&c, &(s.split(",").collect::<Vec<_>>()));
-                  }else{values2.insert_ref(&c, [s.as_str()].to_vec());}
-                  c+=1;
-                }
-              }else{break;}
-            }
-          }
-              let mut map_classes = general::Map::new();
-              let mut map_equal = general::Map::new();
-              for (d, n) in i.0[1].iter().enumerate(){
-               loop{
-                let mut keys = general::Map::new();
-                if n.contains(","){
-                  keys.insert(&d, &(n.split(",").collect::<Vec<_>>()));
-                }
-                 if let Some(l) = values.get(&d){
-                    for r in l{
-                      if let Some(l2) = keys.get(&d){
-                        for r2 in l2{
-                            match map_classes.get_ref_to_all(&r2.trim().to_string()){
-                              Some(i)=> if !i.contains(&r.trim().to_string()){
-                                map_classes.insert(&r2.trim().to_string(), &r.trim().to_string());
-                              },
-                              None=>{map_classes.insert(&r2.trim().to_string(), &r.trim().to_string());}
-                            
-                            }              
+            let mut map: general::Map<String, String, i32> = general::Map::new();
+            let mut map_eq:general::Map<String, String, i32> = general::Map::new();
+            let mut map_for_buffer:general::Map<VecDeque<String>, String, i32> = general::Map::new();
+            let mut identificators_value:general::Map<String, Vec<&str>, i32> = general::Map::new();
+            let mut identificators_for_map:general::Map<String, Vec<&str>, i32> = general::Map::new();
+            let mut values_map:general::Map<String, Vec<&str>, i32> = general::Map::new();
+            let mut index = 0;
+             remove_duplis(&mut i, &["=".to_string(), ":".to_string(), "_".to_string()].to_vec());
+                 loop{
+                  let mut without_eq = false;
+                  let mut without_class = false;
+                  let mut without_map_buffer = false;                
+                  {
+                      match i.0.get_value(&"=".to_string(), index){
+                        None => {without_eq = true;},
+                          Some(s) => {
+                          if s.contains(","){
+                             identificators_value.insert_ref(&"=".to_string(), (s.split(",").collect::<Vec<_>>().clone()));
+                          }else{identificators_value.insert_ref(&"=".to_string(), [s.as_str()].to_vec().clone());}
+                  
                         }
-                      }else{
-                        match map_classes.get_ref_to_all(&n.trim().to_string()){
-                              Some(i)=> if !i.contains(&r.trim().to_string()){
-                                map_classes.insert(&n.trim().to_string(), &r.trim().to_string());
-                              },
-                              None=>{map_classes.insert(&n.trim().to_string(), &r.trim().to_string());}
-                            
-                            }
-                      }
+                      };
+                  
+                  }
+                  {
+                   
+                   
+                  match i.0.get_value(&":".to_string(), index){
+                    None =>{without_class = true;},
+                    Some(s2) =>{
+                      if s2.contains(","){
+                    identificators_value.insert_ref(&":".to_string(), (s2.split(",").collect::<Vec<_>>()));
+                      }else{identificators_value.insert_ref(&":".to_string(), [s2.as_str()].to_vec());}
+                     
                     }
-                    break;
-                 }else if let Some(l) = values.get_ref(&d){
-                    for r in l{
-                      if let Some(l2) = keys.get(&d){
-                        for r2 in l2{
-                           match map_classes.get_ref_to_all(&r2.trim().to_string()){
-                              Some(i)=> if !i.contains(&r.trim().to_string()){
-                                map_classes.insert(&r2.trim().to_string(), &r.trim().to_string());
-                              },
-                              None=>{map_classes.insert(&r2.trim().to_string(), &r.trim().to_string());}
-                            
-                            } 
-                        }
-                      }else {
-                        match map_classes.get_ref_to_all(&n.trim().to_string()){
-                              Some(i)=> if !i.contains(&r.trim().to_string()){
-                                map_classes.insert(&n.trim().to_string(), &r.trim().to_string());
-                              },
-                              None=>{map_classes.insert(&n.trim().to_string(), &r.trim().to_string());}
-                            
-                            }
-                      }
-                    }
-                    break;
-                 }else {break;}
-               }
-              }
+                  };
+                 
+                }
+                 
+                 {
 
-              for (d, n) in i.0[0].iter().enumerate(){
-               loop{
-                let mut keys = general::Map::new();
-                if n.contains(","){
-                  keys.insert(&d, &(n.split(",").collect::<Vec<_>>()));
+                  match i.0.get_value(&"_".to_string(), index){
+                    None => {without_map_buffer = true;},
+                    Some(mut s3)=>{
+                      if s3.contains(","){
+                    identificators_for_map.insert_ref(&"_".to_string(), (s3.split(",").collect::<Vec<_>>()));
+                      }else{identificators_for_map.insert_ref(&"_".to_string(), [s3.as_str()].to_vec());}
+                     
+                    }
+                   };
+                  }
+                  index += 1;
+                  if without_map_buffer && without_class && without_eq{break;} 
+                 
+                 
+                
                 }
-                 if let Some(l) = values2.get(&d){
-                    for r in l{
-                      if let Some(l2) = keys.get(&d){
-                        for r2 in l2{
-                           match map_equal.get_ref_to_all(&r2.trim().to_string()){
-                              Some(i)=> if !i.contains(&r.trim().to_string()){
-                                map_equal.insert(&r2.trim().to_string(), &r.trim().to_string());
-                              },
-                              None=>{map_equal.insert(&r2.trim().to_string(), &r.trim().to_string());}
-                            
-                            } 
-                        }
-                      }else {
-                        match map_equal.get_ref_to_all(&n.trim().to_string()){
-                              Some(i)=> if !i.contains(&r.trim().to_string()){
-                                map_equal.insert(&n.trim().to_string(), &r.trim().to_string());
-                              },
-                              None=>{map_equal.insert(&n.trim().to_string(), &r.trim().to_string());}
-                            
-                            }
-                      }
+                
+                let mut values:general::Map<String, Vec<&str>, i32> = general::Map::new();
+                index = 0;
+                loop{
+                  let mut without_map_buffer =false;
+                  let mut without_class = false;
+                  let mut without_eq = false;
+                  match i.2.get_value(&"=".to_string(), index){
+                    None => {without_eq = true;},
+                    Some(s)=>{
+                      if s.contains(","){
+                      values.insert_ref(&"=".to_string(), (s.split(",").collect::<Vec<_>>()));
+                      }else{values.insert_ref(&"=".to_string(), [s.as_str()].to_vec());}
                     }
-                    break;
-                 }else if let Some(l) = values2.get_ref(&d){
-                    for r in l{
-                      if let Some(l2) = keys.get(&d){
-                        for r2 in l2{
-                         match map_equal.get_ref_to_all(&r2.trim().to_string()){
-                              Some(i)=> if !i.contains(&r.trim().to_string()){
-                                map_equal.insert(&r2.trim().to_string(), &r.trim().to_string());
-                              },
-                              None=>{map_equal.insert(&r2.trim().to_string(), &r.trim().to_string());}
-                            
-                            }
-                        }
-                      }else {
-                        match map_equal.get_ref_to_all(&n.trim().to_string()){
-                              Some(i)=> if !i.contains(&r.trim().to_string()){
-                                map_equal.insert(&n.trim().to_string(), &r.trim().to_string());
-                              },
-                              None=>{map_equal.insert(&n.trim().to_string(), &r.trim().to_string());}
-                            
-                            }
-                      }
+                  };
+                  match i.2.get_value(&":".to_string(), index){
+                    None => {without_class = true;},
+                    Some(s)=>{
+                      if s.contains(","){
+                      values.insert_ref(&":".to_string(), (s.split(",").collect::<Vec<_>>()));
+                      }else{values.insert_ref(&":".to_string(), [s.as_str()].to_vec());}
                     }
-                    break;
-                 }else {break;}
+                  };
+                  match i.2.get_value(&"_".to_string(), index){
+                    None => {without_map_buffer = true;},
+                    Some(s)=>{
+                      if s.contains(","){
+                      values_map.insert_ref(&"_".to_string(), (s.split(",").collect::<Vec<_>>()));
+                      }else{values_map.insert_ref(&"_".to_string(), [s.as_str()].to_vec());}
+                    }
+                  };
+                  index += 1;
+                  if without_map_buffer && without_class && without_eq{break;}
+                }
+                loop{
+                  let mut without_eq = false;
+                  let mut without_class = false;
+                  let mut without_map_buffer = false;
+                  match identificators_value.get_ref(&"=".to_string()){
+                    None=>{without_eq = true;},
+                    Some(s)=>{
+                      match values.get_ref(&"=".to_string()){
+                        None=>{},
+                        Some(s2)=>{
+                          for (i, l) in s.iter().enumerate(){
+                            for i2 in s2{
+
+                              if let Some(r) = map_eq.get_ref_to_all(&l.trim().to_string()){
+                                if !r.contains(&i2.trim().to_string()){map_eq.insert(&l.trim().to_string(), &i2.trim().to_string());}
+                              }else{
+                                map_eq.insert(&l.trim().to_string(), &i2.trim().to_string());
+                              }
+                            }
+                            
+                          }
+                        }
+                      };
+                      identificators_value.remove_ref(&"=".to_string());
+                      values.remove_ref(&"=".to_string());
+                    }
+                  };
+                  match identificators_value.get_ref(&":".to_string()){
+                    None=>{without_class = true;},
+                    Some(s)=>{
+                      match values.get_ref(&":".to_string()){
+                        None=>{},
+                        Some(s2) => {
+                          for (i, l) in s.iter().enumerate(){
+                            for i2 in s2{
+                              if let Some(r) = map.get_ref_to_all(&l.trim().to_string()){
+                                if !r.contains(&i2.trim().to_string()){map.insert(&l.trim().to_string(), &i2.trim().to_string());}
+                              }else{
+                                map.insert(&l.trim().to_string(), &i2.trim().to_string());
+                              }
+                            }
+                          }
+                        }
+                      };
+                      identificators_value.remove_ref(&":".to_string());
+                      values.remove_ref(&":".to_string());
+                    }
+                  };
+                  match identificators_for_map.get_ref(&"_".to_string()){
+                    
+                    None=>{without_map_buffer = true;},
+                    Some(s)=>{
+                      let mut vec = VecDeque::new();
+                      for i in s{
+                        vec.push_back(i.to_string());
+                      }
+                      match values_map.get_ref(&"_".to_string()){
+                        None=>{},
+                        Some(s2)=>{
+                          for  l in s2{
+                            if let Some(r) = map_for_buffer.get_ref_to_all(&vec){
+                                if !r.contains(&l.trim().to_string()){map_for_buffer.insert(&vec, &l.trim().to_string());}
+                              }else{
+                                map_for_buffer.insert(&vec, &l.trim().to_string());
+                              }
+                            
+                          }
+                        }
+                      };
+                      identificators_for_map.remove_ref(&"_".to_string());
+                      values_map.remove_ref(&"_".to_string());
+                    }
+                  };
+                   if without_map_buffer && without_class && without_eq{break;}
+                }
+                let mut vec = VecDeque::new();
+                vec.push_back(map);
+                vec.push_back(map_eq);
+                let mut vec_map = VecDeque::new();
+                vec_map.push_back(map_for_buffer);
+                return Some((vec, vec_map));
+               }
+               else{return None;}
+              }
+            }
+    }
+//------------------------------------------------------------------------------------
+use std::rc::Rc;
+   /// # `remove_duplis`
+   /// Remove content duplicated in vectores, priorized some Vec of String about other Vec of other String.
+   /// # Arguments 
+   /// * `vecs: &mut (Map<String, String, i32>, Map<String, usize, i32>, Map<String, String, i32>)` - Tuple of Maps where:
+   ///     * `Map<String, String, i32>` - Is the Map of the content after some delimiter
+   ///     * `Map<String, usize, i32>` - Is the Map of the line when found some delimiter
+   ///     * `Map<String, String, i32>` - Is the Map of the content after some delimiter
+   /// - This pattern is the same return for the function [`extract_str_before`], because the function expected you use this when before use the funciton [`extract_str_before`]
+   /// * `prirority:&Vec<String>` - Vec of Strings, where define the priority of a String, where the priority are decided by the index when appears the String in the vector.
+   pub fn remove_duplis(vecs: &mut (general::Map<String, String, i32>,general::Map<String, usize, i32>, general::Map<String, String, i32>), priority: &Vec<String>){
+      let mut index = 0;
+      loop{      
+        if index == priority.len()-1 {break;}
+         if let Some(vec) = vecs.1.clone().get_ref_to_all(&priority[index]){
+          
+           for (n, i) in vec.iter().enumerate(){
+            if index == priority.len() {index += 1; break;}
+            for (s, l) in priority.iter().enumerate(){
+              let mut remove:VecDeque<usize> = VecDeque::new();
+              if s >= index+1{
+                if let Some(next) = vecs.1.clone().get_mut_ref_to_all(l){
+                  if next.contains(i){
+                  for (s2, l2) in next.iter().enumerate(){
+                    if l2 == i{remove.push_back(s2);}
+                  }
+                  let mut dcr = 0;
+                  for el in remove.iter(){
+                     vecs.0.remove_value(l, el-dcr);
+                     vecs.1.remove_value(l, el-dcr);
+                     vecs.2.remove_value(l, el-dcr);
+                    dcr+=1;
+                  }
+                }
                }
               }
-              
-              return Some((map_classes, map_equal));
-            }else{
-              return None;
             }
-          }else{
-            return None;
-          }
-        }
+           }
+           index += 1;
+         }
       }
-    }
+   }
+
 //------------------------------------------------------------------------------------
     /// # `extract_str_before`
       /// Search strings delimiters and extract the string or content before the first delimiter appear.
@@ -365,10 +562,10 @@ pub mod normalize_file{
       /// # Return 
       /// * Panic if the delimiter_slice or content parameter are empty or delimiter_slice contains some space.
       /// * `None` - if occurs some recupareble errors on the parameters.
-      /// * `Some((Vec<Vec<String>>, Vec<Vec<usize>>))` - tuple of vectors:
-      ///   * `Vec<Vec<String>>` - Vector of content before extracting, in order of the delimiter_slice vector.
-      ///   * `Vec<Vec<usize>>` - Number of line where found that delimiter and extract that string. (in order of delimiter_slice vector)
-      ///   * `Vec<Vec<String>>` - Vecotr of content after, in order of the dleimiter_slice vector.
+      /// * `Some((Map<String,VecDeque<String>, i32>, Map<String, VecDeque<usize>, i32>, Map<String, VecDeque<String>, i32> ))` - tuple of vectors:
+      ///   * `Map<String, String, i32>` - Map of content before extracting, with some delimiter as a key
+      ///   * `Map<String, usize, i32>` - Map of number of line where found that delimiter and extract that string, with some delimiter as a key.
+      ///   * `Map<String, String, i32>` - Map of content after,with some delimiter as a key
       /// # Example 
       /// ```rust
       /// mod main_code;
@@ -377,10 +574,11 @@ pub mod normalize_file{
       /// let content = "Hello, this is\nHello, this is\nChao";
       /// let scape:Vec<char> = Vec::new();
       /// let indexes = parsing_sintax::extract_str_before(content, &["t"].to_vec(), &scape, (&[].to_vec(), &[].to_vec())).unwrap();
-      /// println!("{:?}", indexes);
+      /// println!("{:#?}", indexes);
       /// }
       /// ```
-    pub fn extract_str_before(content: &str, delimiter_slice:&Vec<&str>, scape_characters: &Vec<char>, ignore_content_between:(&Vec<char>, &Vec<&str>)) -> Option<(Vec<Vec<String>>, Vec<Vec<usize>>, Vec<Vec<String>>)>{
+    pub fn extract_str_before(content: &str, delimiter_slice:&Vec<&str>, scape_characters: &Vec<char>, ignore_content_between:(&Vec<char>, &Vec<&str>)) -> 
+    Option<(general::Map<String,String, i32>, general::Map<String, usize, i32>, general::Map<String, String, i32>)>{
          if content.is_empty(){
             panic!("Error:The content cannot be an empty string");
          }
@@ -396,15 +594,15 @@ pub mod normalize_file{
         println!("EXTRACTING CONTENT BEFORE DELIMITERS");
         let mut contains = false;
         let mut counter = 0;
-        let mut content_before:Vec<Vec<String>> = Vec::new();
-        let mut content_after = Vec::new();
+        let mut content_before:general::Map<String,String, i32> = general::Map::new();
+        let mut content_after:general::Map<String, String, i32>  = general::Map::new();
         let mut in_ignore = false;
         let mut delimiter_ignore = String::new();
 
-        let mut num_line: general::Map<usize, usize> = general::Map::new();
-        let mut indexes: Vec<Vec<usize>> = Vec::new();
-        let mut map:general::Map<usize, String> = general::Map::new();
-        let mut map_after = general::Map::new();
+        let mut num_line: general::Map<usize, usize, i32> = general::Map::new();
+        let mut indexes:general::Map<String, usize, i32> = general::Map::new();
+        let mut map:general::Map<usize, String, i32> = general::Map::new();
+        let mut map_after:general::Map<usize, String, i32> = general::Map::new();
         for line in content.lines(){
             counter += 1;
             contains = false;
@@ -469,34 +667,28 @@ pub mod normalize_file{
         }
         {
           
-          for (i, s) in delimiter_slice.iter().enumerate(){
-            let mut buffer: Vec<usize> = Vec::new();
-            let mut buffer_after:Vec<String> = Vec::new();
-            let mut buffer_values: Vec<String> = Vec::new();
+          for (i, s) in delimiter_slice.iter().enumerate(){         
 
             //Agrupe strings before and the num of line where it found
             loop{
                match map.get(&i){
-                Some(n) => {buffer_values.push(n.clone()); map.remove(&i);},
+                Some(n) => {content_before.insert(&s.to_string(),&n); map.remove(&i);},
                 None => {break;},
                };
               }
             loop{  
               match num_line.get(&i){
-                Some(n) => {buffer.push(n.clone()); num_line.remove(&i);},
+                Some(n) => {indexes.insert(&s.to_string(),&n); num_line.remove(&i);},
                 None => {break;}
               };
             }
             loop{
               match map_after.get(&i){
-                Some(n) => {buffer_after.push(n.clone()); map_after.remove(&i);},
+                Some(n) => {content_after.insert(&s.to_string(),&n); map_after.remove(&i);},
                 None => {break;}
               }
 
             }
-              content_before.push(buffer_values.clone());
-            indexes.push(buffer.clone());
-            content_after.push(buffer_after.clone());
             }
             
           }

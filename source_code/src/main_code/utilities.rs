@@ -435,35 +435,55 @@ pub mod general{
     return new_str;
   }
 //-------------------------------------------------------------------------------------------------
+
+  pub fn ordered_combination(vecs:(&Vec<String>, &Vec<String>))->Vec<String>{
+    let mut sub_vec:Vec<String> = Vec::new();
+    if vecs.0.is_empty(){
+      return vecs.1.clone();
+    }else if vecs.1.is_empty(){
+        return vecs.0.clone();
+    }
+    for i in vecs.0{
+      for i2 in vecs.1{
+        sub_vec.push(i.clone()+i2);
+      }
+    }
+    return sub_vec;
+  }
+//-------------------------------------------------------------------------------------------------
 use std::collections::HashMap;
 use std::hash::Hash;
 use std::collections::VecDeque;
-use std::collections::hash_map::Keys;
+use std::collections::hash_map::{Keys, IterMut, Iter};
 use std::rc::Rc;
-/// # `Map<T, U>`
+/// # `Map<T, U, F>`
 /// Map for support multiples values for a same key in a HashMap, with the same temporary complexity (O(1) aproximately)
 /// # Note  
 /// Here we call `queue` a vector of values for a key, enable the support for multiples values for the same key. The values insert in vector are in last input in the 
 /// last field and for extract in FIFO order, properties from a `queue`
  #[derive(Debug)]
-pub struct Map<T, U>
+ #[derive(Clone)]
+pub struct Map<T, U, F>
 where 
   T: Clone+ Eq + Hash, 
   U: Clone + PartialEq
   {
   hash: HashMap<T, VecDeque<U>>,
   hash_ref: HashMap<T, VecDeque<Rc<U>>>,
-  order: HashMap<T, VecDeque<usize>>,
+  hash_some: HashMap<T, VecDeque<F>>,
+  order: HashMap<T, VecDeque<usize>>, 
   order_o1: HashMap<usize, T>,
   order_hash : bool,
   store_last_insert_key:bool,
   order_hash_ref: bool,
   store_last_insert_ref_key:bool,
+  order_hash_some:bool,
+  store_last_insert_some_key:bool,
   preserve_before: bool,
   iter: usize,
   counter: usize
   }
- impl<T, U> Map<T, U>
+ impl<T, U, F> Map<T, U, F>
  where 
   T: Clone+ Eq +Hash, 
   U: Clone + PartialEq
@@ -474,12 +494,15 @@ where
     Self{
       hash: HashMap::new(),
       hash_ref: HashMap::new(),
+      hash_some: HashMap::new(),
       order: HashMap::new(),
       order_o1: HashMap::new(),
       order_hash : false, 
       store_last_insert_key:false,
       order_hash_ref:false,
       store_last_insert_ref_key:false,
+      store_last_insert_some_key:false,
+      order_hash_some:false,
       preserve_before:false,
       iter: 0,
       counter: 0
@@ -558,15 +581,9 @@ where
   /// # Return    
   /// * `None` - If this key not exist
   /// * `&U` - A reference of the value
-  pub fn get(&mut self, key: &T)-> Option<&U>{
-    if let Some(value) = self.hash.get(key){
-      if value.len() <= 0{
-         self.hash.remove(key);
-          return None;
-      }
-    }
+  pub fn get(&self, key: &T)-> Option<&U>{
    match &mut self.hash.get(key){
-    Some(i) => Some(&i[0]),
+    Some(i) => i.front(),
     None => None
    }
   }
@@ -577,7 +594,7 @@ where
   pub fn remove(&mut self, key: &T){
     if let Some(replace) = self.hash.get_mut(key){ 
        if replace.len() > 0{replace.pop_front();}
-       else {self.hash.remove(key);} 
+       if replace.len() <= 0 {self.hash.remove(key);} 
     }
   }
 
@@ -616,10 +633,12 @@ where
   /// * `Some(&mut VecDeque<U>)` - Mutable referencie to VecDeque vector
   /// # IMPORTANT
   /// If you use this option, you need to know what is a VecDeque and his propierties, for avoid break the HashMap and the vector
-  pub fn get_ref_to_all(&mut self, key: &T) -> Option<&mut VecDeque<U>>{
+  pub fn get_mut_ref_to_all(&mut self, key: &T) -> Option<&mut VecDeque<U>>{
     self.hash.get_mut(key)
   }
-  
+  pub fn get_ref_to_all(&self, key:&T)->Option<&VecDeque<U>>{
+    self.hash.get(key)
+  }
   /// # `set_queue`
   /// Set all the queue of a key
   /// # Arguments
@@ -739,15 +758,9 @@ where
   /// # Return    
   /// * `None` - If this key not exist
   /// * `Some(&U)` - A reference of the value
-  pub fn get_ref(&mut self, key: &T)-> Option<&U>{
-    if let Some(value) = self.hash_ref.get(key){
-      if value.len() <= 0{
-         self.hash.remove(key);
-          return None;
-      }
-    }
+  pub fn get_ref(&self, key: &T)-> Option<&U>{
    match &mut self.hash_ref.get(key){
-    Some(i) => Some(&*i[0]),
+    Some(i) => Some(&*i.front().unwrap()),
     None => None
    }
   }
@@ -758,7 +771,7 @@ where
   pub fn remove_ref(&mut self, key: &T){
       if let Some(replace) = self.hash_ref.get_mut(key){ 
        if replace.len() > 0{replace.pop_front();}
-       else {self.hash_ref.remove(key);} 
+       if replace.len() <= 0 {self.hash_ref.remove(key);} 
     }
   }
   
@@ -797,12 +810,14 @@ where
   /// * `Some(&mut VecDeque<Rc<U>>) - Mutable referencie to VecDeque vector, the values into the VecDeque are Rc<U>
   /// # IMPORTANT
   /// If you use this option, you need to know what is a VecDeque and his propierties, for avoid break the HashMap and the vector
-  pub fn get_ref_to_all_ref(&mut self, key: &T) -> Option<&mut VecDeque<Rc<U>>>{
+  pub fn get_mut_ref_to_all_ref(&mut self, key: &T) -> Option<&mut VecDeque<Rc<U>>>{
     self.hash_ref.get_mut(key)
   }
-
+  pub fn get_ref_to_all_ref(&self, key: &T) -> Option<&VecDeque<Rc<U>>>{
+    self.hash_ref.get(key)
+  }
   /// # `set_value_ref`
-  /// Set all the queue of thath key
+  /// Set all the queue of that key
   /// # Arguments
   /// * `key: &T` - Key of the valu to set queue if this have
   /// * `new_vec: Vec<&'a U>` - Vec for replace the actual queue
@@ -858,13 +873,15 @@ where
     self.store_last_insert_key = last_insert_of_key;
     self.store_last_insert_ref_key = last_insert_of_key;
     self.preserve_before = preserve_content_before_order;
+    self.order_hash_some = true;
+    self.store_last_insert_some_key = last_insert_of_key;
   }
   /// # `enable_order_for_ref`
   /// Enables the global order register of the insert in keys, for the `HashMap of refs`
-  /// If you want enable the register for both `HashMaps` use [`enable_global_order`] (for `HashMap of refs` and `HashMap of copys`) or [`enable_order`] (for `HashMap of copies`)
+  /// If you want enable the register for all `HashMaps` use [`enable_global_order`] (for `HashMap of refs` and `HashMap of copies` and `HashMap` of random values) 
   /// # Arguments
   /// * `last_insert_of_key: bool` - Indicate if the register just store the last insert for this key
-  /// * `preserve_content_before_order` - (This flag aplicate for both, HashMap of reference and HashMap of copies) Indicate if you want to preserve the register store before for key, and just aplicate the `las_insert_of_key` flag about moment when you change this flag
+  /// * `preserve_content_before_order` - (This flag aplicate for all, HashMap of reference and HashMap of copies adn HashMap of random values) Indicate if you want to preserve the register store before for key, and just aplicate the `las_insert_of_key` flag about moment when you change this flag
   pub fn enable_order_for_ref(&mut self, last_insert_of_key: bool, preserve_content_before_order: bool){
     self.order_hash_ref = true;
     self.store_last_insert_ref_key = last_insert_of_key;
@@ -872,10 +889,10 @@ where
   }
   /// # `enable_order`
   /// Enables the global order register of the insert in keys, for the `HashMap of copies`
-  /// If you want enable the register for both `HashMaps` use [`enable_global_order`] (for `HashMap of refs` and `HashMap of copies`) or [`enable_order_for_ref`] (for `HashMap of refs`)
+  /// If you want enable the register for all `HashMaps` use [`enable_global_order`] (for `HashMap of refs` and `HashMap of copies` and `HashMap` of random values) 
   /// # Arguments
   /// * `last_insert_of_key: bool` - Indicate if the register just store the last insert for this key
-  /// * `preserve_content_before_order` - (This flag aplicate for both, HashMap of reference and HashMap of copies) Indicate if you want to preserve the register store before for key, and just aplicate the `las_insert_of_key` flag about moment when you change this flag
+  /// * `preserve_content_before_order` - (This flag aplicate for all, HashMap of reference and HashMap of copies and HashMap of random values) Indicate if you want to preserve the register store before for key, and just aplicate the `las_insert_of_key` flag about moment when you change this flag
   pub fn enable_order(&mut self, last_insert_of_key: bool,  preserve_content_before_order:bool){
     self.order_hash = true;
     self.store_last_insert_key = last_insert_of_key;
@@ -886,6 +903,7 @@ where
   pub fn disable_global_order(&mut self){
     self.order_hash = false;
     self.order_hash_ref = false;
+    self.order_hash_some = false;
   }
   /// # `disable_order_for_ref`
   /// Disable continue register the insert order in `HashMap refs`, but the vector for order conserve the values when the order are be enable
@@ -896,6 +914,22 @@ where
   /// Disable continue register the insert order in `HashMap copies`, but the vector for order conserve the values when the order are be enable
   pub fn disable_order(&mut self){
     self.order_hash = false;
+  }
+  /// # `enable_order`
+  /// Enables the global order register of the insert in keys, for the `HashMap of random values`
+  /// If you want enable the register for all `HashMaps` use [`enable_global_order`] (for `HashMap of refs` and `HashMap of copies` and `HashMap` of random values)
+  /// # Arguments
+  /// * `last_insert_of_key: bool` - Indicate if the register just store the last insert for this key
+  /// * `preserve_content_before_order` - (This flag aplicate for both, HashMap of reference and HashMap of copies adn HashMap of random values) Indicate if you want to preserve the register store before for key, and just aplicate the `las_insert_of_key` flag about moment when you change this flag
+  pub fn enable_order_for_some(&mut self, last_insert_of_key: bool, preserve_content_before_order:bool){
+    self.preserve_before = preserve_content_before_order;
+    self.order_hash_some = true;
+    self.store_last_insert_some_key = last_insert_of_key;
+  }
+  /// # `disable_order`
+  /// Disable continue register the insert order in `HashMap of random values`, but the vector for order conserve the values when the order are be enable
+  pub fn disable_order_for_some(&mut self){
+   self.order_hash_some = false;
   }
   /// # `get_order`
   /// Get the copy of order vector, in order to first-last insert key
@@ -1147,6 +1181,7 @@ where
   pub fn reset_all(&mut self){
   self.hash_ref.clear();
   self.hash.clear();
+  self.hash_some.clear();
   self.order.clear();
   self.order_o1.clear();
   self.order_hash =false;
@@ -1158,8 +1193,191 @@ where
   self.counter= 0;
 
   }
- }
-   impl<T, U> Iterator for Map<T, U>
+  pub fn iter_mut(&mut self)-> IterMut<'_, T, VecDeque<U>>{
+    self.hash.iter_mut()
+  }
+  pub fn iter_mut_ref(&mut self)->IterMut<'_, T, VecDeque<Rc<U>>>{
+    self.hash_ref.iter_mut()
+  }
+  pub fn iter(&self)->Iter<'_, T, VecDeque<U>>{
+    self.hash.iter()
+  }
+  pub fn iter_ref(&self)->Iter<'_, T, VecDeque<Rc<U>>>{
+    self.hash_ref.iter()
+  }
+
+  pub fn insert_some(&mut self, key:&T, value:F){
+      match self.hash_some.get_mut(key){
+        None=>{
+          let mut new_vec = VecDeque::new();
+          new_vec.push_back(value);
+          self.hash_some.insert(key.clone(), new_vec);
+        }
+        Some(i)=>{
+          i.push_back(value);
+        }
+      };
+      if self.order_hash_some{
+      if self.store_last_insert_some_key{
+        if self.preserve_before{
+          if let Some(vec) = self.order.get_mut(key){
+            let last = vec.back();
+            if self.order_o1.contains_key(last.unwrap()){
+              self.order_o1.remove(last.unwrap());
+            }
+            let n = vec.back_mut().unwrap();
+            *n = self.counter;
+            
+          }
+          else{
+            let mut new_vec = VecDeque::new();
+          new_vec.push_front(self.counter);
+          self.order.insert(key.clone(), new_vec);            
+          }
+          self.order_o1.insert(self.counter, key.clone());
+
+        }
+        else{
+          if let Some(vec) = self.order.get_mut(key){
+            for i in vec{
+              if self.order_o1.contains_key(i){
+                self.order_o1.remove(i);
+              }
+            }
+          }
+          let mut new_vec = VecDeque::new();
+          new_vec.push_front(self.counter);
+          self.order.insert(key.clone(), new_vec); 
+          self.order_o1.insert(self.counter, key.clone());
+          }
+      
+    }else{
+       if let Some(vec) = self.order.get_mut(key){
+        vec.push_back(self.counter);
+       }
+        else{
+          let mut new_vec = VecDeque::new();
+          new_vec.push_front(self.counter);
+          self.order.insert(key.clone(), new_vec);
+        }
+        self.order_o1.insert(self.counter, key.clone());
+      }
+       self.counter+=1;    
+   }
+  }
+  pub fn get_some(&self, key:&T)->Option<&F>{
+    if let Some(vec) = self.hash_some.get(key){
+      return vec.front();
+    }else{
+      return None;
+    }
+  }
+  pub fn remove_some(&mut self, key:&T){
+    if let Some(vec) = self.hash_some.get_mut(key){
+      vec.pop_front();
+      if vec.len() <= 0{self.hash_some.remove(key);}
+    }
+  
+  }
+  pub fn remove_some_all(&mut self, key:&T){
+    self.hash_some.remove(key);
+  }
+  pub fn peek_some(&self, key: &T)-> Option<&F>{
+     if let Some(next) = self.hash_some.get(key){
+      if next.len() > 1 {return Some(&next[1]);}
+      else {return None;}
+    }else {return None;}
+  }
+  pub fn clear_hash_some(&mut self){
+      self.hash_some.clear();
+  }
+  pub fn lifo_some(&mut self, key:&T)->Option<F>{
+    if let Some(last) = self.hash_some.get_mut(key){
+     match last.pop_back(){
+      None => None,
+      Some(i) => {
+        if last.len() <= 0{
+          self.hash_some.remove(key);
+        }
+        return Some(i);
+      }
+     }
+   }else {return None;}
+  }
+  pub fn iter_some(&self, key:&T)->Iter<'_, T, VecDeque<F>>{
+    self.hash_some.iter()
+  }
+  pub fn iter_mut_some(&mut self)->IterMut<'_, T, VecDeque<F>>{
+    self.hash_some.iter_mut()
+  }
+  pub fn keys_some(&mut self)->Keys<'_, T, VecDeque<F>>{
+    self.hash_some.keys()
+  }
+  pub fn contains_key_some(&self, key:&T)->bool{
+    self.hash_some.contains_key(key)
+  }
+  pub fn get_mut_ref_to_all_some(&mut self, key:&T)->Option<&mut VecDeque<F>>{
+    self.hash_some.get_mut(key)
+  }
+  pub fn get_ref_to_all_some(&mut self, key:&T)->Option<&VecDeque<F>>{
+    self.hash_some.get(key)
+  }
+
+  pub fn remove_value(&mut self, key:&T, index:usize){
+    if let Some(q) = self.hash.get_mut(key){
+      if q.len() <= 0{
+        self.hash.remove(key);
+      }else{
+      if index == 0{
+        q.pop_front();
+      }
+      else if index ==q.len()-1{
+        q.pop_back();
+      }else if index <= q.len()-1{
+        q.remove(index);
+      }
+      if q.len() <=0{
+        self.hash.remove(key);
+      } 
+      }
+    } 
+  }
+  pub fn remove_value_from_ref(&mut self, key:&T, index:usize){
+    if let Some(q) = self.hash_ref.get_mut(key){
+      if index == 0{
+        q.pop_front();
+      }
+      else if index ==q.len()-1{
+        q.pop_back();
+      }else if index <= q.len()-1{
+        q.remove(index);
+      }
+      if !q.len() >0{
+        self.hash.remove(key);
+      } 
+    } 
+  }
+  pub fn remove_value_from_some(&mut self, key:&T, index:usize){
+  if let Some(q) = self.hash_some.get_mut(key){
+      if index == 0{
+        q.pop_front();
+      }
+      else if index ==q.len()-1{
+        q.pop_back();
+      }else if index <= q.len()-1{
+        q.remove(index);
+      }
+      if !q.len() >0{
+        self.hash.remove(key);
+      } 
+    } 
+  }
+  pub fn is_empty(&self)->bool{
+      return self.hash.is_empty() && self.hash_ref.is_empty() && self.hash_some.is_empty(); 
+  }
+ 
+  }
+   impl<T, U, F> Iterator for Map<T, U, F>
     where 
   T: Clone+ Eq +Hash, 
   U: Clone + PartialEq
@@ -1355,14 +1573,14 @@ where
     use crate::main_code::utilities::general;
    #[test]
    fn test_insert(){
-     let mut n = general::Map::new();
+     let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
      n.insert(&3,& "hello".to_string());
      n.insert(&3,& "world".to_string());
      n.insert(&3, &"chao".to_string());
      assert_eq!(["hello".to_string(), "world".to_string(), "chao".to_string()].to_vec(), n.get_all(&3));
    }
    fn test_insert_ref(){
-    let mut n = general::Map::new();
+    let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
      n.insert_ref(&3, "hello".to_string());
      n.insert_ref(&3, "world".to_string());
      n.insert_ref(&3, "chao".to_string());
@@ -3118,4 +3336,414 @@ pub mod remove_comments{
 
 
   }
+
+}
+//---------------------------------------------------------------------------------------------------
+pub mod formats{
+   #![allow(unused)]
+  use crate::main_code::utilities::general;
+  use std::collections::VecDeque;
+  use std::collections::HashMap;
+  pub struct Strict{
+    map: general::Map<String, String, i32>,
+    format_from_str: HashMap<String, String>,
+    specials_for_str: general::Map<String, char, i32>,
+    scape: VecDeque<char>,
+    chars_predet: Vec<char>,
+    or: char
+  }
+  impl Strict{
+    pub fn new()->Self{
+      let mut vec = VecDeque::new();
+      vec.push_back('\\');
+      let vec2 = vec!['<', '>', '\'', '\''];
+      Self{
+        map:general::Map::new(),
+        format_from_str:HashMap::new(),
+        specials_for_str:general::Map::new(), 
+        scape: vec,
+        chars_predet:vec2,
+        or: '|'
+      }
+    }
+//-------------------------------------------------------------------
+    pub fn strict(&mut self, str_from_take_strict_format: &str, sensible_to_upper: bool, specials: &Vec<char>, store: bool, is_a_strict_format:bool)-> Result<Option<VecDeque<String>>, (String, VecDeque<String>, VecDeque<String>)>{
+           let mut format = String::new();
+      if !str_from_take_strict_format.is_empty() && !is_a_strict_format{
+      let mut in_scape = false;
+      let mut end = HashMap::new();
+      let mut in_literal = false;
+      let mut flexible_slice = false;
+      let mut strict_slice = true;
+      let mut last_flexible= '\0';
+      let mut j = 0;
+      while j <= self.chars_predet.len()-1{
+        let mut vec = general::sub_vec(&self.chars_predet, 2, j);
+        end.insert(vec[0].clone(), vec[1].clone());
+        j+=2;
+      } 
+      for i in str_from_take_strict_format.chars(){
+
+        if in_scape{
+          if !in_literal{
+          if strict_slice{format.push(identify_strict(i, sensible_to_upper, specials));}
+          else{format.push(identify_flexible(i, sensible_to_upper, specials));}
+          in_scape = false;
+          continue;
+          }else{
+            format.push(i);
+            continue;
+          }
+        }
+        if self.scape.contains(&i){
+          in_scape = true;
+          continue;
+        }
+
+        if flexible_slice{
+          if in_literal{
+            if let Some(s) = end.get(&'\''){
+              if i == *s {
+                format.push('\'');
+              in_literal = false;
+              continue;
+            }else{
+              format.push(i);
+              continue;
+            }
+            }else{
+              format.push(i);
+              continue;
+            }
+          }
+          if let Some(s) = end.get(&'<'){
+            if i == *s {
+              flexible_slice = false;
+            strict_slice = true;
+            last_flexible = '\0';
+            continue;
+            }
+          }
+          if i == '<'{continue;}
+          else if i == '\''{in_literal = true; format.push('\''); continue;}
+          if i == '|'{format.push(i); continue;}
+          let n = identify_flexible(i, sensible_to_upper, specials);
+          if last_flexible != n{
+          format.push(n);
+          last_flexible = n;
+          }
+          continue;
+        }
+        if !in_literal && strict_slice{
+        if i == '<'{
+          if strict_slice{flexible_slice=true; strict_slice = false;}
+         continue;
+        }else if i == '\''{
+          format.push('\'');
+          in_literal = true;
+          continue;
+        }
+        if i == '|'{format.push(i); continue;}
+         format.push(identify_strict(i, sensible_to_upper, specials));
+         }else if in_literal{
+          if i == '\''{in_literal = false;}
+          format.push(i);
+         }
+        }
+         let or_options = Self::get_or_options(&format, &self.or, &self.scape);
+      
+       if store{
+        for format2 in &or_options{
+       if let Some(s) = self.map.get_ref_to_all(format2){
+        if !s.contains(&str_from_take_strict_format.to_string()){
+          self.map.insert(format2, &str_from_take_strict_format.to_string());
+        }
+       }else{
+       self.map.insert(format2, &str_from_take_strict_format.to_string());
+       }
+       self.format_from_str.insert(str_from_take_strict_format.to_string(), format2.clone());
+       for i in specials{
+       match self.specials_for_str.get_ref_to_all(&str_from_take_strict_format.to_string()){
+         None => {self.specials_for_str.insert(&str_from_take_strict_format.to_string(), i);},
+         Some(r) =>{
+          if !r.contains(i){
+            self.specials_for_str.insert(&str_from_take_strict_format.to_string(), i);
+          }
+         }
+        };
+        } 
+       }
+      }
+      return Ok(Some(or_options));
+     }else if is_a_strict_format{
+      return Self::handle_format(self, str_from_take_strict_format, specials, store);
+     }else{return Ok(None);}
+     
+    }
+//-------------------------------------------------------------------
+    pub fn get_or_options(format:&str, or_delimiter:&char, scapes:&VecDeque<char>)->VecDeque<String>{
+     //Split the element in or options for this index or position in the format
+       let mut split_or = format.split(&or_delimiter.to_string()).map(|a| a.to_string()).collect::<VecDeque<_>>();
+       let mut position = 0;
+       let mut in_ignore = false;
+       let mut in_or = false;
+       let mut index_options:general::Map<usize, String, usize> = general::Map::new(); //for match the index or position with all his options
+       let mut start = 0;
+       let mut before = String::new();
+       let mut pushed_before = false;
+       let mut after = String::new();
+       let mut pushed_after = false;
+       for (s2, i) in split_or.iter().enumerate(){
+        let mut copy = i.trim().to_string();
+        if in_or{
+          if copy.len() > 0 && copy.len() == 1 && !in_ignore{
+            if let Some(n) = copy.chars().nth(0){
+              if n != '\'' && !scapes.contains(&n){
+                if let Some(n2) = index_options.get_ref_to_all(&position){ if !n2.contains(&n.to_string()){index_options.insert(&position, &copy);}}
+                else{index_options.insert(&position, &n.to_string());}
+                copy = general::replace_index(&copy, "", 0);
+              }
+            }
+          }
+          else if copy.len() >1 && !in_ignore{
+           if let Some(n) = copy.chars().nth(0){
+            if n != '\'' && !scapes.contains(&n){
+               if let Some(n2) = index_options.get_ref_to_all(&position){ if !n2.contains(&n.to_string()){index_options.insert(&position, &n.to_string());}}
+               else{index_options.insert(&position, &n.to_string());}
+              in_or = false;
+              position += 1;
+              copy = general::replace_index(&copy, "", 0);
+              }
+            }
+          }
+          else if !in_ignore{continue;}
+        }
+        if copy.len() <= 0{
+          continue;
+        }
+        let mut liter_indices = general::all_appears_index(i, "'");
+        let mut remove = Vec::new();
+        
+        for (i2, s) in liter_indices.iter().enumerate(){
+          if *s>0{
+            if scapes.contains(&i.chars().nth(s-1).unwrap()){
+              remove.push(i2);
+            }
+          }
+        }
+        for i in &remove{
+          liter_indices.remove(*i);
+        }
+        //Split positions and married it with his OR options
+        for i in &liter_indices{
+          if !in_ignore{
+            in_ignore = true;
+            start = s2;
+            if s2 == 0 && before.is_empty() && !pushed_before{
+              before = copy[..*i].to_string();
+              copy.replace_range(..i, &general::str_of_n_str(" ", copy[..*i].len()));
+              pushed_before = true;
+            }
+            index_options.insert(&position, &copy[..i+"'".len()].trim().to_string());
+            copy.replace_range(..i+"'".len(),&general::str_of_n_str(" ", copy[..i+"'".len()].len()));
+          }else{
+            if s2 == split_or.len()-1 && after.is_empty() && !pushed_after{
+            after = copy[i+"'".len()..].to_string();
+              copy.replace_range(i+"'".len().., &general::str_of_n_str(" ", copy[i+"'".len()..].len()));
+              pushed_after = true;
+          }
+            in_ignore = false;
+            if let Some(r) = index_options.get_mut_ref_to_all(&position){
+              let mut s =  r.back_mut().unwrap();
+              s.push_str(&copy[..i+"'".len()].trim().to_string());
+              copy.replace_range(..i+"'".len(), &general::str_of_n_str(" ", copy[..i+"'".len()].len()));
+            }
+            position+=1; 
+          }
+          
+        }
+        if in_ignore{
+          if let Some(r) = index_options.get_mut_ref_to_all(&position){
+              let mut s =  r.back_mut().unwrap();
+              s.push_str(&copy.trim().to_string());
+              s.push_str(&or_delimiter.to_string());
+              if s2 != start{
+                s.push_str(i);
+              } 
+            }
+        }else{
+          if s2 == 0 && before.is_empty() && !pushed_before{
+              before = copy[..copy.len()-1].to_string();
+              copy.replace_range(..copy.len()-1, &general::str_of_n_str(" ", copy[..copy.len()-1].len()));
+              pushed_before = true;
+            }
+          if s2 == split_or.len()-1 && after.is_empty() && !pushed_after{
+            after = copy[1..].to_string();
+              copy.replace_range(1.., &general::str_of_n_str(" ", copy[1..].len()));
+              pushed_after = true;
+          }
+          if liter_indices.len() <= 0{
+            if !in_or{
+            index_options.insert(&position, &copy);
+            in_or = true;
+            }
+          }else{
+            if !in_or{
+              if let Some(r) = index_options.get_mut_ref_to_all(&position){
+              let mut s =  r.back_mut().unwrap();
+              s.push_str(&copy);
+             }
+             in_or = true;
+            }
+          }
+        }
+       }
+       let mut all_options:VecDeque<String> = VecDeque::new();
+
+        let mut pos2 = 0;
+      
+        while let Some(s) = index_options.get_ref_to_all(&pos2){   
+          let mut vec_new:Vec<String> = Vec::new();
+                for i in s{ 
+                  vec_new.push(i.to_string());
+                }
+        
+              let mut buffer2 = Vec::new();;
+              for i in &all_options{
+                buffer2.push(i.to_string());
+              }
+               
+               all_options.clear();
+              for i in &general::ordered_combination((&buffer2, &vec_new)){
+               
+                all_options.push_back(before.clone()+i.trim()+&after);
+              }
+              pos2 += 1;
+          }
+         
+         
+          in_ignore = false;
+          for (s,i) in all_options.iter_mut().enumerate(){
+             let mut duplis = Vec::new();
+              let mut last = '\0';
+            for (s2, i2) in i.chars().enumerate(){
+              if i2 == '\'' && !scapes.contains(&last){
+                if !in_ignore{in_ignore = true;}
+                else {in_ignore = false;}
+              }
+              if i2 == 'L' || i2 == 'U' || i2 =='W' || i2 == 'N' || i2 == 'S' && in_ignore{
+                if i2 == last{
+                  duplis.push(s2);
+                } 
+              }
+              last = i2;
+            }
+            let mut dcr = 0;
+            let mut buffer = i.to_string();
+            for i in &duplis{
+              buffer = general::replace_index(&buffer, "", *i-dcr);
+              dcr+=1;
+            }
+            *i = buffer.to_string();
+          }
+
+          return all_options;
+       
+    }
+//-------------------------------------------------------------------
+     fn handle_format(&mut self, str_from_take_strict_format:&str, specials: &Vec<char>, store:bool)->Result<Option<VecDeque<String>>, (String, VecDeque<String>, VecDeque<String>)>{
+      let mut panic_err = String::new();
+      let mut warns = VecDeque::new();
+      if str_from_take_strict_format.contains(&"S") || str_from_take_strict_format.contains(&"s") && specials.is_empty(){
+        panic_err = "Error: can't recognize the specials in the format passed if you not pass them specials, so the 'S' or 's' in the format are not be considered".to_string();
+      }
+      let mut sub_format = String::new();
+      let mut back = '\0';
+      let mut last_flexible = '\0';
+  
+      let mut liter_str = String::new();
+      let mut temp = str_from_take_strict_format.trim().chars().peekable();
+      while let Some(i) = temp.next(){
+           
+          if i != 'S' && i != 's' && i!='L' && i!='l' && i!='W' && i!='w' && i!='U' && i!='u' && i!='N' && i!='n' && i != '|'{
+           warns.push_back("PRIORITY WARNING!: Ignore characters into format because not correspond to the formats characters".to_string());
+           continue;
+          }
+          if !panic_err.is_empty(){
+            if i == 's' || i == 'S'{continue;} 
+          }
+          if i == 'S' || i == 'L' || i=='W' || i=='N' || i=='U'{
+            if i == last_flexible && temp.peek().unwrap_or(&'?') != &'|' && back != '|'{continue;}
+            else{last_flexible = i.clone();}
+          }
+          else{
+            last_flexible = '\0';//reset last_flexible
+          }
+          sub_format.push(i.clone());
+        back = i.clone();
+      }
+      let or_options = Self::get_or_options(&sub_format, &self.or, &self.scape);
+      if store{
+      for format in &or_options{
+       if let Some(s) = self.map.get_ref_to_all(&format){
+        if !s.contains(&str_from_take_strict_format.to_string()){
+          self.map.insert(format, &str_from_take_strict_format.to_string());
+        }
+       }else{
+       self.map.insert(format, &str_from_take_strict_format.to_string());
+       }
+       self.format_from_str.insert(str_from_take_strict_format.to_string(), format.clone());
+       for i in specials{
+       match self.specials_for_str.get_ref_to_all(&str_from_take_strict_format.to_string()){
+         None => {self.specials_for_str.insert(&str_from_take_strict_format.to_string(), i);},
+         Some(r) =>{
+          if !r.contains(i){
+            self.specials_for_str.insert(&str_from_take_strict_format.to_string(), i);
+           }
+          }
+         };
+        }
+       }
+      }
+      if panic_err.is_empty() && warns.is_empty(){return Ok(Some(or_options));}
+      else{return Err((panic_err, warns, or_options));}
+     }
+  }
+  fn identify_strict(identify:char, sensible_to_upper: bool, specials: &Vec<char>)-> char{
+     if specials.contains(&identify){
+          return 's';
+        }
+     else if identify <= '9' && identify>= '0'{
+            return 'n';
+          }else if identify <= 'Z' && identify >='A'{
+            if sensible_to_upper{
+              return 'u';
+            }else{return 'l';}
+          }else if identify <= 'z' && identify >='a'{
+            if sensible_to_upper{
+              return 'w';
+            }else{return 'l';}
+          }else {
+              return 'l';
+          }
+    }
+  fn identify_flexible(identify:char, sensible_to_upper: bool, specials: &Vec<char>)->char{
+    if specials.contains(&identify){
+          return 'S';
+        }
+     else if identify <= '9' && identify>= '0'{
+            return 'N';
+          }else if identify <= 'Z' && identify >='A'{
+            if sensible_to_upper{
+              return 'U';
+            }else{return 'L';}
+          }else if identify <= 'z' && identify >='a'{
+            if sensible_to_upper{
+              return 'W';
+            }else{return 'L';}
+          }else {
+              return 'L';
+          }
+  }
+
 }
