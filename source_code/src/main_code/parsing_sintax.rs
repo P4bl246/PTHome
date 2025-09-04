@@ -325,7 +325,7 @@ use std::collections::VecDeque;
  //--------------------------------------------------------------------------------------   
     pub fn slice_classes_equ(content: &str)-> Option<(VecDeque<general::Map<String, String, i32>>, VecDeque<general::Map<VecDeque<String>, String, i32>>)>{
       let mut n = extract_str_before(content, &["=", ":", "_"].to_vec(),&['\\'].to_vec(), 
-      (&['"', '"'].to_vec(),&["'", "'", "{", "}", "(", ")", "[", "]" ,"/", "/", "--", "--"].to_vec()));
+      (&['"', '"', '$', '$', '`', '`', '&', '&'].to_vec(),&["'", "'", "{", "}", "(", ")", "[", "]" ,"/", "/", "--", "--"].to_vec()));
       match n {
         None => None,
         Some(mut i) => {
@@ -603,9 +603,15 @@ use std::rc::Rc;
         let mut indexes:general::Map<String, usize, i32> = general::Map::new();
         let mut map:general::Map<usize, String, i32> = general::Map::new();
         let mut map_after:general::Map<usize, String, i32> = general::Map::new();
+        let mut multi_line = false;
+        let mut last = 0;
+        let mut last_line = 0;
         for line in content.lines(){
             counter += 1;
             contains = false;
+         if !multi_line{
+          last_line = counter;
+        }   
         let mut copy = line.to_string();
         //if we are into ignore content search the end delimiter ignore
             if in_ignore{
@@ -639,12 +645,13 @@ use std::rc::Rc;
             }
           }
           //Else, check if the line contains some ignore delimiter
-            if !in_ignore{
+            if !in_ignore && !multi_line{
              contains = remove_comments::contains_ignore(ignore_content_between.0, ignore_content_between.1, &copy);
           }
-          if !in_ignore{
+          if !in_ignore && !multi_line{
             for (i, delimiter) in delimiter_slice.iter().enumerate(){
              if copy.contains(delimiter){
+              last = i;
                 if contains{
                   let verify = remove_comments::content_between(ignore_content_between.0, ignore_content_between.1, scape_characters, delimiter, &copy);
                   in_ignore = verify.1;
@@ -652,16 +659,75 @@ use std::rc::Rc;
                   if verify.2.len() != copy.len(){
                     map.insert(&i, &line[..verify.2.len()].to_string());
                     num_line.insert(&i, &counter);
-                    map_after.insert(&i, &line[verify.2.len()+delimiter.len()..].to_string());
+                    
+                    let mut stop = remove_comments::content_between(ignore_content_between.0, ignore_content_between.1, scape_characters, ";", &(general::str_of_n_str(" ", verify.2.len()+delimiter.len())+&line[verify.2.len()+delimiter.len()..]));
+                    if stop.2.len() != copy.len(){
+                      map_after.insert(&last, &line[verify.2.len()+delimiter.len()..stop.2.len()].to_string());
+                    }
+                    else{
+                      stop = remove_comments::content_between(ignore_content_between.0, ignore_content_between.1, scape_characters, "...", &(general::str_of_n_str(" ", verify.2.len()+delimiter.len())+&line[verify.2.len()+delimiter.len()..]));
+                      if stop.2.len() != copy.len(){
+                      map_after.insert(&last, &line[verify.2.len()+delimiter.len()..stop.2.len()].to_string());
+                      multi_line = true;
+                    }else{
+                      map_after.insert(&i, &line[verify.2.len()+delimiter.len()..].to_string());
+                    }
+                    }
+                    
                   }
                 }else{
                   if let Some(pos) = copy.find(delimiter){
                     map.insert(&i,& line[..pos].to_string());
                     num_line.insert(&i, &counter);
-                    map_after.insert(&i, &line[pos+delimiter.len()..].to_string());
+                    let mut stop = remove_comments::content_between(ignore_content_between.0, ignore_content_between.1, scape_characters, ";", &(general::str_of_n_str(" ", line[..pos+delimiter.len()].len())+&line[pos+delimiter.len()..]));
+                    if stop.2.len() != line.len(){
+                      map_after.insert(&last, &line[pos+delimiter.len()..stop.2.len()].to_string());
+                    }
+                    else{
+                      stop = remove_comments::content_between(ignore_content_between.0, ignore_content_between.1, scape_characters, "...", &(general::str_of_n_str(" ", line[..pos+delimiter.len()].len())+&line[pos+delimiter.len()..]));
+                      if stop.2.len() != line.len(){
+                      map_after.insert(&last, &line[pos+delimiter.len()..stop.2.len()].to_string());
+                      multi_line = true;
+                    }else{
+                      map_after.insert(&i, &line[pos+delimiter.len()..].to_string());
+                    }
+                    }
+                    
                   }
                 }
               }
+            }
+          }else if multi_line{
+          let mut stop = remove_comments::content_between(ignore_content_between.0, ignore_content_between.1, scape_characters, ";", &copy);
+            if stop.2.len() != copy.len(){
+              if let Some(n) = map_after.get_mut_ref_to_all(&last){
+                let n2 = n.back_mut().unwrap();
+                n2.push_str(&line[..stop.2.len()]);
+                
+              }
+              else{map_after.insert(&last, &line[..stop.2.len()].to_string());}
+              multi_line = false;
+            }
+            else {
+                stop = remove_comments::content_between(ignore_content_between.0, ignore_content_between.1, scape_characters, "...", &copy);
+                
+                if stop.2.len() != copy.len(){
+                  if let Some(n) = map_after.get_mut_ref_to_all(&last){
+                let n2 = n.back_mut().unwrap();
+                n2.push_str(&line[..stop.2.len()]);
+                
+                }
+                    else{map_after.insert(&last, &line[..stop.2.len()].to_string());}
+                 
+               }else{
+                if let Some(n) = map_after.get_mut_ref_to_all(&last){
+                let n2 = n.back_mut().unwrap();
+                n2.push_str(&line[..stop.2.len()]);
+                
+                }
+                else{map_after.insert(&last, &line[..stop.2.len()].to_string());}
+                  multi_line = false;
+               }
             }
           }
         }

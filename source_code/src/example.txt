@@ -1,6 +1,10 @@
 Esta es mi "multi line yuca nombre
 ahieldjo yuca paap
-mi_map$yuca, hello, world$ _ HI;
+mi_map$yuca, hello, world$ _ HI; Yuca con jamo y queso
+mi mapa$yuca, hello, jamon$ _ Hi...
+Yuca 2...
+Hello world...
+s; sssssssssssssssssss
 1"/*\"'/*'/*This is a line comment\"*/"*"/s" = \: 
 "\"="sss : hello, world, tio
 Esta es mi clase"="2 vr1e: khkjguih

@@ -317,14 +317,15 @@ pub mod general{
         return indexes;
     }
     else{
-      while copy.contains(search_str){
-         if let Some(index) = copy.find(search_str){
-          indexes.push(index + (remove*search_str.len()));
+      
+         while let Some(index) = copy.find(search_str){
+          indexes.push(index + remove);
           //remove this appear
-          copy = copy.replacen(search_str, "", 1);
-          remove += 1;
+          remove += copy[..index+search_str.len()].len();
+          copy = copy[index+search_str.len()..].to_string();
+
          }
-       }
+       
     }
     return indexes;
      
@@ -416,7 +417,7 @@ pub mod general{
   /// }
   /// ``` 
   pub fn replace_index(str_in: &str, replace: &str, index: usize)-> String{
-    if str_in.is_empty() || replace.is_empty(){
+    if str_in.is_empty(){
       return str_in.to_string();
     }
     let mut new_str = String::new();
@@ -3450,7 +3451,7 @@ pub mod formats{
           format.push(i);
          }
         }
-         let or_options = Self::get_or_options(&format, &self.or, &self.scape);
+         let or_options = get_or_options(&format, &self.or, &self.scape);
       
        if store{
         for format2 in &or_options{
@@ -3480,8 +3481,399 @@ pub mod formats{
      }else{return Ok(None);}
      
     }
+
 //-------------------------------------------------------------------
-    pub fn get_or_options(format:&str, or_delimiter:&char, scapes:&VecDeque<char>)->VecDeque<String>{
+     fn handle_format(&mut self, str_from_take_strict_format:&str, specials: &Vec<char>, store:bool)->Result<Option<VecDeque<String>>, (String, VecDeque<String>, VecDeque<String>)>{
+      let mut panic_err = String::new();
+      let mut warns = VecDeque::new();
+      if str_from_take_strict_format.contains(&"S") || str_from_take_strict_format.contains(&"s") && specials.is_empty(){
+        panic_err = "Error: can't recognize the specials in the format passed if you not pass them specials, so the 'S' or 's' in the format are not be considered".to_string();
+      }
+      let mut sub_format = String::new();
+      let mut back = '\0';
+      let mut last_flexible = '\0';
+  
+      let mut liter_str = String::new();
+      let mut temp = str_from_take_strict_format.trim().chars().peekable();
+      while let Some(i) = temp.next(){
+           
+          if i != 'S' && i != 's' && i!='L' && i!='l' && i!='W' && i!='w' && i!='U' && i!='u' && i!='N' && i!='n' && i != '|'{
+           warns.push_back("PRIORITY WARNING!: Ignore characters into format because not correspond to the formats characters".to_string());
+           continue;
+          }
+          if !panic_err.is_empty(){
+            if i == 's' || i == 'S'{continue;} 
+          }
+          if i == 'S' || i == 'L' || i=='W' || i=='N' || i=='U'{
+            if i == last_flexible && temp.peek().unwrap_or(&'?') != &'|' && back != '|'{continue;}
+            else{last_flexible = i.clone();}
+          }
+          else{
+            last_flexible = '\0';//reset last_flexible
+          }
+          sub_format.push(i.clone());
+        back = i.clone();
+      }
+      let or_options = get_or_options(&sub_format, &self.or, &self.scape);
+      if store{
+      for format in &or_options{
+       if let Some(s) = self.map.get_ref_to_all(&format){
+        if !s.contains(&str_from_take_strict_format.to_string()){
+          self.map.insert(format, &str_from_take_strict_format.to_string());
+        }
+       }else{
+       self.map.insert(format, &str_from_take_strict_format.to_string());
+       }
+       self.format_from_str.insert(str_from_take_strict_format.to_string(), format.clone());
+       for i in specials{
+       match self.specials_for_str.get_ref_to_all(&str_from_take_strict_format.to_string()){
+         None => {self.specials_for_str.insert(&str_from_take_strict_format.to_string(), i);},
+         Some(r) =>{
+          if !r.contains(i){
+            self.specials_for_str.insert(&str_from_take_strict_format.to_string(), i);
+           }
+          }
+         };
+        }
+       }
+      }
+      if panic_err.is_empty() && warns.is_empty(){return Ok(Some(or_options));}
+      else{return Err((panic_err, warns, or_options));}
+     }
+//-------------------------------------------------------------------
+     pub fn get_format(&self, example: &str)->Option<&String>{
+      self.format_from_str.get(example)
+     }
+//-------------------------------------------------------------------
+     pub fn get_str(&self, format: &str) ->Option<&VecDeque<String>>{
+      self.map.get_ref_to_all(&format.to_string())
+      }
+//-------------------------------------------------------------------
+      pub fn get_specials(&self, string_in: &str)->Option<&VecDeque<char>>{
+        self.specials_for_str.get_ref_to_all(&string_in.to_string())
+      }
+//-------------------------------------------------------------------
+      pub fn get_mut_format(&mut self, example: &str)->Option<&mut String>{
+        self.format_from_str.get_mut(example)
+      }
+//-------------------------------------------------------------------
+      pub fn get_mut_str(&mut self, format:&str)->Option<&mut VecDeque<String>>{
+        self.map.get_mut_ref_to_all(&format.to_string())
+      }
+//-------------------------------------------------------------------
+      pub fn get_mut_specials(&mut self, string_in:&str)->Option<&mut VecDeque<char>>{
+        self.specials_for_str.get_mut_ref_to_all(&string_in.to_string())
+      }
+//-------------------------------------------------------------------
+      pub fn get_map_format(&self)->&general::Map<String, String, i32>{
+        &self.map
+      }
+//-------------------------------------------------------------------
+      pub fn get_mut_map_format(&mut self)-> &general::Map<String, String, i32>{
+        &mut self.map
+      }
+//-------------------------------------------------------------------
+      pub fn get_map_str(&self)->&HashMap<String, String>{
+        &self.format_from_str
+      }
+//-------------------------------------------------------------------
+      pub fn get_mut_map_str(&mut self)->&mut HashMap<String, String>{
+        & mut self.format_from_str
+      }
+//-------------------------------------------------------------------
+      pub fn get_map_specials(&self)->&general::Map<String, char, i32>{
+        &self.specials_for_str
+      }
+//-------------------------------------------------------------------
+      pub fn get_mut_map_speciasl(&mut self)->&mut general::Map<String, char, i32>{
+        &mut self.specials_for_str
+      }
+
+  }
+  pub struct Flexible{
+    map: general::Map<String, String, i32>,
+    format_from_str: HashMap<String, String>,
+    specials_for_str: general::Map<String, char, i32>,
+    scape: VecDeque<char>,
+    chars_predet: Vec<char>,
+    or: char
+  }
+  impl Flexible{
+    pub fn new()->Self{
+      let mut vec = VecDeque::new();
+      vec.push_back('\\');
+      let vec2 = vec!['<', '>', '\'', '\''];
+      Self{
+        map:general::Map::new(),
+        format_from_str:HashMap::new(),
+        specials_for_str:general::Map::new(), 
+        scape: vec,
+        chars_predet:vec2,
+        or: '|'
+      }
+    }
+//-------------------------------------------------------------------
+    pub fn flexible(&mut self, str_from_take_strict_format: &str, sensible_to_upper: bool, specials: &Vec<char>, store: bool, is_a_strict_format:bool)-> Result<Option<VecDeque<String>>, (String, VecDeque<String>, VecDeque<String>)>{
+           let mut format = String::new();
+      if !str_from_take_strict_format.is_empty() && !is_a_strict_format{
+      let mut in_scape = false;
+      let mut end = HashMap::new();
+      let mut in_literal = false;
+      let mut flexible_slice = true;
+      let mut strict_slice = false;
+      let mut last_flexible= '\0';
+      let mut j = 0;
+      while j <= self.chars_predet.len()-1{
+        let mut vec = general::sub_vec(&self.chars_predet, 2, j);
+        end.insert(vec[0].clone(), vec[1].clone());
+        j+=2;
+      } 
+      for i in str_from_take_strict_format.chars(){
+
+        if in_scape{
+          if !in_literal{
+          if strict_slice{format.push(identify_strict(i, sensible_to_upper, specials));}
+          else{format.push(identify_flexible(i, sensible_to_upper, specials));}
+          in_scape = false;
+          continue;
+          }else{
+            format.push(i);
+            continue;
+          }
+        }
+        if self.scape.contains(&i){
+          in_scape = true;
+          continue;
+        }
+
+        if strict_slice{
+          if in_literal{
+            if let Some(s) = end.get(&'\''){
+              if i == *s {
+                format.push('\'');
+              in_literal = false;
+              continue;
+            }else{
+              format.push(i);
+              continue;
+            }
+            }else{
+              format.push(i);
+              continue;
+            }
+          }
+          if let Some(s) = end.get(&'<'){
+            if i == *s {
+              flexible_slice = true;
+            strict_slice = false;
+            continue;
+            }
+          }
+          if i == '<'{continue;}
+          else if i == '\''{in_literal = true; format.push('\''); continue;}
+          if i == '|'{format.push(i); continue;}
+          let n = identify_strict(i, sensible_to_upper, specials);
+          format.push(n);
+          continue;
+        }
+        if !in_literal && flexible_slice{
+        if i == '<'{
+          if flexible_slice{flexible_slice=false; strict_slice = true;}
+         continue;
+        }else if i == '\''{
+          format.push('\'');
+          in_literal = true;
+          last_flexible = '\0';
+          continue;
+        }
+        if i == '|'{format.push(i); last_flexible = '\0'; continue;}
+        let mut n = identify_flexible(i, sensible_to_upper, specials);
+        if last_flexible != n{
+          format.push(n);
+          last_flexible = n;
+          }
+         }else if in_literal{
+          if i == '\''{in_literal = false;}
+          format.push(i);
+         }
+        }
+         let or_options = get_or_options(&format, &self.or, &self.scape);
+      
+       if store{
+        for format2 in &or_options{
+       if let Some(s) = self.map.get_ref_to_all(format2){
+        if !s.contains(&str_from_take_strict_format.to_string()){
+          self.map.insert(format2, &str_from_take_strict_format.to_string());
+        }
+       }else{
+       self.map.insert(format2, &str_from_take_strict_format.to_string());
+       }
+       self.format_from_str.insert(str_from_take_strict_format.to_string(), format2.clone());
+       for i in specials{
+       match self.specials_for_str.get_ref_to_all(&str_from_take_strict_format.to_string()){
+         None => {self.specials_for_str.insert(&str_from_take_strict_format.to_string(), i);},
+         Some(r) =>{
+          if !r.contains(i){
+            self.specials_for_str.insert(&str_from_take_strict_format.to_string(), i);
+          }
+         }
+        };
+        } 
+       }
+      }
+      return Ok(Some(or_options));
+     }else if is_a_strict_format{
+      return Self::handle_format(self, str_from_take_strict_format, specials, store);
+     }else{return Ok(None);}
+     
+    }
+
+//-------------------------------------------------------------------
+     fn handle_format(&mut self, str_from_take_strict_format:&str, specials: &Vec<char>, store:bool)->Result<Option<VecDeque<String>>, (String, VecDeque<String>, VecDeque<String>)>{
+      let mut panic_err = String::new();
+      let mut warns = VecDeque::new();
+      if str_from_take_strict_format.contains(&"S") || str_from_take_strict_format.contains(&"s") && specials.is_empty(){
+        panic_err = "Error: can't recognize the specials in the format passed if you not pass them specials, so the 'S' or 's' in the format are not be considered".to_string();
+      }
+      let mut sub_format = String::new();
+      let mut back = '\0';
+      let mut last_flexible = '\0';
+  
+      let mut liter_str = String::new();
+      let mut temp = str_from_take_strict_format.trim().chars().peekable();
+      while let Some(i) = temp.next(){
+           
+          if i != 'S' && i != 's' && i!='L' && i!='l' && i!='W' && i!='w' && i!='U' && i!='u' && i!='N' && i!='n' && i != '|'{
+           warns.push_back("PRIORITY WARNING!: Ignore characters into format because not correspond to the formats characters".to_string());
+           continue;
+          }
+          if !panic_err.is_empty(){
+            if i == 's' || i == 'S'{continue;} 
+          }
+          if i == 'S' || i == 'L' || i=='W' || i=='N' || i=='U'{
+            if i == last_flexible && temp.peek().unwrap_or(&'?') != &'|' && back != '|'{continue;}
+            else{last_flexible = i.clone();}
+          }
+          else{
+            last_flexible = '\0';//reset last_flexible
+          }
+          sub_format.push(i.clone());
+        back = i.clone();
+      }
+      let or_options = get_or_options(&sub_format, &self.or, &self.scape);
+      if store{
+      for format in &or_options{
+       if let Some(s) = self.map.get_ref_to_all(&format){
+        if !s.contains(&str_from_take_strict_format.to_string()){
+          self.map.insert(format, &str_from_take_strict_format.to_string());
+        }
+       }else{
+       self.map.insert(format, &str_from_take_strict_format.to_string());
+       }
+       self.format_from_str.insert(str_from_take_strict_format.to_string(), format.clone());
+       for i in specials{
+       match self.specials_for_str.get_ref_to_all(&str_from_take_strict_format.to_string()){
+         None => {self.specials_for_str.insert(&str_from_take_strict_format.to_string(), i);},
+         Some(r) =>{
+          if !r.contains(i){
+            self.specials_for_str.insert(&str_from_take_strict_format.to_string(), i);
+           }
+          }
+         };
+        }
+       }
+      }
+      if panic_err.is_empty() && warns.is_empty(){return Ok(Some(or_options));}
+      else{return Err((panic_err, warns, or_options));}
+     }
+//-------------------------------------------------------------------
+     pub fn get_format(&self, example: &str)->Option<&String>{
+      self.format_from_str.get(example)
+     }
+//-------------------------------------------------------------------
+     pub fn get_str(&self, format: &str) ->Option<&VecDeque<String>>{
+      self.map.get_ref_to_all(&format.to_string())
+      }
+//-------------------------------------------------------------------
+      pub fn get_specials(&self, string_in: &str)->Option<&VecDeque<char>>{
+        self.specials_for_str.get_ref_to_all(&string_in.to_string())
+      }
+//-------------------------------------------------------------------
+      pub fn get_mut_format(&mut self, example: &str)->Option<&mut String>{
+        self.format_from_str.get_mut(example)
+      }
+//-------------------------------------------------------------------
+      pub fn get_mut_str(&mut self, format:&str)->Option<&mut VecDeque<String>>{
+        self.map.get_mut_ref_to_all(&format.to_string())
+      }
+//-------------------------------------------------------------------
+      pub fn get_mut_specials(&mut self, string_in:&str)->Option<&mut VecDeque<char>>{
+        self.specials_for_str.get_mut_ref_to_all(&string_in.to_string())
+      }
+//-------------------------------------------------------------------
+      pub fn get_map_format(&self)->&general::Map<String, String, i32>{
+        &self.map
+      }
+//-------------------------------------------------------------------
+      pub fn get_mut_map_format(&mut self)-> &general::Map<String, String, i32>{
+        &mut self.map
+      }
+//-------------------------------------------------------------------
+      pub fn get_map_str(&self)->&HashMap<String, String>{
+        &self.format_from_str
+      }
+//-------------------------------------------------------------------
+      pub fn get_mut_map_str(&mut self)->&mut HashMap<String, String>{
+        & mut self.format_from_str
+      }
+//-------------------------------------------------------------------
+      pub fn get_map_specials(&self)->&general::Map<String, char, i32>{
+        &self.specials_for_str
+      }
+//-------------------------------------------------------------------
+      pub fn get_mut_map_speciasl(&mut self)->&mut general::Map<String, char, i32>{
+        &mut self.specials_for_str
+      }
+
+  }
+  fn identify_strict(identify:char, sensible_to_upper: bool, specials: &Vec<char>)-> char{
+     if specials.contains(&identify){
+          return 's';
+        }
+     else if identify <= '9' && identify>= '0'{
+            return 'n';
+          }else if identify <= 'Z' && identify >='A'{
+            if sensible_to_upper{
+              return 'u';
+            }else{return 'l';}
+          }else if identify <= 'z' && identify >='a'{
+            if sensible_to_upper{
+              return 'w';
+            }else{return 'l';}
+          }else {
+              return 'l';
+          }
+    }
+  fn identify_flexible(identify:char, sensible_to_upper: bool, specials: &Vec<char>)->char{
+    if specials.contains(&identify){
+          return 'S';
+        }
+     else if identify <= '9' && identify>= '0'{
+            return 'N';
+          }else if identify <= 'Z' && identify >='A'{
+            if sensible_to_upper{
+              return 'U';
+            }else{return 'L';}
+          }else if identify <= 'z' && identify >='a'{
+            if sensible_to_upper{
+              return 'W';
+            }else{return 'L';}
+          }else {
+              return 'L';
+          }
+  }
+//-------------------------------------------------------------------
+  pub fn get_or_options(format:&str, or_delimiter:&char, scapes:&VecDeque<char>)->VecDeque<String>{
      //Split the element in or options for this index or position in the format
        let mut split_or = format.split(&or_delimiter.to_string()).map(|a| a.to_string()).collect::<VecDeque<_>>();
        let mut position = 0;
@@ -3553,23 +3945,26 @@ pub mod formats{
               pushed_after = true;
           }
             in_ignore = false;
+            if in_or && *i>= liter_indices.len()-1  {in_or = false;}
             if let Some(r) = index_options.get_mut_ref_to_all(&position){
               let mut s =  r.back_mut().unwrap();
               s.push_str(&copy[..i+"'".len()].trim().to_string());
               copy.replace_range(..i+"'".len(), &general::str_of_n_str(" ", copy[..i+"'".len()].len()));
+              if !copy.trim().len() > 0 && *i>=liter_indices.len()-1{in_or = true;}
             }
-            position+=1; 
+            if!in_or{position+=1;} 
           }
           
         }
         if in_ignore{
           if let Some(r) = index_options.get_mut_ref_to_all(&position){
               let mut s =  r.back_mut().unwrap();
-              s.push_str(&copy.trim().to_string());
-              s.push_str(&or_delimiter.to_string());
-              if s2 != start{
+              if s2 != start && liter_indices.is_empty(){
                 s.push_str(i);
-              } 
+              }
+              else{s.push_str(&copy.trim().to_string());}
+              if s2 != split_or.len()-1{s.push_str(&or_delimiter.to_string());}
+               
             }
         }else{
           if s2 == 0 && before.is_empty() && !pushed_before{
@@ -3583,7 +3978,7 @@ pub mod formats{
               pushed_after = true;
           }
           if liter_indices.len() <= 0{
-            if !in_or{
+            if !in_or{                    
             index_options.insert(&position, &copy);
             in_or = true;
             }
@@ -3592,6 +3987,13 @@ pub mod formats{
               if let Some(r) = index_options.get_mut_ref_to_all(&position){
               let mut s =  r.back_mut().unwrap();
               s.push_str(&copy);
+             }else{
+              if let Some(r) = index_options.get_mut_ref_to_all(&(position-1)){
+              let mut s =  r.back_mut().unwrap();
+              s.push_str(&copy[..copy.len()-1].trim().to_string());
+                let n = copy.chars().nth(copy.len()-1).unwrap_or('\0');
+                 if n != '\0'{index_options.insert(&position, &n.to_string());}
+              }
              }
              in_or = true;
             }
@@ -3601,7 +4003,7 @@ pub mod formats{
        let mut all_options:VecDeque<String> = VecDeque::new();
 
         let mut pos2 = 0;
-      
+        let mut first = true;
         while let Some(s) = index_options.get_ref_to_all(&pos2){   
           let mut vec_new:Vec<String> = Vec::new();
                 for i in s{ 
@@ -3616,8 +4018,11 @@ pub mod formats{
                all_options.clear();
               for i in &general::ordered_combination((&buffer2, &vec_new)){
                
-                all_options.push_back(before.clone()+i.trim()+&after);
+                if first{all_options.push_back(before.clone()+i.trim());}
+                else{ if pos2 == index_options.keys().len() {all_options.push_back(i.trim().to_string()+&after);}else{all_options.push_back(i.trim().to_string())} }
+                
               }
+              first = false;
               pos2 += 1;
           }
          
@@ -3650,100 +4055,5 @@ pub mod formats{
           return all_options;
        
     }
-//-------------------------------------------------------------------
-     fn handle_format(&mut self, str_from_take_strict_format:&str, specials: &Vec<char>, store:bool)->Result<Option<VecDeque<String>>, (String, VecDeque<String>, VecDeque<String>)>{
-      let mut panic_err = String::new();
-      let mut warns = VecDeque::new();
-      if str_from_take_strict_format.contains(&"S") || str_from_take_strict_format.contains(&"s") && specials.is_empty(){
-        panic_err = "Error: can't recognize the specials in the format passed if you not pass them specials, so the 'S' or 's' in the format are not be considered".to_string();
-      }
-      let mut sub_format = String::new();
-      let mut back = '\0';
-      let mut last_flexible = '\0';
-  
-      let mut liter_str = String::new();
-      let mut temp = str_from_take_strict_format.trim().chars().peekable();
-      while let Some(i) = temp.next(){
-           
-          if i != 'S' && i != 's' && i!='L' && i!='l' && i!='W' && i!='w' && i!='U' && i!='u' && i!='N' && i!='n' && i != '|'{
-           warns.push_back("PRIORITY WARNING!: Ignore characters into format because not correspond to the formats characters".to_string());
-           continue;
-          }
-          if !panic_err.is_empty(){
-            if i == 's' || i == 'S'{continue;} 
-          }
-          if i == 'S' || i == 'L' || i=='W' || i=='N' || i=='U'{
-            if i == last_flexible && temp.peek().unwrap_or(&'?') != &'|' && back != '|'{continue;}
-            else{last_flexible = i.clone();}
-          }
-          else{
-            last_flexible = '\0';//reset last_flexible
-          }
-          sub_format.push(i.clone());
-        back = i.clone();
-      }
-      let or_options = Self::get_or_options(&sub_format, &self.or, &self.scape);
-      if store{
-      for format in &or_options{
-       if let Some(s) = self.map.get_ref_to_all(&format){
-        if !s.contains(&str_from_take_strict_format.to_string()){
-          self.map.insert(format, &str_from_take_strict_format.to_string());
-        }
-       }else{
-       self.map.insert(format, &str_from_take_strict_format.to_string());
-       }
-       self.format_from_str.insert(str_from_take_strict_format.to_string(), format.clone());
-       for i in specials{
-       match self.specials_for_str.get_ref_to_all(&str_from_take_strict_format.to_string()){
-         None => {self.specials_for_str.insert(&str_from_take_strict_format.to_string(), i);},
-         Some(r) =>{
-          if !r.contains(i){
-            self.specials_for_str.insert(&str_from_take_strict_format.to_string(), i);
-           }
-          }
-         };
-        }
-       }
-      }
-      if panic_err.is_empty() && warns.is_empty(){return Ok(Some(or_options));}
-      else{return Err((panic_err, warns, or_options));}
-     }
-  }
-  fn identify_strict(identify:char, sensible_to_upper: bool, specials: &Vec<char>)-> char{
-     if specials.contains(&identify){
-          return 's';
-        }
-     else if identify <= '9' && identify>= '0'{
-            return 'n';
-          }else if identify <= 'Z' && identify >='A'{
-            if sensible_to_upper{
-              return 'u';
-            }else{return 'l';}
-          }else if identify <= 'z' && identify >='a'{
-            if sensible_to_upper{
-              return 'w';
-            }else{return 'l';}
-          }else {
-              return 'l';
-          }
-    }
-  fn identify_flexible(identify:char, sensible_to_upper: bool, specials: &Vec<char>)->char{
-    if specials.contains(&identify){
-          return 'S';
-        }
-     else if identify <= '9' && identify>= '0'{
-            return 'N';
-          }else if identify <= 'Z' && identify >='A'{
-            if sensible_to_upper{
-              return 'U';
-            }else{return 'L';}
-          }else if identify <= 'z' && identify >='a'{
-            if sensible_to_upper{
-              return 'W';
-            }else{return 'L';}
-          }else {
-              return 'L';
-          }
-  }
 
-}
+  }
