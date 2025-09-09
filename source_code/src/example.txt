@@ -4,12 +4,15 @@ mi_map$yuca, hello, world$ _ HI; Yuca con jamo y queso
 mi mapa$yuca, hello, jamon$ _ Hi...
 Yuca 2...
 Hello world...
-s; sssssssssssssssssss
+s; sssssssssssssssssss *hello yuca*
+*Helo world[1];* *tio 
+con jamon 
+
 1"/*\"'/*'/*This is a line comment\"*/"*"/s" = \: 
 "\"="sss : hello, world, tio
 Esta es mi clase"="2 vr1e: khkjguih
 Esta es mi calse, otra, otra2, Esta es mi calse : yyyyyy, ssss, test_content_betwee
-Esta es mi eq, otra_eq, eee = dksjdok, ssss, DO
+Esta es mi eq, otra_eq, eee = dksjdok, ssss,  'hello, world'
 
 2/*this/**/*/
 F/*This is a/*other/*chars/*/**/22*/ */N

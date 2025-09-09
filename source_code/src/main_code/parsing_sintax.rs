@@ -253,7 +253,7 @@ use std::collections::VecDeque;
       after.replace_range(..end+"'".len(), "");
       return (true, content[..end+"'".len()].len() ,errs, warns, "".to_string(), after);  
     }
-    errs.push_back("FATAL ERROR:Not found end delimiter for the simbol \" ' \" than indicate the end of a ".to_string());
+    errs.push_back("FATAL ERROR:Not found end delimiter for the simbol \" ' \" than indicate the end of a literal".to_string());
    return (false, 0,errs , warns, "'".to_string(), "".to_string());
   }
   
@@ -309,9 +309,34 @@ use std::collections::VecDeque;
 
   }
   
- /* pub fn verify_oblig_appears(content: &str, elements: &VecDeque<String>)->(bool, usize, VecDeque<String>, VecDeque<String>, String, String){
-     
-      }*/
+  pub fn verify_oblig_appears(content: &str, elements: &VecDeque<String>)->(bool, usize, VecDeque<String>, VecDeque<String>, String, String){
+    use crate::main_code::utilities::formats;
+    let mut errs = VecDeque::new();
+    let mut warns = VecDeque::new();
+     if let Some(mut pos) = content.find('-'){
+      if let Some(next) = content[pos+'-'.len()..].find('-'){
+        pos = next;
+      }
+      let before = content[..pos].trim().to_string();
+      let mut n = formats::Flexible::new();
+       n.flexible("1<+|->1", false, &['+', '-'].to_vec(), true, false).unwrap().unwrap();
+      n.flexible("<+|->1", false, &['+', '-'].to_vec(), true, false).unwrap().unwrap();
+      n.flexible("1<+|->", false, &['+', '-'].to_vec(), true, false).unwrap().unwrap();
+    n.flexible("1", false, &[].to_vec(), true, false).unwrap().unwrap();
+      let format = n.flexible(&before, false, &['+', '-'].to_vec(), false, false).unwrap().unwrap();
+      if n.get_map_format().contains_key(format.front().unwrap()){
+        return (true, before.len()+'-'.len(), errs, warns, before+'-', content[pos+'-'.len()..].to_string());  
+      }else{
+        errs.push_back(format!("FATAL ERROR: The oblig appears '{}' instruction not coinside with some recognize pattern for this instruction '{:?}'", before, n.get_map_str()));
+        return (false, 0, errs, warns, before+'-', content[pos+'-'.len()..].to_string());
+      }
+      
+     }else{
+      errs.push_back(format!("FATAL ERROR: Not found end delimiter for the simbol \" - \" than indicate the end of a oblig appears instruction"));
+      return (false, 0, errs, warns, "".to_string(), content.to_string());
+     }
+      
+    }
   //------------------------------------------------------------------------------------
     pub fn parser_equ(equalities_map: &general::Map<String, String, i32>, classes_map: &general::Map<String, String, i32>){
       for key in equalities_map.iter(){
@@ -325,7 +350,7 @@ use std::collections::VecDeque;
  //--------------------------------------------------------------------------------------   
     pub fn slice_classes_equ(content: &str)-> Option<(VecDeque<general::Map<String, String, i32>>, VecDeque<general::Map<VecDeque<String>, String, i32>>)>{
       let mut n = extract_str_before(content, &["=", ":", "_"].to_vec(),&['\\'].to_vec(), 
-      (&['"', '"', '$', '$', '`', '`', '&', '&'].to_vec(),&["'", "'", "{", "}", "(", ")", "[", "]" ,"/", "/", "--", "--"].to_vec()));
+      (&['"', '"', '[', ']'].to_vec(),&["'", "'", "{", "}", "(", ")" ,"/", "/", "-", "-", "$", "$", "`", "`", "&", "&", "*", "*"].to_vec()));
       match n {
         None => None,
         Some(mut i) => {
@@ -333,9 +358,21 @@ use std::collections::VecDeque;
             let mut map: general::Map<String, String, i32> = general::Map::new();
             let mut map_eq:general::Map<String, String, i32> = general::Map::new();
             let mut map_for_buffer:general::Map<VecDeque<String>, String, i32> = general::Map::new();
-            let mut identificators_value:general::Map<String, Vec<&str>, i32> = general::Map::new();
-            let mut identificators_for_map:general::Map<String, Vec<&str>, i32> = general::Map::new();
-            let mut values_map:general::Map<String, Vec<&str>, i32> = general::Map::new();
+            let mut identificators_value:general::Map<String, Vec<String>, i32> = general::Map::new();
+            let mut identificators_for_map:general::Map<String, Vec<String>, i32> = general::Map::new();
+            let mut values_map:general::Map<String, Vec<String>, i32> = general::Map::new();
+            let mut ignore = HashMap::new();
+            ignore.insert("'", "'");
+            ignore.insert("\"", "\"");
+            ignore.insert("{", "}");
+            ignore.insert("(", ")");
+            ignore.insert("[", "]");
+            ignore.insert("/", "/");
+            ignore.insert("-", "-");
+            ignore.insert("$", "$");
+            ignore.insert("`", "`");
+            ignore.insert("&", "&");
+            ignore.insert("*", "*");
             let mut index = 0;
              remove_duplis(&mut i, &["=".to_string(), ":".to_string(), "_".to_string()].to_vec());
                  loop{
@@ -345,11 +382,50 @@ use std::collections::VecDeque;
                   {
                       match i.0.get_value(&"=".to_string(), index){
                         None => {without_eq = true;},
-                          Some(s) => {
-                          if s.contains(","){
-                             identificators_value.insert_ref(&"=".to_string(), (s.split(",").collect::<Vec<_>>().clone()));
-                          }else{identificators_value.insert_ref(&"=".to_string(), [s.as_str()].to_vec().clone());}
-                  
+                          Some(mut s) => {
+                            let mut copy = s.clone();
+                            let mut end_expected = String::new();
+                            let mut comas_index = VecDeque::new();
+                            let mut comas_before = 0;
+                            let mut in_ignore = false;
+                            for (s2, i) in s.chars().enumerate(){
+                              if in_ignore{
+                                if i.to_string() == end_expected{
+                                  in_ignore = false;
+                                  end_expected = String::new();
+                                }
+                                else{
+                                  if i == ','{
+                                    comas_index.push_back(s2-comas_before);
+                                    copy = general::replace_index(&copy, " ", s2);
+                                  } 
+                                }
+                              }else{
+                                if i == ','{
+                                 comas_before += 1;
+                                }
+                              }
+                              if let Some(n) = ignore.get(i.to_string().as_str()){
+                                 in_ignore = true;
+                                 end_expected = n.to_string();
+                              }
+                            }
+                          if copy.contains(","){
+                             identificators_value.insert_ref(&"=".to_string(), (copy.split(",").map(|a| a.to_string()).collect::<Vec<_>>().clone()));
+                          }else{identificators_value.insert_ref(&"=".to_string(), [copy].to_vec().clone());}
+                          
+                          if comas_index.len() > 0{
+                            if let Some(n) = identificators_value.get_mut_ref_to_all(&"=".to_string()){
+                              let n2 = n.back_mut().unwrap();
+                              let mut dcr = 0;
+                              for i in n2{
+                                while !(comas_index.front().unwrap_or(&(i.len()+dcr))-dcr > i.len()-1) && comas_index.len() > 0{
+                                  *i = general::replace_index(i, ",", comas_index.pop_front().unwrap()-dcr);
+                                }
+                                dcr += i.len();
+                              }
+                            }
+                          }
                         }
                       };
                   
@@ -360,10 +436,49 @@ use std::collections::VecDeque;
                   match i.0.get_value(&":".to_string(), index){
                     None =>{without_class = true;},
                     Some(s2) =>{
-                      if s2.contains(","){
-                    identificators_value.insert_ref(&":".to_string(), (s2.split(",").collect::<Vec<_>>()));
-                      }else{identificators_value.insert_ref(&":".to_string(), [s2.as_str()].to_vec());}
+                      let mut copy = s2.clone();
+                            let mut end_expected = String::new();
+                            let mut comas_index = VecDeque::new();
+                            let mut comas_before = 0;
+                            let mut in_ignore = false;
+                            for (s, i) in s2.chars().enumerate(){
+                              if in_ignore{
+                                if i.to_string() == end_expected{
+                                  in_ignore = false;
+                                  end_expected = String::new();
+                                }
+                                else{
+                                  if i == ','{
+                                    comas_index.push_back(s-comas_before);
+                                    copy = general::replace_index(&copy, " ", s);
+                                  } 
+                                }
+                              }else{
+                                if i == ','{
+                                 comas_before += 1;
+                                }
+                              }
+                              if let Some(n) = ignore.get(i.to_string().as_str()){
+                                 in_ignore = true;
+                                 end_expected = n.to_string();
+                              }
+                            }
+                      if copy.contains(","){
+                    identificators_value.insert_ref(&":".to_string(), (copy.split(",").map(|a| a.to_string()).collect::<Vec<_>>()));
+                      }else{identificators_value.insert_ref(&":".to_string(), [copy].to_vec());}
                      
+                     if comas_index.len() > 0{
+                            if let Some(n) = identificators_value.get_mut_ref_to_all(&"=".to_string()){
+                              let n2 = n.back_mut().unwrap();
+                              let mut dcr = 0;
+                              for i in n2{
+                                while !(comas_index.front().unwrap_or(&(i.len()+dcr))-dcr > i.len()-1) && comas_index.len() > 0{
+                                  *i = general::replace_index(i, ",", comas_index.pop_front().unwrap()-dcr);
+                                }
+                                dcr += i.len();
+                              }
+                            }
+                          }
                     }
                   };
                  
@@ -374,10 +489,49 @@ use std::collections::VecDeque;
                   match i.0.get_value(&"_".to_string(), index){
                     None => {without_map_buffer = true;},
                     Some(mut s3)=>{
-                      if s3.contains(","){
-                    identificators_for_map.insert_ref(&"_".to_string(), (s3.split(",").collect::<Vec<_>>()));
-                      }else{identificators_for_map.insert_ref(&"_".to_string(), [s3.as_str()].to_vec());}
+                      let mut copy = s3.clone();
+                            let mut end_expected = String::new();
+                            let mut comas_index = VecDeque::new();
+                            let mut comas_before = 0;
+                            let mut in_ignore = false;
+                            for (s, i) in s3.chars().enumerate(){
+                              if in_ignore{
+                                if i.to_string() == end_expected{
+                                  in_ignore = false;
+                                  end_expected = String::new();
+                                }
+                                else{
+                                  if i == ','{
+                                    comas_index.push_back(s-comas_before);
+                                    copy = general::replace_index(&copy, " ", s);
+                                  } 
+                                }
+                              }else{
+                                if i == ','{
+                                 comas_before += 1;
+                                }
+                              }
+                              if let Some(n) = ignore.get(i.to_string().as_str()){
+                                 in_ignore = true;
+                                 end_expected = n.to_string();
+                              }
+                            }
+                      if copy.contains(","){
+                    identificators_for_map.insert_ref(&"_".to_string(), (copy.split(",").map(|a| a.to_string()).collect::<Vec<_>>()));
+                      }else{identificators_for_map.insert_ref(&"_".to_string(), [copy].to_vec());}
                      
+                     if comas_index.len() > 0{
+                            if let Some(n) = identificators_value.get_mut_ref_to_all(&"=".to_string()){
+                              let n2 = n.back_mut().unwrap();
+                              let mut dcr = 0;
+                              for i in n2{
+                                while !(comas_index.front().unwrap_or(&(i.len()+dcr))-dcr > i.len()-1) && comas_index.len() > 0{
+                                  *i = general::replace_index(i, ",", comas_index.pop_front().unwrap()-dcr);
+                                }
+                                dcr += i.len();
+                              }
+                            }
+                          }
                     }
                    };
                   }
@@ -388,7 +542,7 @@ use std::collections::VecDeque;
                 
                 }
                 
-                let mut values:general::Map<String, Vec<&str>, i32> = general::Map::new();
+                let mut values:general::Map<String, Vec<String>, i32> = general::Map::new();
                 index = 0;
                 loop{
                   let mut without_map_buffer =false;
@@ -397,25 +551,145 @@ use std::collections::VecDeque;
                   match i.2.get_value(&"=".to_string(), index){
                     None => {without_eq = true;},
                     Some(s)=>{
-                      if s.contains(","){
-                      values.insert_ref(&"=".to_string(), (s.split(",").collect::<Vec<_>>()));
-                      }else{values.insert_ref(&"=".to_string(), [s.as_str()].to_vec());}
+                       let mut copy = s.clone();
+                            let mut end_expected = String::new();
+                            let mut comas_index = VecDeque::new();
+                            let mut comas_before = 0;
+                            let mut in_ignore = false;
+                            for (s2, i) in s.chars().enumerate(){
+                              if in_ignore{
+                                if i.to_string() == end_expected{
+                                  in_ignore = false;
+                                  end_expected = String::new();
+                                }
+                                else{
+                                  if i == ','{
+                                    comas_index.push_back(s2-comas_before);
+                                    copy = general::replace_index(&copy, " ", s2);
+                                  } 
+                                }
+                              }else{
+                                if i == ','{
+                                 comas_before += 1;
+                                }
+                              }
+                              if let Some(n) = ignore.get(i.to_string().as_str()){
+                                 in_ignore = true;
+                                 end_expected = n.to_string();
+                              }
+                            }
+                      if copy.contains(","){
+                      values.insert_ref(&"=".to_string(), (copy.split(",").map(|a| a.to_string()).collect::<Vec<_>>()));
+                      }else{values.insert_ref(&"=".to_string(), [copy].to_vec());}
+
+                      if comas_index.len() > 0{
+                            if let Some(n) = identificators_value.get_mut_ref_to_all(&"=".to_string()){
+                              let n2 = n.back_mut().unwrap();
+                              let mut dcr = 0;
+                              for i in n2{
+                                while !(comas_index.front().unwrap_or(&(i.len()+dcr))-dcr > i.len()-1) && comas_index.len() > 0{
+                                  *i = general::replace_index(i, ",", comas_index.pop_front().unwrap()-dcr);
+                                }
+                                dcr += i.len();
+                              }
+                            }
+                          }
                     }
                   };
                   match i.2.get_value(&":".to_string(), index){
                     None => {without_class = true;},
                     Some(s)=>{
-                      if s.contains(","){
-                      values.insert_ref(&":".to_string(), (s.split(",").collect::<Vec<_>>()));
-                      }else{values.insert_ref(&":".to_string(), [s.as_str()].to_vec());}
+                       let mut copy = s.clone();
+                            let mut end_expected = String::new();
+                            let mut comas_index = VecDeque::new();
+                            let mut comas_before = 0;
+                            let mut in_ignore = false;
+                            for (s2, i) in s.chars().enumerate(){
+                              if in_ignore{
+                                if i.to_string() == end_expected{
+                                  in_ignore = false;
+                                  end_expected = String::new();
+                                }
+                                else{
+                                  if i == ','{
+                                    comas_index.push_back(s2-comas_before);
+                                    copy = general::replace_index(&copy, " ", s2);
+                                  } 
+                                }
+                              }else{
+                                if i == ','{
+                                 comas_before += 1;
+                                }
+                              }
+                              if let Some(n) = ignore.get(i.to_string().as_str()){
+                                 in_ignore = true;
+                                 end_expected = n.to_string();
+                              }
+                            }
+                      if copy.contains(","){
+                      values.insert_ref(&":".to_string(), (copy.split(",").map(|a| a.to_string()).collect::<Vec<_>>()));
+                      }else{values.insert_ref(&":".to_string(), [copy].to_vec());}
+                    
+                    if comas_index.len() > 0{
+                            if let Some(n) = identificators_value.get_mut_ref_to_all(&"=".to_string()){
+                              let n2 = n.back_mut().unwrap();
+                              let mut dcr = 0;
+                              for i in n2{
+                                while !(comas_index.front().unwrap_or(&(i.len()+dcr))-dcr > i.len()-1) && comas_index.len() > 0{
+                                  *i = general::replace_index(i, ",", comas_index.pop_front().unwrap()-dcr);
+                                }
+                                dcr += i.len();
+                              }
+                            }
+                          }
                     }
                   };
                   match i.2.get_value(&"_".to_string(), index){
                     None => {without_map_buffer = true;},
                     Some(s)=>{
-                      if s.contains(","){
-                      values_map.insert_ref(&"_".to_string(), (s.split(",").collect::<Vec<_>>()));
-                      }else{values_map.insert_ref(&"_".to_string(), [s.as_str()].to_vec());}
+                      let mut copy = s.clone();
+                            let mut end_expected = String::new();
+                            let mut comas_index = VecDeque::new();
+                            let mut comas_before = 0;
+                            let mut in_ignore = false;
+                            for (s2, i) in s.chars().enumerate(){
+                              if in_ignore{
+                                if i.to_string() == end_expected{
+                                  in_ignore = false;
+                                  end_expected = String::new();
+                                }
+                                else{
+                                  if i == ','{
+                                    comas_index.push_back(s2-comas_before);
+                                    copy = general::replace_index(&copy, " ", s2);
+                                  } 
+                                }
+                              }else{
+                                if i == ','{
+                                 comas_before += 1;
+                                }
+                              }
+                              if let Some(n) = ignore.get(i.to_string().as_str()){
+                                 in_ignore = true;
+                                 end_expected = n.to_string();
+                              }
+                            }
+                      if copy.contains(","){
+                      values_map.insert_ref(&"_".to_string(), (copy.split(",").map(|a| a.to_string()).collect::<Vec<_>>()));
+                      }else{values_map.insert_ref(&"_".to_string(), [copy].to_vec());}
+                    
+                    if comas_index.len() > 0{
+                            if let Some(n) = identificators_value.get_mut_ref_to_all(&"=".to_string()){
+                              let n2 = n.back_mut().unwrap();
+                              let mut dcr = 0;
+                              for i in n2{
+                                while !(comas_index.front().unwrap_or(&(i.len()+dcr))-dcr > i.len()-1) && comas_index.len() > 0{
+                                  *i = general::replace_index(i, ",", comas_index.pop_front().unwrap()-dcr);
+                                }
+                                dcr += i.len();
+                              }
+                            }
+                          }
                     }
                   };
                   index += 1;
@@ -606,51 +880,21 @@ use std::rc::Rc;
         let mut multi_line = false;
         let mut last = 0;
         let mut last_line = 0;
+        let mut in_message = false;
         for line in content.lines(){
             counter += 1;
-            contains = false;
-         if !multi_line{
-          last_line = counter;
-        }   
+            contains = false;   
+            in_ignore = false;
         let mut copy = line.to_string();
-        //if we are into ignore content search the end delimiter ignore
-            if in_ignore{
-            if let Some(mut end) = copy.find(&delimiter_ignore){
-              let mut not_found = false;
-              if end > 0{
-                if scape_characters.len() > 0{
-                  if scape_characters.contains(&line.to_string().chars().nth(end-1).unwrap()){
-                  copy.replace_range(..end+delimiter_ignore.len(), &general::str_of_n_str(" ", copy[..end+delimiter_ignore.len()].len()));
-                    loop {
-                      if let Some(end2) = copy.find(&delimiter_ignore){
-                        if scape_characters.contains(&line.to_string().chars().nth(end2-1).unwrap()){
-                          copy.replace_range(..end2+delimiter_ignore.len(), &general::str_of_n_str(" ", copy[..end2+delimiter_ignore.len()].len()));
-                        }else{
-                          end = end2;
-                          break;
-                        }
-                        
-                      }else{
-                        not_found = true;
-                        break;
-                      }
-                    }
-                  }
-                }
-              }
-              if !not_found{
-              in_ignore = false;
-              copy.replace_range(..end+delimiter_ignore.len(), &general::str_of_n_str(" ", copy[..end+delimiter_ignore.len()].len()));    
-              }           
-            }
-          }
-          //Else, check if the line contains some ignore delimiter
-            if !in_ignore && !multi_line{
+          //check if the line contains some ignore delimiter
+            if !in_ignore && !multi_line {
              contains = remove_comments::contains_ignore(ignore_content_between.0, ignore_content_between.1, &copy);
           }
           if !in_ignore && !multi_line{
             for (i, delimiter) in delimiter_slice.iter().enumerate(){
              if copy.contains(delimiter){
+              in_message = false;
+              last_line = counter;
               last = i;
                 if contains{
                   let verify = remove_comments::content_between(ignore_content_between.0, ignore_content_between.1, scape_characters, delimiter, &copy);
@@ -674,6 +918,8 @@ use std::rc::Rc;
                     }
                     }
                     
+                  }else if in_ignore{
+                    continue;
                   }
                 }else{
                   if let Some(pos) = copy.find(delimiter){
@@ -697,7 +943,35 @@ use std::rc::Rc;
                 }
               }
             }
+            if counter-1 == last_line || in_message{
+              let mut r2 = 0;
+              while let Some(n) = copy.find("*"){
+                if in_message{
+                  in_message = false;
+                if let Some(n3) = map_after.get_mut_ref_to_all(&last){
+                    let mut s = n3.back_mut().unwrap();
+                    s.push_str(&copy[r2..n+"*".len()].trim().to_string());
+                   }
+                   else{map_after.insert(&last, &copy[..n+"*".len()].trim().to_string());}
+                   copy.replace_range(r2..n+"*".len(), &general::str_of_n_str(" ", copy[..n+"*".len()].len()));
+                }
+                else{
+                  r2 = n;
+                  in_message = true;
+                  copy.replace_range(..r2+"*".len(), &general::str_of_n_str(" ", copy[..r2+"*".len()].len()));
+                 }
+    
+               }
+               if in_message{
+                 if let Some(n3) = map_after.get_mut_ref_to_all(&last){
+                    let mut s = n3.back_mut().unwrap();
+                    s.push_str(&line[r2..].trim().to_string());
+                   }
+                   else{map_after.insert(&last, &line[r2..].trim().to_string());}
+               }
+              } 
           }else if multi_line{
+            last_line = counter;
           let mut stop = remove_comments::content_between(ignore_content_between.0, ignore_content_between.1, scape_characters, ";", &copy);
             if stop.2.len() != copy.len(){
               if let Some(n) = map_after.get_mut_ref_to_all(&last){
