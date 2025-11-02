@@ -324,15 +324,9 @@ use std::collections::VecDeque;
       n.flexible("1<+|->", false, &['+', '-'].to_vec(), true, false).unwrap().unwrap();
     n.flexible("1", false, &[].to_vec(), true, false).unwrap().unwrap();
       let format = n.flexible(&before, false, &['+', '-'].to_vec(), false, false).unwrap().unwrap();
-      if n.get_map_format().contains_key(format.front().unwrap()){
-        return (true, before.len()+'-'.len(), errs, warns, before+'-', content[pos+'-'.len()..].to_string());  
-      }else{
-        errs.push_back(format!("FATAL ERROR: The oblig appears '{}' instruction not coinside with some recognize pattern for this instruction '{:?}'", before, n.get_map_str()));
-        return (false, 0, errs, warns, before+'-', content[pos+'-'.len()..].to_string());
-      }
       
      }else{
-      errs.push_back(format!("FATAL ERROR: Not found end delimiter for the simbol \" - \" than indicate the end of a oblig appears instruction"));
+      errs.push_back(format!("FATAL ERROR: Not found end delimiter for the simbol '-' that indicate the end of a oblig appears instruction"));
       return (false, 0, errs, warns, "".to_string(), content.to_string());
      }
       

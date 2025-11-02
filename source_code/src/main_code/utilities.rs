@@ -6,7 +6,7 @@ pub mod general{
     use std::fs;
     use std::io::Write;
     /// # `remove_empty_lines`
-    /// Removes empty lines from a file and rewrites it.
+    /// Removes empty lines from a content and return it.
     /// # Arguments
     /// * `content: &str` - The content from which empty lines will be removed.
     /// # Example
@@ -371,8 +371,8 @@ pub mod general{
     return sub_vec;
   }
 //-----------------------------------------------------------------------------------------------
-  /// # `sstr_of_n_str`
-  /// Create a string from other string with n length
+  /// # `str_of_n_str`
+  /// Create a string of n leng from other string
   /// # Arguments
   /// * `str_use:&str` - String to use for generate the new string
   /// * `len_new_str:usize` - Indicate the length of the new string
@@ -516,6 +516,8 @@ where
       counter: 0
     }
   }
+  
+  //--------------------------------------------
   /// # `insert`
   /// Insert a new element in the HashMap of copies, if the key exist and has some value the value to insert goes to the queue of that key 
   /// # Arguments
@@ -581,125 +583,6 @@ where
       }
        self.counter+=1;    
    }
-  }
-  /// # `get`
-  /// Get the value for some key
-  /// # Arguments
-  /// * `key: &T` - key for get the value
-  /// # Return    
-  /// * `None` - If this key not exist
-  /// * `&U` - A reference of the value
-  pub fn get(&self, key: &T)-> Option<&U>{
-   match &mut self.hash.get(key){
-    Some(i) => i.front(),
-    None => None
-   }
-  }
-  /// # `remove` 
-  /// Remove the element in the HashMap and replace this with the next element on the queue
-  /// # Arguments  
-  /// * `key: &T` - Key for search and remove the key from the HashMap
-  pub fn remove(&mut self, key: &T){
-    if let Some(replace) = self.hash.get_mut(key){ 
-       if replace.len() > 0{replace.pop_front();}
-       if replace.len() <= 0 {self.hash.remove(key);} 
-    }
-  }
-
-  /// # `remove_all`
-  /// Removen all the key inclusive if have more values in the queue
-  /// # Arguments   
-  /// * `key: &T` - Key to remove
-  pub fn remove_all(&mut self, key: &T){
-    if self.hash.contains_key(key){
-      self.hash.remove(key);
-    }
-  }
-
-  /// # `get_all`
-  /// Get all the values assigned for that key 
-  /// # Arguments
-  /// * `key:&T` - Key for get his values in his queue and create and return a vector
-  /// # Return 
-  /// A empty vector if this key not exist, else a vector with the values for that key in his the queue
-  pub fn get_all(&self, key: &T)-> Vec<U>{
-    let mut vec_ret = Vec::new();
-    if let Some(i)  = self.hash.get(key){
-      for n in i{
-          vec_ret.push(n.clone());
-      }
-    }
-    return vec_ret;
-  }
-
-  /// # `get_ref_to_all`
-  /// For get a mutable reference to VecDeque for this key
-  /// # Arguments
-  /// * `key:&T` - Key to get the VecDeque
-  /// # Return
-  /// * `None` - If the key not exist
-  /// * `Some(&mut VecDeque<U>)` - Mutable referencie to VecDeque vector
-  /// # IMPORTANT
-  /// If you use this option, you need to know what is a VecDeque and his propierties, for avoid break the HashMap and the vector
-  pub fn get_mut_ref_to_all(&mut self, key: &T) -> Option<&mut VecDeque<U>>{
-    self.hash.get_mut(key)
-  }
-  
-  /// # `get_ref_to_all`
-  /// For get a reference to VecDeque for this key
-  /// # Arguments
-  /// * `key: &T` - Key to get the VecDeque
-  /// # Return
-  /// * `None` - If the key not exist
-  /// * `Some(&VecDeque<U>)` - Reference to VecDeque vector
-  /// # IMPORTANT
-  /// If you use this option, you need to know what is a VecDeque and his propierties.
-  pub fn get_ref_to_all(&self, key:&T)->Option<&VecDeque<U>>{
-    self.hash.get(key)
-  }
-  /// # `set_queue`
-  /// Set all the queue of a key
-  /// # Arguments
-  /// * `key: &T` - Key of the valu to set queue if this have
-  /// * `new_vec: Vec<U>` - Vec for replace the actual queue for that key
-  pub fn set_value(&mut self, key: &T, new_vec: &Vec<U>){
-    if let Some(vec) = self.hash.get_mut(key){
-      vec.clear();
-      for i in new_vec{
-        vec.push_back(i.clone());
-      }
-    }
-  }
-  /// # `contains_key`
-  /// Indicate if some key exist in the HashMap of copies
-  /// # Arguments
-  /// * `key:&T` - Key for search
-  /// # Return  
-  /// * `true` if exists
-  /// * `false` if not exists
-  pub fn contains_key(&self, key: &T)-> bool{
-    if self.hash.contains_key(key){return true;}
-    else{
-      return false;
-    }
-  }
-
-  /// # `set_value_element`
-  /// Set a value of some elemenet in the queue of thath key, can be 0 or other, if the index is greater than the vector len not applicate the change
-  /// # Arguments 
-  /// * `key: &T` - Key for change the element in his vector
-  /// * `index: usize` - Index of element to change
-  /// * `new_element` - Element for make the change
-  pub fn set_value_element(&mut self, key: &T, index: usize, new_element: &U) {
-    if let Some(vec) = self.hash.get_mut(key) {
-        if index <= vec.len()-1 {
-          if index == 0{
-            vec.push_front(new_element.clone());
-          }else{
-            vec[index] = new_element.clone();
-            }
-        }
-      }
   }
 
   /// # `insert_ref`
@@ -769,495 +652,16 @@ where
        self.counter+=1;    
    }
   }
-  /// # `get_ref`
-  /// Get the value for this key in the HashMap of references
-  /// # Arguments
-  /// * `key: &T` - key for get the value
-  /// # Return    
-  /// * `None` - If this key not exist
-  /// * `Some(&U)` - A reference of the value
-  pub fn get_ref(&self, key: &T)-> Option<&U>{
-   match &mut self.hash_ref.get(key){
-    Some(i) => Some(&*i.front().unwrap()),
-    None => None
-   }
-  }
-  /// # `remove_ref` 
-  /// Remove the first element in the HashMap of references and replace this with the next element in the queue of that key
-  /// # Arguments  
-  /// * `key: &T` - Key for search and remove the key from the HashMap
-  pub fn remove_ref(&mut self, key: &T){
-      if let Some(replace) = self.hash_ref.get_mut(key){ 
-       if replace.len() > 0{replace.pop_front();}
-       if replace.len() <= 0 {self.hash_ref.remove(key);} 
-    }
-  }
-  
-  /// # `remove_all_ref`
-  /// Remove a key from the HashMap of references inclusive if thath have more values in his queue
-  /// # Arguments   
-  /// * `key: &T` - Key to remove
-  pub fn remove_all_ref(&mut self, key: &T){
-    if self.hash_ref.contains_key(key){
-      self.hash_ref.remove(key);
-    }
-  }
 
-  /// # `get_all_ref`
-  /// Get all the values of that key in the HashMap of references
-  /// # Arguments
-  /// * `key:&T` - Key for get his queue and create and return the vector
-  /// # Return 
-  /// A empty vector if the key not exist, else a vector of references with the values in the queue for that key
-  pub fn get_all_ref(&self, key: &T)-> Vec<&U>{
-    let mut vec_ret = Vec::new();
-    if let Some(i)  = self.hash_ref.get(key){
-      for n in i{
-          vec_ret.push(&**n);
-      }
-    }
-    return vec_ret;
-  }
-
-  /// # `get_ref_to_all_ref`
-  /// For get a mutable referencie to VecDeque for that key
-  /// # Arguments
-  /// * `key:&T` - Key to get the VecDeque
-  /// # Return
-  /// * `None` - if the key not exist
-  /// * `Some(&mut VecDeque<Rc<U>>) - Mutable reference to VecDeque vector, the values into the VecDeque are Rc<U>
-  /// # IMPORTANT
-  /// If you use this option, you need to know what is a VecDeque and his propierties and Rc too, for avoid break the HashMap and the vector
-  pub fn get_mut_ref_to_all_ref(&mut self, key: &T) -> Option<&mut VecDeque<Rc<U>>>{
-    self.hash_ref.get_mut(key)
-  }
-  
-  /// # `get_ref_to_all_ref`
-  /// For get a reference to VecDeque for that key
-  /// # Arguments
-  /// * `key: &T` - Key to get the VecDeque
-  /// # Return
-  /// * `None` - If the key not exist
-  /// * `Some(&VecDeque<Rc<U>>)` - Reference to VecDeque vector, the values into the VecDeque are Rc<U>
-  /// # IMPORTANT
-  /// If you use this option, you need to know what is a VecDeque and his propierties and Rc too
-  pub fn get_ref_to_all_ref(&self, key: &T) -> Option<&VecDeque<Rc<U>>>{
-    self.hash_ref.get(key)
-  }
-  /// # `set_value_ref`
-  /// Set all the queue of that key
-  /// # Arguments
-  /// * `key: &T` - Key of the valu to set queue if this have
-  /// * `new_vec: Vec<&'a U>` - Vec for replace the actual queue
-  pub fn set_value_ref(&mut self, key: &T, new_vec: Vec<U>){
-    if let Some(vec) = self.hash_ref.get_mut(key){
-      vec.clear();
-      for i in new_vec{
-        let rc = Rc::new(i);
-        vec.push_back(rc);
-      }
-    }
-  }
-  /// # `contains_key_ref`
-  /// Indicate if some key exists in the HashMap of references
-  /// # Arguments
-  /// * `key:&T` - Key for search the queue
-  /// # Return  
-  /// * `true` if have
-  /// * `false` if not haven't
-  pub fn contains_key_ref(&self, key: &T)-> bool{
-    if self.hash_ref.contains_key(key){return true;}
-    else{
-      return false;
-    }
-  }
-
-  /// # `set_value_element_ref`
-  /// Set a element in the queue of that key, can be 0 or other, if greater than the vector len not applicate the change
-  /// # Arguments 
-  /// * `key: &T` - Key for change the element in his queue
-  /// * `index: usize` - Index of element to change
-  /// * `new_element` - Element for make the change
-  pub fn set_value_element_ref(&mut self, key: &T, index: usize, new_element: U) {
-    if let Some(vec) = self.hash_ref.get_mut(key) {
-        if index <= vec.len()-1 {
-          if index == 0{
-            vec.push_front(Rc::new(new_element));
-          }else{
-            vec[index] = Rc::new(new_element);
-            }         
-        }
-      }
-  }
-  /// # `enable_global_order`
-  /// Enables the global order register of the insert in keys, for the `HashMap of refs` and `HashMap of copies`
-  /// If you want enable the register for a single `HashMap` use [`enable_order_for_ref`] (for `HashMap of refs`) or [`enable_order`] (for `HashMap of copies`)
-  /// # Arguments
-  /// * `last_insert_of_key: bool` - Indicate if the register just store the last insert for key
-  /// * `preserve_content_before_order` - Indicate if you want to preserve the register store before for key, and just aplicate the `las_insert_of_key` flag about moment when you change this flag
-  pub fn enable_global_order(&mut self, last_insert_of_key: bool, preserve_content_before_order: bool){
-    self.order_hash = true;
-    self.order_hash_ref = true;
-    self.store_last_insert_key = last_insert_of_key;
-    self.store_last_insert_ref_key = last_insert_of_key;
-    self.preserve_before = preserve_content_before_order;
-    self.order_hash_some = true;
-    self.store_last_insert_some_key = last_insert_of_key;
-  }
-  /// # `enable_order_for_ref`
-  /// Enables the global order register of the insert in keys, for the `HashMap of refs`
-  /// If you want enable the register for all `HashMaps` use [`enable_global_order`] (for `HashMap of refs` and `HashMap of copies` and `HashMap` of random values) 
-  /// # Arguments
-  /// * `last_insert_of_key: bool` - Indicate if the register just store the last insert for this key
-  /// * `preserve_content_before_order` - (This flag aplicate for all, HashMap of reference and HashMap of copies adn HashMap of random values) Indicate if you want to preserve the register store before for key, and just aplicate the `las_insert_of_key` flag about moment when you change this flag
-  pub fn enable_order_for_ref(&mut self, last_insert_of_key: bool, preserve_content_before_order: bool){
-    self.order_hash_ref = true;
-    self.store_last_insert_ref_key = last_insert_of_key;
-    self.preserve_before =  preserve_content_before_order;
-  }
-  /// # `enable_order`
-  /// Enables the global order register of the insert in keys, for the `HashMap of copies`
-  /// If you want enable the register for all `HashMaps` use [`enable_global_order`] (for `HashMap of refs` and `HashMap of copies` and `HashMap` of random values) 
-  /// # Arguments
-  /// * `last_insert_of_key: bool` - Indicate if the register just store the last insert for this key
-  /// * `preserve_content_before_order` - (This flag aplicate for all, HashMap of reference and HashMap of copies and HashMap of random values) Indicate if you want to preserve the register store before for key, and just aplicate the `las_insert_of_key` flag about moment when you change this flag
-  pub fn enable_order(&mut self, last_insert_of_key: bool,  preserve_content_before_order:bool){
-    self.order_hash = true;
-    self.store_last_insert_key = last_insert_of_key;
-    self.preserve_before =  preserve_content_before_order;
-  }
-  /// # `disable_global_order`
-  /// Disable continue register the global insert order, but the vector for order conserve the values when the order are be enable
-  pub fn disable_global_order(&mut self){
-    self.order_hash = false;
-    self.order_hash_ref = false;
-    self.order_hash_some = false;
-  }
-  /// # `disable_order_for_ref`
-  /// Disable continue register the insert order in `HashMap refs`, but the vector for order conserve the values when the order are be enable
-  pub fn disable_order_for_ref(&mut self){
-    self.order_hash_ref = false;
-  }
-  /// # `disable_order`
-  /// Disable continue register the insert order in `HashMap copies`, but the vector for order conserve the values when the order are be enable
-  pub fn disable_order(&mut self){
-    self.order_hash = false;
-  }
-  /// # `enable_order`
-  /// Enables the global order register of the insert in keys, for the `HashMap of random values`
-  /// If you want enable the register for all `HashMaps` use [`enable_global_order`] (for `HashMap of refs` and `HashMap of copies` and `HashMap` of random values)
-  /// # Arguments
-  /// * `last_insert_of_key: bool` - Indicate if the register just store the last insert for this key
-  /// * `preserve_content_before_order` - (This flag aplicate for both, HashMap of reference and HashMap of copies adn HashMap of random values) Indicate if you want to preserve the register store before for key, and just aplicate the `las_insert_of_key` flag about moment when you change this flag
-  pub fn enable_order_for_some(&mut self, last_insert_of_key: bool, preserve_content_before_order:bool){
-    self.preserve_before = preserve_content_before_order;
-    self.order_hash_some = true;
-    self.store_last_insert_some_key = last_insert_of_key;
-  }
-  /// # `disable_order`
-  /// Disable continue register the insert order in `HashMap of random values`, but the vector for order conserve the values when the order are be enable
-  pub fn disable_order_for_some(&mut self){
-   self.order_hash_some = false;
-  }
-  /// # `get_order`
-  /// Get the copy of order vector, in order to first-last insert key
-  /// # Rerturn
-  /// A property of order vector
-  pub fn get_order(&self)->Vec<T>{
-    let mut order_vec = Vec::new();
-    let mut counter2 = 0;
-    while counter2 < self.counter{
-      match self.order_o1.get(&counter2).clone(){
-        None => {counter2+=1; continue;}
-        Some(i) =>{
-          order_vec.push(i.clone());
-        }
-      };
-      counter2 +=1;
-    }
-    return order_vec;
-  }
-  /// # `get_order_mut_ref`
-  /// Get a mutable reference for the order HashMaps
-  /// # Return 
-  /// A tuple with mutable references for the order HashMap
-  /// * `&mut HashMap<T, VecDeque<usize>>` - HashMap store all the insertion number asociate for key (Here you can search the insertion register for key)
-  /// * `&mut HashMap<usize, T>` - HashMap store all the insertion for a key asociate for a number of insertion (Here you can search the insertion register for insertion number)
-  pub fn get_order_mut_ref(&mut self) -> (&mut HashMap<T, VecDeque<usize>>, &mut HashMap<usize, T>){
-    (&mut self.order, &mut self.order_o1)
-  }
-  /// #  `remove_order`
-  /// Reset the order HashMaps to empty
-  pub fn remove_order(&mut self){
-    self.order.clear();
-    self.order_o1.clear();
-    self.counter = 0;
-  }
-
-  
-  /// # `get_key_ref`
-  /// Get the keys where some value appears in a HashMap of refs
-  /// # Arguments
-  /// * `value_search:U` - Value to search
-  /// # Return 
-  /// Return a vector with a references to keys, or a empty vector if this valu not exist
-  pub fn get_key_ref(&self, value_search:U) -> Vec<&T>{
-    let mut keys = Vec::new();
-      for i in self.hash_ref.keys(){
-        let mut vec = self.hash_ref.get(i).unwrap();
-        if vec.contains(&Rc::new(value_search.clone())){
-          keys.push(i);
-          continue;
-        }
-    }
-    return keys;
-  }
-/// # `get_key`
-  /// Get the keys where some value appears in a HashMap of copies
-  /// # Arguments
-  /// * `value_search:U` - Value to search
-  /// # Return 
-  /// Return a vector with references to keys, or a empty vector if this valu not exist
-    pub fn get_key(&self, value_search:&U) -> Vec<&T>{
-    let mut keys = Vec::new();
-      for i in self.hash.keys(){
-        let mut vec = self.hash.get(i).unwrap();
-        if vec.contains(value_search){
-          keys.push(i);
-          continue;
-        }
-    }
-    return keys;
-  }
-  /// # `keys`
-  /// Return an iterator as a normal method `keys` from `HashMaps` from HashMap of copies
-  pub fn keys(&self)->Keys<'_, T, VecDeque<U>>{
-    self.hash.keys()
-  }
-  /// # `keys`
-  /// Return an iterator as a normal method `keys` from `HashMaps` from HashMap of refs
-  pub fn keys_ref(&self) -> Keys<'_, T, VecDeque<Rc<U>>>{
-    self.hash_ref.keys()
-  }
- 
- /// # `get_value`
- /// Get a specific value in the queue of the key in the HashMap of copies
- /// # Arguments
- /// * `key: &T` - Key from take the value
- /// * `index:usize` - Index of the value for take
- /// # Return
- ///   * `None` if the key not exist or index are greater than of the queue of that key
- ///   * `Some(&U)` References of the value
- pub fn get_value(&self, key: &T, index:usize)->Option<&U>{
-   if let Some(vec)=self.hash.get(key){
-     if index > vec.len()-1{return None;}
-      Some(&vec[index])
-   }else{
-    None
-   }
- }
- /// # `get_value`
- /// Get a specific value in the queue of the key in the HashMap of copys
- /// # Arguments
- /// * `key: &T` - Key from extract the value
- /// * `index:usize` - Index of the value for extract
- /// # Return
- ///   * `None` if the key not exist or index are greater than of the queue of that key
- ///   * `Some(&U)` References of the value
- pub fn get_value_ref(&self, key: &T, index:usize)->Option<&U>{
-   if let Some(vec)=self.hash_ref.get(key){
-     if index > vec.len()-1{return None;}
-      Some(&*vec[index])
-   }else{
-    None
-   }
- }
- /// # `extract_value`
- /// Extracts some value from a key, or pop this, and therefore remove this of the queue of the key from HashMap of copies
- /// # Arguments
- /// * `key:&T` - Key from extract the value
- /// * `index: usize` - index to extract
- /// # Return
- ///  * `None` If the index are greater than the queue of the key, or if the key not exists
- ///  * `Some(U)` The ownership of the value
-  pub fn extract_value(&mut self, key: &T, index:usize) -> Option<U>{
-   if let Some(vec) = self.hash.get_mut(key){ 
-    if index > vec.len()-1{
-      return None;
-    }
-    if index == 0{
-      let n = vec.pop_front().unwrap();
-      if vec.len() <= 0{self.hash.remove(key);}
-     return Some(n);
-    }
-    else if index == vec.len()-1{
-      let n = vec.pop_back().unwrap();
-      if vec.len() <= 0{self.hash.remove(key);}
-     return Some(n);
-    }
-     let n = vec[index].clone();
-     vec.remove(index);
-     if vec.len() <= 0{self.hash.remove(key);}
-     return Some(n);
-   }else {return None;}  
- }
- 
-  /// # `extract_value_ref`
- /// Extracts some value from a key, or pop this, and therefore remove this of the values of the key from HashMap of refs
- /// # Arguments
- /// * `key:&T` - Key from extract the value
- /// * `index: usize` - index to extract
- /// # Return
- ///  * `None` If the index are greater than the queue of the key, or if the key not exists
- ///  * `Some(Rc<U>)` The ownership of the value
- pub fn extract_value_ref(&mut self, key: &T, index:usize) -> Option<Rc<U>>{
-   if let Some(vec) = self.hash_ref.get_mut(key){ 
-    if index > vec.len()-1{
-      return None;
-    }
-    if index == 0{
-      let n = vec.pop_front().unwrap();
-      if vec.len() <= 0{self.hash_ref.remove(key);}
-     return Some(n);
-    }
-    else if index == vec.len()-1{
-      let n = vec.pop_back().unwrap();
-      if vec.len() <= 0{self.hash_ref.remove(key);}
-     return Some(n);
-    }
-     let n = vec[index].clone();
-     vec.remove(index);
-     if vec.len() <= 0{self.hash_ref.remove(key);}
-     return Some(n);
-   }else {return None;}  
- }
- /// # `lifo` 
- /// Get the last element in the key and remove it
- /// # Arguments 
- /// * `key:&T` - Key from extract the value
- /// # Return 
- ///  * `None` if the key not exists or the element not exist
- ///  * `Some(U)` The ownership of the value
- pub fn lifo(&mut self, key:&T)->Option<U>{
-   if let Some(last) = self.hash.get_mut(key){
-     match last.pop_back(){
-      None => None,
-      Some(i) => {
-        if last.len() <= 0{
-          self.hash.remove(key);
-        }
-        return Some(i);
-      }
-     }
-   }else {return None;}
- }
- /// # `lifo_ref` 
- /// Get the last element in the key and remove it
- /// # Arguments 
- /// * `key:&T` - Key from extract the value
- /// # Return 
- ///  * `None` if the key not exists or the element not exist
- ///  * `Some(Rc<U>)` The ownership of the value
- pub fn lifo_ref(&mut self, key:&T)->Option<Rc<U>>{
-   if let Some(last) = self.hash_ref.get_mut(key){
-     match last.pop_back(){
-      None => None,
-      Some(i) => {
-        if last.len() <= 0{
-          self.hash_ref.remove(key);
-        }
-        return Some(i);
-      }
-     }
-   }else {return None;}
- }
- /// # `peek`
- /// Look the next value in the queue of a key, that replace when use [`remove`] method 
- /// # Return 
- /// * `None` - If not exist the key or not exist any next value
- /// * `Some(&U)` - References to the next value in the queue of that key
- pub fn peek(&self, key:&T)->Option<&U>{
-    if let Some(next) = self.hash.get(key){
-      if next.len() > 1{
-      return Some(&next[1]);
-      }else {return None;}
-    }else {return None;}
- }
- /// # `peek_ref`
- /// Look the next value in the queue of a key, that replace when use [`remove_ref`] method 
- /// # Return 
- /// * `None` - If not exist the key or not exist any next value
- /// * `Some(&U)` - References to the next value in the queue of that key
- pub fn peek_ref(&self, key:&T)->Option<&U>{
-    if let Some(next) = self.hash_ref.get(key){
-      if next.len() > 1 {return Some(&next[1]);}
-      else {return None;}
-    }else {return None;}
- }
- /// # `clear_hash`
- /// Clear all the hash  of copies of values and keys
- pub fn clear_hash(&mut self){
-  self.hash.clear();
- }
- /// # `celar_hash_ref`
- /// Clear all the hash of refs of values and keys
- pub fn clear_hash_ref(&mut self){
-  self.hash_ref.clear();
- }
-  /// # `reset_all`
-  /// Reset all the struct to the orignial values, as a new instance of the struct 
-  pub fn reset_all(&mut self){
-  self.hash_ref.clear();
-  self.hash.clear();
-  self.hash_some.clear();
-  self.order.clear();
-  self.order_o1.clear();
-  self.order_hash =false;
-  self.store_last_insert_key=false;
-  self.order_hash_ref=false;
-  self.store_last_insert_ref_key=false;
-  self.preserve_before=false;
-  self.iter= 0;
-  self.counter= 0;
-
-  }
-
-  /// # `iter_mut` 
-  /// Return an iterator mutable for the HashMap of copies
-  /// # Return
-  /// * `IterMut<'_, T, VecDeque<U>>` - Iterator mutable for the HashMap of copies
-  pub fn iter_mut(&mut self)-> IterMut<'_, T, VecDeque<U>>{
-    self.hash.iter_mut()
-  }
-  /// # `iter_mut_ref`
-  /// Return an iterator mutable for the HashMap of references
-  /// # Return
-  /// * `IterMut<'_, T, VecDeque<Rc<U>>>` - Iterator mutable for the HashMap of references
-  pub fn iter_mut_ref(&mut self)->IterMut<'_, T, VecDeque<Rc<U>>>{
-    self.hash_ref.iter_mut()
-  }
-
-  /// # `iter`
-  /// Return an iterator for the HashMap of copies  
-  /// # Return
-  /// * `Iter<'_, T, VecDeque<U>>` - Iterator for the HashMap of copies
-  pub fn iter(&self)->Iter<'_, T, VecDeque<U>>{
-    self.hash.iter()
-  }
-
-  /// # `iter_ref`
-  /// Return an iterator for the HashMap of references
-  /// # Return
-  /// * `Iter<'_, T, VecDeque<Rc<U>>>` - Iterator for
-  pub fn iter_ref(&self)->Iter<'_, T, VecDeque<Rc<U>>>{
-    self.hash_ref.iter()
-  }
-    
   /// # `insert_some`
   /// Insert a new element in the HashMap of random values, if the key exist and has some value the value to insert goes to the queue of that key 
   /// # Arguments
   /// * `key: &T` - Key of the Value
   /// * `value: F` - Value of the key
+  /// # IMPORTANT IF YOU ENABLE THE INSERTION HISTORY
+  /// The order is in the same vector, so if you select push all the inserts of the key in the order and after change for just last insert for key, all values store before are be removed and just store the last insert for key,
+  /// if you want avoid this active the 'preserve before' flag.
+  /// And the order not distingue between insertion in hash of clones, insertion in hash of refs or insertion in hash of some
   pub fn insert_some(&mut self, key:&T, value:F){
       match self.hash_some.get_mut(key){
         None=>{
@@ -1317,7 +721,37 @@ where
        self.counter+=1;    
    }
   }
-  
+  //---------------------------------------------
+
+  //---------------------------------------------
+  /// # `get`
+  /// Get the value for some key
+  /// # Arguments
+  /// * `key: &T` - key for get the value
+  /// # Return    
+  /// * `None` - If this key not exist
+  /// * `&U` - A reference of the value
+  pub fn get(&self, key: &T)-> Option<&U>{
+   match &mut self.hash.get(key){
+    Some(i) => i.front(),
+    None => None
+   }
+  }
+ 
+  /// # `get_ref`
+  /// Get the value for this key in the HashMap of references
+  /// # Arguments
+  /// * `key: &T` - key for get the value
+  /// # Return    
+  /// * `None` - If this key not exist
+  /// * `Some(&U)` - A reference of the value
+  pub fn get_ref(&self, key: &T)-> Option<&U>{
+   match &mut self.hash_ref.get(key){
+    Some(i) => Some(&*i.front().unwrap()),
+    None => None
+   }
+  }
+
   /// # `get_some`
   /// Get the value for this key in the HashMap of random values
   /// # Arguments
@@ -1330,6 +764,30 @@ where
       return vec.front();
     }else{
       return None;
+    }
+  }
+  //----------------------------------------------
+
+  //----------------------------------------------
+  /// # `remove` 
+  /// Remove the first element in the HashMap and replace this with the next element on the queue
+  /// # Arguments  
+  /// * `key: &T` - Key for search and remove the key from the HashMap
+  pub fn remove(&mut self, key: &T){
+    if let Some(replace) = self.hash.get_mut(key){ 
+       if replace.len() > 0{replace.pop_front();}
+       if replace.len() <= 0 {self.hash.remove(key);} 
+    }
+  }
+  
+  /// # `remove_ref` 
+  /// Remove the first element in the HashMap of references and replace this with the next element in the queue of that key
+  /// # Arguments  
+  /// * `key: &T` - Key for search and remove the key from the HashMap
+  pub fn remove_ref(&mut self, key: &T){
+      if let Some(replace) = self.hash_ref.get_mut(key){ 
+       if replace.len() > 0{replace.pop_front();}
+       if replace.len() <= 0 {self.hash_ref.remove(key);} 
     }
   }
   
@@ -1347,38 +805,689 @@ where
     }
   
   }
+  //----------------------------------------------
+
+  //----------------------------------------------
+  /// # `remove_all`
+  /// Remove a key from the HashMap of copies inclusive if thath have more values in his queue
+  /// # Arguments   
+  /// * `key: &T` - Key to remove
+  pub fn remove_all(&mut self, key: &T){
+    if self.hash.contains_key(key){
+      self.hash.remove(key);
+    }
+  }
   
-  /// # `remove_some_all`
+  /// # `remove_all_ref`
+  /// Remove a key from the HashMap of references inclusive if thath have more values in his queue
+  /// # Arguments   
+  /// * `key: &T` - Key to remove
+  pub fn remove_all_ref(&mut self, key: &T){
+    if self.hash_ref.contains_key(key){
+      self.hash_ref.remove(key);
+    }
+  }
+
+  /// # `remove_all_some`
   /// Remove a key from the HashMap of random values inclusive if thath have more values in his queue
   /// # Arguments
   /// * `key: &T` - Key to remove
-  /// # Return
-  /// * `None` - If this key not exist
-  /// * `Some(&F)` - A reference of the value
-  pub fn remove_some_all(&mut self, key:&T){
+  pub fn remove_all_some(&mut self, key:&T){
+    if self.hash_some.contains_key(key){
     self.hash_some.remove(key);
+    }
+  }
+  //----------------------------------------------
+
+  //----------------------------------------------
+  /// # `get_all`
+  /// Get all the values assigned for that key 
+  /// # Arguments
+  /// * `key:&T` - Key for get his values in his queue and create and return a vector
+  /// # Return 
+  /// A empty vector if this key not exist, else a vector with the values for that key in his the queue
+  pub fn get_all(&mut self, key: &T)-> Vec<U>{
+    let mut vec_ret = Vec::new();
+    if let Some(i)  = self.hash.get(key){
+      for n in i{
+          vec_ret.push(n.clone());
+      }
+     if i.len() <= 0{
+      self.hash.remove(key);
+     }
+    }
+    return vec_ret;
   }
   
-  /// # `peek_some`
-  /// Look the next value in the queue of a key, that replace when use [`remove_some`] method
+  /// # `get_all_ref`
+  /// Get all the values of that key in the HashMap of references
   /// # Arguments
-  /// * `key: &T` - Key for search the next value
+  /// * `key:&T` - Key for get his queue and create and return the vector
+  /// # Return 
+  /// A empty vector if the key not exist, else a vector with the values in the queue for that key
+  pub fn get_all_ref(&mut self, key: &T)-> Vec<U>{
+    let mut vec_ret = Vec::new();
+    
+    if let Some(i)  = self.hash_ref.get(key){
+      for n in i{
+          vec_ret.push((**n).clone());
+      }
+    }
+    if vec_ret.len() <= 0{
+        self.hash_ref.remove(key);
+      }
+    return vec_ret;
+  }
+  //----------------------------------------------
+
+  //----------------------------------------------
+  /// # `get_mut_ref_to_all`
+  /// For get a mutable reference to VecDeque for this key
+  /// # Arguments
+  /// * `key:&T` - Key to get the VecDeque
   /// # Return
-  /// * `None` - If not exist the key or not exist any next value
-  /// * `Some(&F)` - References to the next value in the queue of that key
-  pub fn peek_some(&self, key: &T)-> Option<&F>{
-     if let Some(next) = self.hash_some.get(key){
-      if next.len() > 1 {return Some(&next[1]);}
-      else {return None;}
-    }else {return None;}
+  /// * `None` - If the key not exist
+  /// * `Some(&mut VecDeque<U>)` - Mutable referencie to VecDeque vector
+  /// # IMPORTANT
+  /// If you use this option, you need to know what is a VecDeque and his propierties, for avoid break the HashMap and the vector
+  pub fn get_mut_ref_to_all(&mut self, key: &T) -> Option<&mut VecDeque<U>>{
+    self.hash.get_mut(key)
+  }
+  
+  /// # `get_mut_ref_to_all_ref`
+  /// For get a mutable referencie to VecDeque for that key
+  /// # Arguments
+  /// * `key:&T` - Key to get the VecDeque
+  /// # Return
+  /// * `None` - if the key not exist
+  /// * `Some(&mut VecDeque<Rc<U>>) - Mutable reference to VecDeque vector, the values into the VecDeque are Rc<U>
+  /// # IMPORTANT
+  /// If you use this option, you need to know what is a VecDeque and his propierties and Rc too, for avoid break the HashMap and the vector
+  pub fn get_mut_ref_to_all_ref(&mut self, key: &T) -> Option<&mut VecDeque<Rc<U>>>{
+    self.hash_ref.get_mut(key)
+  }
+  
+  /// # `get_mut_ref_to_all_some`
+  /// For get a mutable reference to VecDeque for that key in the HashMap of random values
+  /// # Arguments
+  /// * `key: &T` - Key to get the VecDeque
+  /// # Return
+  /// * `None` - If the key not exist
+  /// * `Some(&mut VecDeque<F>)` - Mutable Reference to VecDeque vector, the values into the VecDeque are F
+  pub fn get_mut_ref_to_all_some(&mut self, key:&T)->Option<&mut VecDeque<F>>{
+    self.hash_some.get_mut(key)
+  }
+  //----------------------------------------------
+
+  //----------------------------------------------
+  /// # `get_ref_to_all`
+  /// For get a reference to VecDeque for this key
+  /// # Arguments
+  /// * `key: &T` - Key to get the VecDeque
+  /// # Return
+  /// * `None` - If the key not exist
+  /// * `Some(&VecDeque<U>)` - Reference to VecDeque vector
+  /// # IMPORTANT
+  /// If you use this option, you need to know what is a VecDeque and his propierties.
+  pub fn get_ref_to_all(&self, key:&T)->Option<&VecDeque<U>>{
+    self.hash.get(key)
+  }
+  
+  /// # `get_ref_to_all_ref`
+  /// For get a reference to VecDeque for that key
+  /// # Arguments
+  /// * `key: &T` - Key to get the VecDeque
+  /// # Return
+  /// * `None` - If the key not exist
+  /// * `Some(&VecDeque<Rc<U>>)` - Reference to VecDeque vector, the values into the VecDeque are Rc<U>
+  /// # IMPORTANT
+  /// If you use this option, you need to know what is a VecDeque and his propierties and Rc too
+  pub fn get_ref_to_all_ref(&self, key: &T) -> Option<&VecDeque<Rc<U>>>{
+    self.hash_ref.get(key)
+  }
+  
+  /// # `get_ref_to_all_some`
+  /// For get a reference to VecDeque for that key in the HashMap of random values
+  /// # Arguments
+  /// * `key: &T` - Key to get the VecDeque
+  /// # Return 
+  /// * `None` - If the key not exist
+  /// * `Some(&VecDeque<F>)` - Reference to VecDeque vector, the values into the VecDeque are F
+  /// # NOTE
+  /// Not exist method for get all the values of that key in the HashMap of random values, because the values are not clonables
+  pub fn get_ref_to_all_some(&mut self, key:&T)->Option<&VecDeque<F>>{
+    self.hash_some.get(key)
+  }
+  //----------------------------------------------
+
+  //----------------------------------------------
+  /// # `set_value`
+  /// Set all the queue of a key
+  /// # Arguments
+  /// * `key: &T` - Key of the valu to set queue if this have
+  /// * `new_vec: Vec<U>` - Vec for replace the actual queue for that key
+  pub fn set_value(&mut self, key: &T, new_vec: &Vec<U>){
+    if let Some(vec) = self.hash.get_mut(key){
+      vec.clear();
+      for i in new_vec{
+        vec.push_back(i.clone());
+      }
+    }
+  }
+  
+  /// # `set_value_ref`
+  /// Set all the queue of that key
+  /// # Arguments
+  /// * `key: &T` - Key of the valu to set queue if this have
+  /// * `new_vec: Vec<U>` - Vec for replace the actual queue
+  pub fn set_value_ref(&mut self, key: &T, new_vec: Vec<U>){
+    if let Some(vec) = self.hash_ref.get_mut(key){
+      vec.clear();
+      for i in new_vec{
+        let rc = Rc::new(i);
+        vec.push_back(rc);
+      }
+    }
   }
 
-  /// # `clear_hash_some`
-  /// Clear all the hash of random values and keys
-  pub fn clear_hash_some(&mut self){
-      self.hash_some.clear();
+  /// # `set_value_some`
+  /// Set all the queue of that key in the HashMap of random values
+  /// # Arguments
+  /// * `key: &T` - Key of the value to set queue if this have
+  /// * `new_vec: Vec<F>` - Vec for replace the actual queue
+  pub fn set_value_some(&mut self, key:&T, new_vec:Vec<F>){
+    if let Some(vec) = self.hash_some.get_mut(key){
+      vec.clear();
+      for i in new_vec{
+        vec.push_back(i);
+      }
+    }
+  }
+  //----------------------------------------------
+
+  //----------------------------------------------
+  /// # `contains_key`
+  /// Indicate if some key exist in the HashMap of copies
+  /// # Arguments
+  /// * `key:&T` - Key for search
+  /// # Return  
+  /// * `true` if have
+  /// * `false` if not haven't
+  pub fn contains_key(&self, key: &T)-> bool{
+    self.hash.contains_key(key)
+  }
+  
+  /// # `contains_key_ref`
+  /// Indicate if some key exists in the HashMap of references
+  /// # Arguments
+  /// * `key:&T` - Key for search the queue
+  /// # Return  
+  /// * `true` if have
+  /// * `false` if not haven't
+  pub fn contains_key_ref(&self, key: &T)-> bool{
+    self.hash_ref.contains_key(key)
   }
 
+  /// # `contains_key_some`
+  /// Indicate if some key exists in the HashMap of random values
+  /// # Arguments
+  /// * `key:&T` - Key for search the queue
+  /// # Return
+  /// * `true` if have
+  /// * `false` if not haven't
+  pub fn contains_key_some(&self, key:&T)->bool{
+    self.hash_some.contains_key(key)
+  }
+  //---------------------------------------------
+
+  //---------------------------------------------
+  /// # `set_value_element`
+  /// Set a value of some elemenet in the queue of thath key, can be 0 or other, if the index is greater than the vector len not applicate the change
+  /// # Arguments 
+  /// * `key: &T` - Key for change the element in his vector
+  /// * `index: usize` - Index of element to change
+  /// * `new_element` - Element for make the change
+  pub fn set_value_element(&mut self, key: &T, index: usize, new_element: &U) {
+    if let Some(vec) = self.hash.get_mut(key) {
+        if index <= vec.len()-1 {
+          if index == 0{
+            vec.push_front(new_element.clone());
+          }else{
+            vec[index] = new_element.clone();
+            }
+        }
+      }
+  }
+  
+  /// # `set_value_element_ref`
+  /// Set a element in the queue of that key, can be 0 or other, if greater than the vector len not applicate the change
+  /// # Arguments 
+  /// * `key: &T` - Key for change the element in his queue
+  /// * `index: usize` - Index of element to change
+  /// * `new_element` - Element for make the change
+  pub fn set_value_element_ref(&mut self, key: &T, index: usize, new_element: U) {
+    if let Some(vec) = self.hash_ref.get_mut(key) {
+        if index <= vec.len()-1 {
+          if index == 0{
+            vec.push_front(Rc::new(new_element));
+          }else{
+            vec[index] = Rc::new(new_element);
+            }         
+        }
+      }
+  }
+  
+  /// # `set_value_element_some`
+  /// Set a element in the queue of that key in the HashMap of random values, can be 0 or other, if greater than the vector len not applicate the change
+  /// # Arguments
+  /// * `key: &T` - Key for change the element in his queue
+  /// * `index: usize` - Index of element to change
+  /// * `new_element: F` - Element for make the change
+  pub fn set_value_element_some(&mut self, key:&T, index:usize, new_element:F){
+    if let Some(vec) = self.hash_some.get_mut(key){
+      if index <= vec.len()-1{
+        if index == 0{
+          vec.push_front(new_element);
+        }else{
+          vec[index] = new_element;
+        }         
+      }
+    }
+  }
+ //----------------------------------------------
+
+ //----------------------------------------------
+  /// # `enable_global_order`
+  /// Enables the global order register of the insert in keys, for the `HashMap of refs` and `HashMap of copies`
+  /// If you want enable the register for a single `HashMap` use [`enable_order_for_ref`] (for `HashMap of refs`) or [`enable_order`] (for `HashMap of copies`)
+  /// # Arguments
+  /// * `last_insert_of_key: bool` - Indicate if the register just store the last insert for key
+  /// * `preserve_content_before_order` - Indicate if you want to preserve the register store before for key, and just aplicate the `las_insert_of_key` flag about moment when you change this flag
+  pub fn enable_global_order(&mut self, last_insert_of_key: bool, preserve_content_before_order: bool){
+    self.order_hash = true;
+    self.order_hash_ref = true;
+    self.store_last_insert_key = last_insert_of_key;
+    self.store_last_insert_ref_key = last_insert_of_key;
+    self.preserve_before = preserve_content_before_order;
+    self.order_hash_some = true;
+    self.store_last_insert_some_key = last_insert_of_key;
+  }
+  
+  /// # `enable_order`
+  /// Enables the global order register of the insert in keys, for the `HashMap of copies`
+  /// If you want enable the register for all `HashMaps` use [`enable_global_order`] (for `HashMap of refs` and `HashMap of copies` and `HashMap of random values`) 
+  /// # Arguments
+  /// * `last_insert_of_key: bool` - Indicate if the register just store the last insert for this key
+  /// * `preserve_content_before_order` - (This flag aplicate for all, HashMap of reference and HashMap of copies and HashMap of random values) Indicate if you want to preserve the register store before for key, and just aplicate the `las_insert_of_key` flag about moment when you change this flag
+  pub fn enable_order(&mut self, last_insert_of_key: bool,  preserve_content_before_order:bool){
+    self.order_hash = true;
+    self.store_last_insert_key = last_insert_of_key;
+    self.preserve_before =  preserve_content_before_order;
+  }
+  
+  /// # `enable_order_for_ref`
+  /// Enables the global order register of the insert in keys, for the `HashMap of refs`
+  /// If you want enable the register for all `HashMaps` use [`enable_global_order`] (for `HashMap of refs` and `HashMap of copies` and `HashMap of random values`) 
+  /// # Arguments
+  /// * `last_insert_of_key: bool` - Indicate if the register just store the last insert for this key
+  /// * `preserve_content_before_order` - (This flag aplicate for all, HashMap of reference and HashMap of copies adn HashMap of random values) Indicate if you want to preserve the register store before for key, and just aplicate the `las_insert_of_key` flag about moment when you change this flag
+  pub fn enable_order_for_ref(&mut self, last_insert_of_key: bool, preserve_content_before_order: bool){
+    self.order_hash_ref = true;
+    self.store_last_insert_ref_key = last_insert_of_key;
+    self.preserve_before =  preserve_content_before_order;
+  }
+
+  /// # `enable_order_for_some`
+  /// Enables the global order register of the insert in keys, for the `HashMap of random values`
+  /// If you want enable the register for all `HashMaps` use [`enable_global_order`] (for `HashMap of refs` and `HashMap of copies` and `HashMap of random values`)
+  /// # Arguments
+  /// * `last_insert_of_key: bool` - Indicate if the register just store the last insert for this key
+  /// * `preserve_content_before_order` - (This flag aplicate for both, HashMap of reference and HashMap of copies adn HashMap of random values) Indicate if you want to preserve the register store before for key, and just aplicate the `las_insert_of_key` flag about moment when you change this flag
+  pub fn enable_order_for_some(&mut self, last_insert_of_key: bool, preserve_content_before_order:bool){
+    self.preserve_before = preserve_content_before_order;
+    self.order_hash_some = true;
+    self.store_last_insert_some_key = last_insert_of_key;
+  }
+  //----------------------------------------------
+
+  //----------------------------------------------  
+  /// # `disable_global_order`
+  /// Disable continue register the global insert order, but the vector for order conserve the values when the order are be enable
+  pub fn disable_global_order(&mut self){
+    self.order_hash = false;
+    self.order_hash_ref = false;
+    self.order_hash_some = false;
+  }
+  
+  /// # `disable_order`
+  /// Disable continue register the insert order in `HashMap copies`, but the vector for order conserve the values when the order are be enable
+  pub fn disable_order(&mut self){
+    self.order_hash = false;
+  }
+
+  /// # `disable_order_for_ref`
+  /// Disable continue register the insert order in `HashMap refs`, but the vector for order conserve the values when the order are be enable
+  pub fn disable_order_for_ref(&mut self){
+    self.order_hash_ref = false;
+  }
+ 
+  /// # `disable_order_for_some`
+  /// Disable continue register the insert order in `HashMap of random values`, but the vector for order conserve the values when the order are be enable
+  pub fn disable_order_for_some(&mut self){
+   self.order_hash_some = false;
+  }
+  //----------------------------------------------
+
+  //----------------------------------------------
+  /// # `get_order`
+  /// Get the copy of order vector, in order to first-last insert key
+  /// # Rerturn
+  /// A property of order vector
+  pub fn get_order(&self)->Vec<T>{
+    let mut order_vec = Vec::new();
+    let mut counter2 = 0;
+    while counter2 < self.counter{
+      match self.order_o1.get(&counter2).clone(){
+        None => {counter2+=1; continue;}
+        Some(i) =>{
+          order_vec.push(i.clone());
+        }
+      };
+      counter2 +=1;
+    }
+    return order_vec;
+  }
+  
+  /// # `get_order_ref`
+  /// Get a reference for the order HashMaps
+  /// # Return
+  /// A tuple with references for the order HashMap
+  /// * `& HashMap<T, VecDeque<usize>>` - HashMap store all the insertion number asociate for key (Here you can search the insertion register for key)
+  /// * `& HashMap<usize, T>` - HashMap store all the insertion for a key asociate for a number of insertion (Here you can search the insertion register for insertion number)
+  pub fn get_order_ref(&self)-> (&HashMap<T, VecDeque<usize>>, &HashMap<usize, T>){
+    (&self.order, &self.order_o1)
+  }
+  
+  /// # `get_order_mut_ref`
+  /// Get a mutable reference for the order HashMaps
+  /// # Return
+  /// A tuple with mutable references for the order HashMap
+  /// * `&mut HashMap<T, VecDeque<usize>>` - HashMap store all the insertion number asociate for key (Here you can search the insertion register for key)
+  /// * `&mut HashMap<usize, T>` - HashMap store all the insertion for a key asociate for a number of insertion (Here you can search the insertion register for insertion number)
+  pub fn get_order_mut_ref(&mut self)->  (&mut HashMap<T, VecDeque<usize>>, &mut HashMap<usize, T>){
+    (&mut self.order, &mut self.order_o1)
+  }
+  //----------------------------------------------
+
+  //----------------------------------------------
+  /// #  `remove_order`
+  /// Reset the order HashMaps to empty
+  pub fn remove_order(&mut self){
+    self.order.clear();
+    self.order_o1.clear();
+    self.counter = 0;
+  }
+  
+  /// # `get_order_num`
+  /// Get the number of insertions done
+  /// # Return
+  /// `usize` - The number of insertions done
+  pub fn get_order_num(&self)-> usize{
+    self.counter
+  }
+  //----------------------------------------------
+
+  //----------------------------------------------
+  /// # `get_key`
+  /// Get the keys where some value appears in a HashMap of copies
+  /// # Arguments
+  /// * `value_search:U` - Value to search
+  /// # Return 
+  /// Return a vector with references to keys, or a empty vector if this valu not exist
+    pub fn get_key(&self, value_search:&U) -> Vec<&T>{
+    let mut keys = Vec::new();
+      for i in self.hash.keys(){
+        let mut vec = self.hash.get(i).unwrap();
+        if vec.contains(value_search){
+          keys.push(i);
+          continue;
+        }
+    }
+    return keys;
+  }
+  
+  /// # `get_key_ref`
+  /// Get the keys where some value appears in a HashMap of refs
+  /// # Arguments
+  /// * `value_search:U` - Value to search
+  /// # Return 
+  /// Return a vector with a references to keys, or a empty vector if this valu not exist
+  pub fn get_key_ref(&self, value_search:U) -> Vec<&T>{
+    let mut keys = Vec::new();
+      for i in self.hash_ref.keys(){
+        let mut vec = self.hash_ref.get(i).unwrap();
+        if vec.contains(&Rc::new(value_search.clone())){
+          keys.push(i);
+          continue;
+        }
+    }
+    return keys;
+  }
+  //----------------------------------------------
+
+  //----------------------------------------------
+  /// # `keys`
+  /// Return an iterator as a normal method `keys` from `HashMaps` of HashMap of copies
+  /// # Return
+  /// * `Keys<'_, T, VecDeque<U>>` - Iterator for the HashMap of copies
+  pub fn keys(&self)->Keys<'_, T, VecDeque<U>>{
+    self.hash.keys()
+  }
+  
+  /// # `keys_ref`
+  /// Return an iterator as a normal method `keys` from `HashMaps` of HashMap of refs
+  /// # Return
+  /// * `Keys<'_, T, VecDeque<Rc<U>>>` - Iterator for the HashMap of references
+  pub fn keys_ref(&self) -> Keys<'_, T, VecDeque<Rc<U>>>{
+    self.hash_ref.keys()
+  }
+  
+  /// # `keys_some`
+  /// Return an iterator as a normal method `keys` from `HashMaps` from HashMap of random values
+  /// # Return
+  /// * `Keys<'_, T, VecDeque<F>>` - Iterator for the HashMap of random values
+  pub fn keys_some(&mut self)->Keys<'_, T, VecDeque<F>>{
+    self.hash_some.keys()
+  }
+  //----------------------------------------------
+
+  //----------------------------------------------
+  /// # `get_value`
+  /// Get a specific value in the queue of the key in the HashMap of copies
+  /// # Arguments
+  /// * `key: &T` - Key from take the value
+  /// * `index:usize` - Index of the value for take
+  /// # Return
+  ///   * `None` if the key not exist or index are greater than of the queue of that key
+  ///   * `Some(&U)` References of the value
+  pub fn get_value(&self, key: &T, index:usize)->Option<&U>{
+   if let Some(vec)=self.hash.get(key){
+     if index > vec.len()-1{return None;}
+      Some(&vec[index])
+   }else{
+    None
+   }
+ }
+  
+  /// # `get_value_ref`
+  /// Get a specific value in the queue of the key in the HashMap of refs
+  /// # Arguments
+  /// * `key: &T` - Key from extract the value
+  /// * `index:usize` - Index of the value for extract
+  /// # Return
+  ///   * `None` if the key not exist or index are greater than of the queue of that key
+  ///   * `Some(&U)` References of the value
+  pub fn get_value_ref(&self, key: &T, index:usize)->Option<&U>{
+   if let Some(vec)=self.hash_ref.get(key){
+     if index > vec.len()-1{return None;}
+      Some(&*vec[index])
+   }else{
+    None
+   }
+ }
+  
+  /// # `get_value_some`
+  /// Get a specific value in the queue of the key in the HashMap of random values
+  /// # Arguments
+  /// * `key: &T` - Key from take the value
+  /// * `index:usize` - Index of the value for take
+  /// # Return
+  ///  * `None` if the key not exist or index are greater than of the queue of that key
+  /// * `Some(&F)` References of the value
+  pub fn get_value_some(&self, key:&T, index:usize)->Option<&F>{
+    if let Some(vec)=self.hash_some.get(key){
+      if index > vec.len()-1{return None;}
+       Some(&vec[index])
+    }else{
+     None
+    }
+  } 
+  //----------------------------------------------
+
+  //----------------------------------------------
+  /// # `extract_value`
+  /// Extracts some value from a key, or pop this, and therefore remove this of the queue of the key from HashMap of copies
+  /// # Arguments
+  /// * `key:&T` - Key from extract the value
+  /// * `index: usize` - index to extract
+  /// # Return
+  ///  * `None` If the index are greater than the queue of the key, or if the key not exists
+  ///  * `Some(U)` The ownership of the value
+  pub fn extract_value(&mut self, key: &T, index:usize) -> Option<U>{
+   if let Some(vec) = self.hash.get_mut(key){ 
+    if index > vec.len()-1{
+      return None;
+    }
+    if index == 0{
+      let n = vec.pop_front().unwrap();
+      if vec.len() <= 0{self.hash.remove(key);}
+     return Some(n);
+    }
+    else if index == vec.len()-1{
+      let n = vec.pop_back().unwrap();
+      if vec.len() <= 0{self.hash.remove(key);}
+     return Some(n);
+    }
+     let n = vec[index].clone();
+     vec.remove(index);
+     if vec.len() <= 0{self.hash.remove(key);}
+     return Some(n);
+   }else {return None;}  
+ }
+ 
+  /// # `extract_value_ref`
+  /// Extracts some value from a key, or pop this, and therefore remove this of the values of the key from HashMap of refs
+  /// # Arguments
+  /// * `key:&T` - Key from extract the value
+  /// * `index: usize` - index to extract
+  /// # Return
+  ///  * `None` If the index are greater than the queue of the key, or if the key not exists
+  ///  * `Some(Rc<U>)` The ownership of the value
+  pub fn extract_value_ref(&mut self, key: &T, index:usize) -> Option<Rc<U>>{
+   if let Some(vec) = self.hash_ref.get_mut(key){ 
+    if index > vec.len()-1{
+      return None;
+    }
+    if index == 0{
+      let n = vec.pop_front().unwrap();
+      if vec.len() <= 0{self.hash_ref.remove(key);}
+     return Some(n);
+    }
+    else if index == vec.len()-1{
+      let n = vec.pop_back().unwrap();
+      if vec.len() <= 0{self.hash_ref.remove(key);}
+     return Some(n);
+    }
+     let n = vec[index].clone();
+     vec.remove(index);
+     if vec.len() <= 0{self.hash_ref.remove(key);}
+     return Some(n);
+   }else {return None;}  
+ }
+ 
+  /// # `extract_value_some`
+  /// Extracts some value from a key, or pop this, and therefore remove this of the values of the key from HashMap of random values
+  /// # Arguments
+  /// * `key:&T` - Key from extract the value
+  /// * `index: usize` - index to extract
+  /// # Return
+  /// * `None` If the index are greater than the queue of the key, or if the key not exists
+  /// * `Some(F)` The ownership of the value
+  pub fn extract_value_some(&mut self, key:&T, index:usize) -> Option<F>{
+    if let Some(vec) = self.hash_some.get_mut(key){ 
+     if index > vec.len()-1{
+       return None;
+     }
+     if index == 0{
+       let n = vec.pop_front().unwrap();
+       if vec.len() <= 0{self.hash_some.remove(key);}
+      return Some(n);
+     }
+     else if index == vec.len()-1{
+       let n = vec.pop_back().unwrap();
+       if vec.len() <= 0{self.hash_some.remove(key);}
+      return Some(n);
+     }
+     let n = vec.remove(index).unwrap();
+      if vec.len() <= 0{self.hash_some.remove(key);}
+      return Some(n);
+    }else {return None;}  
+  }
+  //----------------------------------------------
+
+  //----------------------------------------------
+  /// # `lifo` 
+  /// Get the last element in the key and remove it
+  /// # Arguments 
+  /// * `key:&T` - Key from extract the value
+  /// # Return 
+  ///  * `None` if the key not exists or the element not exist
+  ///  * `Some(U)` The ownership of the value
+  pub fn lifo(&mut self, key:&T)->Option<U>{
+   if let Some(last) = self.hash.get_mut(key){
+     match last.pop_back(){
+      None => None,
+      Some(i) => {
+        if last.len() <= 0{
+          self.hash.remove(key);
+        }
+        return Some(i);
+      }
+     }
+   }else {return None;}
+ }
+  
+  /// # `lifo_ref` 
+  /// Get the last element in the key and remove it
+  /// # Arguments 
+  /// * `key:&T` - Key from extract the value
+  /// # Return 
+  ///  * `None` if the key not exists or the element not exist
+  ///  * `Some(Rc<U>)` The ownership of the value
+  pub fn lifo_ref(&mut self, key:&T)->Option<Rc<U>>{
+   if let Some(last) = self.hash_ref.get_mut(key){
+     match last.pop_back(){
+      None => None,
+      Some(i) => {
+        if last.len() <= 0{
+          self.hash_ref.remove(key);
+        }
+        return Some(i);
+      }
+     }
+   }else {return None;}
+ }
+  
   /// # `lifo_some`
   /// Get the last element in the key and remove it
   /// # Arguments
@@ -1399,15 +1508,88 @@ where
      }
    }else {return None;}
   }
-  
-  /// # `iter_some`
-  /// Return an iterator for the HashMap of random values
+  //----------------------------------------------
+
+  //----------------------------------------------
+  /// # `peek`
+  /// Look the next value in the queue of a key, that replace when use [`remove`] method 
   /// # Arguments
-  /// * `key:&T` - Key for get his queue
+  /// * `key: &T` - Key for search the next value
+  /// # Return 
+  /// * `None` - If not exist the key or not exist any next value
+  /// * `Some(&U)` - References to the next value in the queue of that key
+ pub fn peek(&self, key:&T)->Option<&U>{
+    if let Some(next) = self.hash.get(key){
+      if next.len() > 1{
+      return Some(&next[1]);
+      }else {return None;}
+    }else {return None;}
+ }
+ 
+  /// # `peek_ref`
+  /// Look the next value in the queue of a key, that replace when use [`remove_ref`] method 
+  /// # Arguments
+  /// * `key: &T` - Key for search the next value
+  /// # Return 
+  /// * `None` - If not exist the key or not exist any next value
+  /// * `Some(&U)` - References to the next value in the queue of that key
+ pub fn peek_ref(&self, key:&T)->Option<&U>{
+    if let Some(next) = self.hash_ref.get(key){
+      if next.len() > 1 {return Some(&next[1]);}
+      else {return None;}
+    }else {return None;}
+ }
+ 
+  /// # `peek_some`
+  /// Look the next value in the queue of a key, that replace when use [`remove_some`] method
+  /// # Arguments
+  /// * `key: &T` - Key for search the next value
   /// # Return
-  /// * `Iter<'_, T, VecDeque<F>>` - Iterator for the HashMap of random values
-  pub fn iter_some(&self, key:&T)->Iter<'_, T, VecDeque<F>>{
-    self.hash_some.iter()
+  /// * `None` - If not exist the key or not exist any next value
+  /// * `Some(&F)` - References to the next value in the queue of that key
+  pub fn peek_some(&self, key: &T)-> Option<&F>{
+     if let Some(next) = self.hash_some.get(key){
+      if next.len() > 1 {return Some(&next[1]);}
+      else {return None;}
+    }else {return None;}
+  }
+  //----------------------------------------------
+
+  //----------------------------------------------
+  /// # `clear_hash`
+  /// Clear all the hash  of copies of values and keys
+  pub fn clear_hash(&mut self){
+  self.hash.clear();
+ }
+  
+  /// # `clear_hash_ref`
+  /// Clear all the hash of refs of values and keys
+  pub fn clear_hash_ref(&mut self){
+  self.hash_ref.clear();
+ }
+  
+  /// # `clear_hash_some`
+  /// Clear all the hash of random values and keys
+  pub fn clear_hash_some(&mut self){
+      self.hash_some.clear();
+  }
+  //----------------------------------------------
+
+  //----------------------------------------------
+  /// # `iter_mut` 
+  /// Return an iterator mutable for the HashMap of copies
+  /// # Return
+  /// * `IterMut<'_, T, VecDeque<U>>` - Iterator mutable for the HashMap of copies
+  pub fn iter_mut(&mut self)-> IterMut<'_, T, VecDeque<U>>{
+    self.hash.iter_mut()
+  }
+  
+  /// # `iter_mut_ref`
+  /// Return an iterator mutable for the HashMap of references
+  /// # Return
+  /// * `IterMut<'_, T, VecDeque<Rc<U>>>` - Iterator mutable for the HashMap of references
+  pub fn iter_mut_ref(&mut self)->IterMut<'_, T, VecDeque<Rc<U>>>{
+    self.hash_ref.iter_mut()
   }
 
   /// # `iter_mut_some`
@@ -1419,97 +1601,37 @@ where
   pub fn iter_mut_some(&mut self)->IterMut<'_, T, VecDeque<F>>{
     self.hash_some.iter_mut()
   }
+  //----------------------------------------------
 
-  /// # `keys_some`
-  /// Return an iterator as a normal method `keys` from `HashMaps` from HashMap of random values
+  //----------------------------------------------
+  /// # `iter`
+  /// Return an iterator for the HashMap of copies  
   /// # Return
-  /// * `Keys<'_, T, VecDeque<F>>` - Iterator for the HashMap of random values
-  pub fn keys_some(&mut self)->Keys<'_, T, VecDeque<F>>{
-    self.hash_some.keys()
+  /// * `Iter<'_, T, VecDeque<U>>` - Iterator for the HashMap of copies
+  pub fn iter(&self)->Iter<'_, T, VecDeque<U>>{
+    self.hash.iter()
   }
 
-  /// # `contains_key_some`
-  /// Indicate if some key exists in the HashMap of random values
-  /// # Arguments
-  /// * `key:&T` - Key for search the queue
+  /// # `iter_ref`
+  /// Return an iterator for the HashMap of references
   /// # Return
-  /// * `true` if have
-  /// * `false` if not haven't
-  pub fn contains_key_some(&self, key:&T)->bool{
-    self.hash_some.contains_key(key)
+  /// * `Iter<'_, T, VecDeque<Rc<U>>>` - Iterator for
+  pub fn iter_ref(&self)->Iter<'_, T, VecDeque<Rc<U>>>{
+    self.hash_ref.iter()
   }
-  
-  /// # `set_value_some`
-  /// Set all the queue of that key in the HashMap of random values
+    
+  /// # `iter_some`
+  /// Return an iterator for the HashMap of random values
   /// # Arguments
-  /// * `key: &T` - Key of the value to set queue if this have
-  /// * `new_vec: Vec<F>` - Vec for replace the actual queue
-  pub fn set_value_some(&mut self, key:&T, new_vec:Vec<F>){
-    if let Some(vec) = self.hash_some.get_mut(key){
-      vec.clear();
-      for i in new_vec{
-        vec.push_back(i);
-      }
-    }
-  }
-  
-  /// # `set_value_element_some`
-  /// Set a element in the queue of that key in the HashMap of random values, can be 0 or other, if greater than the vector len not applicate the change
-  /// # Arguments
-  /// * `key: &T` - Key for change the element in his queue
-  /// * `index: usize` - Index of element to change
-  /// * `new_element: F` - Element for make the change
-  pub fn set_value_element_some(&mut self, key:&T, index:usize, new_element:F){
-    if let Some(vec) = self.hash_some.get_mut(key){
-      if index <= vec.len()-1{
-        if index == 0{
-          vec.push_front(new_element);
-        }else{
-          vec[index] = new_element;
-        }         
-      }
-    }
-  }
-  /// # `get_mut_ref_to_all_some`
-  /// For get a mutable reference to VecDeque for that key in the HashMap of random values
-  /// # Arguments
-  /// * `key: &T` - Key to get the VecDeque
+  /// * `key:&T` - Key for get his queue
   /// # Return
-  /// * `None` - If the key not exist
-  /// * `Some(&mut VecDeque<F>)` - Mutable Reference to VecDeque vector, the values into the VecDeque are F
-  pub fn get_mut_ref_to_all_some(&mut self, key:&T)->Option<&mut VecDeque<F>>{
-    self.hash_some.get_mut(key)
+  /// * `Iter<'_, T, VecDeque<F>>` - Iterator for the HashMap of random values
+  pub fn iter_some(&self, key:&T)->Iter<'_, T, VecDeque<F>>{
+    self.hash_some.iter()
   }
-  
-  /// # `get_ref_to_all_some`
-  /// For get a reference to VecDeque for that key in the HashMap of random values
-  /// # Arguments
-  /// * `key: &T` - Key to get the VecDeque
-  /// # Return 
-  /// * `None` - If the key not exist
-  /// * `Some(&VecDeque<F>)` - Reference to VecDeque vector, the values into the VecDeque are F
-  /// # NOTE
-  /// Not exist method for get all the values of that key in the HashMap of random values, because the values are not clonables
-  pub fn get_ref_to_all_some(&mut self, key:&T)->Option<&VecDeque<F>>{
-    self.hash_some.get(key)
-  }
-  /// # `get_value_some`
-  /// Get a specific value in the queue of the key in the HashMap of random values
-  /// # Arguments
-  /// * `key: &T` - Key from take the value
-  /// * `index:usize` - Index of the value for take
-  /// # Return
-  ///  * `None` if the key not exist or index are greater than of the queue of that key
-  /// * `Some(&F)` References of the value
-  pub fn get_value_some(&self, key:&T, index:usize)->Option<&F>{
-    if let Some(vec)=self.hash_some.get(key){
-      if index > vec.len()-1{return None;}
-       Some(&vec[index])
-    }else{
-     None
-    }
-  }
-  
+  //----------------------------------------------
+
+  //----------------------------------------------
   /// # `get_mut_value`
   /// Get a mutable reference for a specific value in the queue of the key in the HashMap of copies
   /// # Arguments
@@ -1551,7 +1673,9 @@ where
       return n.get_mut(index);
     }else {return None;}
   }
+  //----------------------------------------------
 
+  //----------------------------------------------
   /// # `remove_value`
   /// Remove a specific value in the queue of that key in the HashMap of copies, if the index is 0 remove the first element, if the index is equal to len-1 remove the last element, else remove the element in that index
   /// # Arguments
@@ -1618,6 +1742,26 @@ where
       } 
     } 
   }
+  //----------------------------------------------
+
+  //----------------------------------------------
+  /// # `reset_all`
+  /// Reset all the struct to the orignial values, as a new instance of the struct 
+  pub fn reset_all(&mut self){
+  self.hash_ref.clear();
+  self.hash.clear();
+  self.hash_some.clear();
+  self.order.clear();
+  self.order_o1.clear();
+  self.order_hash =false;
+  self.store_last_insert_key=false;
+  self.order_hash_ref=false;
+  self.store_last_insert_ref_key=false;
+  self.preserve_before=false;
+  self.iter= 0;
+  self.counter= 0;
+
+  }
 
   /// # `is_empty`
   /// Indicate if the struct is empty, for all the HashMaps
@@ -1628,6 +1772,19 @@ where
       return self.hash.is_empty() && self.hash_ref.is_empty() && self.hash_some.is_empty(); 
   }
   
+  /// # `clear`
+  /// Clear all the HashMaps in the struct
+   pub fn clear(&mut self){
+    self.hash.clear();
+    self.hash_ref.clear();
+    self.hash_some.clear();
+    self.order.clear();
+    self.order_o1.clear();
+    self.counter = 0;
+  }
+  //----------------------------------------------
+
+  //----------------------------------------------
   /// # `len`
   /// Get the length of the HashMap of copies
   /// # Return
@@ -1635,6 +1792,7 @@ where
   pub fn len(&self)->usize{
     self.hash.len()
   }
+  
   /// # `len_ref`
   /// Get the length of the HashMap of references
   /// # Return
@@ -1650,7 +1808,7 @@ where
   pub fn len_some(&self)->usize{
     self.hash_some.len()
     }
-
+  
   /// # `total_len`
   /// Get the total length of all the HashMaps
   /// # Return
@@ -1658,35 +1816,27 @@ where
   pub fn total_len(&self)->usize{
     self.hash.len() + self.hash_ref.len() + self.hash_some.len()
     }
-  /// # `clear`
-  /// Clear all the HashMaps in the struct
-   pub fn clear(&mut self){
-    self.hash.clear();
-    self.hash_ref.clear();
-    self.hash_some.clear();
-    self.order.clear();
-    self.order_o1.clear();
-    self.counter = 0;
+  //----------------------------------------------
   }
-
-
-  }
+  /* 
    impl<T, U, F> Iterator for Map<T, U, F>
     where 
   T: Clone+ Eq +Hash, 
   U: Clone + PartialEq
   {
 
-    type Item = ( HashMap<T, VecDeque<U>>, HashMap<T, VecDeque<Rc<U>>>,  HashMap<T, VecDeque<usize>>,  HashMap<usize, T>);
+    type Item = (Rc<HashMap<T, VecDeque<U>>>, Rc<HashMap<T, VecDeque<Rc<U>>>>, Rc<HashMap<T, VecDeque<F>>>,Rc<HashMap<T, VecDeque<usize>>>, Rc<HashMap<usize, T>>);
     /// # `next`
     /// Return a tuple with copies of all the HashMaps in the struct include the history HashMaps, only once, except HashMap of random values because isn't clonable
     /// # Return
     /// * `Some((HashMap<T, VecDeque<U>>, HashMap<T, VecDeque<Rc<U>>>,  HashMap<T, VecDeque<usize>>,  HashMap<usize, T>))` - A tuple with copies of all the HashMaps in the struct
     /// * `None` - If the iterator have been used before in the same iter
       fn next(&mut self)-> Option<Self::Item>{
+        use std::rc::Rc;
+        use Map::self;
         if self.iter <= 0{
           self.iter+=1;
-          Some( (self.hash.clone(),  self.hash_ref.clone(),  self.order.clone(), self.order_o1.clone()))
+          Some( (Rc::hash,  Rc::hash_ref, Rc::hash_some,  Rc::order, Rc::order_o1))
         }
         else {
           self.iter = 0;
@@ -1694,6 +1844,7 @@ where
         }
       }
   }
+  */
 //-------------------------------------------------------------------------------------------------
 #[cfg(test)]
 ///# Tests
@@ -1865,12 +2016,25 @@ where
         let index = str.find("?").unwrap();
         assert_eq!("Edit This? 'hi'".to_string(), super::replace_index(str, "/Hello", str.len()));
       }
+      #[test]
+      /// # [`super::ordered_combination`] Test
+       fn test_ordered_combinations(){
+        let vec = (&vec!["a".to_string(), "b".to_string(), "c".to_string()], &vec!["a".to_string(), "b".to_string(), "c".to_string()]);
+        let combs = super::ordered_combination(vec);
+        let expected = ["aa", "ab", "ac", "ba", "bb", "bc", "ca", "cb", "cc"].to_vec();
+        assert_eq!(expected, combs);
+      }
 
   }
+//------------------------------------------------------------------
   #[cfg(test)]
   mod test_map{
+    use std::collections::VecDeque;
+    use std::rc::Rc;
     use crate::main_code::utilities::general;
+    use std::collections::HashMap;
    #[test]
+   /// # [general::Map::insert] Test
    fn test_insert(){
      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
      n.insert(&3,& "hello".to_string());
@@ -1878,6 +2042,9 @@ where
      n.insert(&3, &"chao".to_string());
      assert_eq!(["hello".to_string(), "world".to_string(), "chao".to_string()].to_vec(), n.get_all(&3));
    }
+
+    #[test]
+    /// # [general::Map::insert_ref] Test
    fn test_insert_ref(){
     let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
      n.insert_ref(&3, "hello".to_string());
@@ -1885,7 +2052,804 @@ where
      n.insert_ref(&3, "chao".to_string());
      assert_eq!(["hello".to_string(), "world".to_string(), "chao".to_string()].to_vec(), n.get_all(&3));
    }
-   fn test_get(){} 
+    #[test]
+    /// # [`general::Map::insert_some`] Test
+    fn test_insert_some(){
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+       n.insert_some(&3, Some(10));
+       n.insert_some(&3, Some(20));
+       n.insert_some(&3, Some(30));
+       let mut s = VecDeque::new();
+       s.push_back(Some(10));
+       s.push_back(Some(20));
+       s.push_back(Some(30));
+       assert_eq!(s, *n.get_ref_to_all_some(&3).unwrap());
+    }
+       #[test]
+    /// # [`general::Map::get`] Test
+    fn test_get(){
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+       n.insert(&3,& "hello".to_string());
+       n.insert(&3,& "world".to_string());
+       n.insert(&3, &"chao".to_string());
+       assert_eq!("hello".to_string(), n.get(&3).unwrap().clone());
+    }
+    #[test]
+    /// # [`general::Map::get`] Test 2
+    /// Here we test the function when the key not exist
+    fn test_2_get(){
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+       n.insert(&3,& "hello".to_string());
+       n.insert(&3,& "world".to_string());
+       n.insert(&3, &"chao".to_string());
+       assert_eq!(None, n.get(&5));
+    }
+    #[test]
+    /// # [`general::Map::get`] Test 3
+    /// Here we test the funciton when the vecdeque for the key is empty
+    fn test_3_get(){
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+       n.insert(&3,& "hello".to_string());
+       n.insert(&3,& "world".to_string());
+       n.insert(&3, &"chao".to_string());
+      let mut s = n.get_mut_ref_to_all(&3).unwrap();
+        s.clear();
+       assert_eq!(true, n.contains_key(&3));
+       assert_eq!(None, n.get(&3));
+       assert_eq!(false, n.contains_key(&3));
+    }
+    #[test]
+    /// # [`general::Map::get_ref`] Test
+    fn test_get_ref(){
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+       n.insert_ref(&3, "hello".to_string());
+       n.insert_ref(&3, "world".to_string());
+       n.insert_ref(&3, "chao".to_string());
+       assert_eq!("hello".to_string(), n.get_ref(&3).unwrap().clone());
+    }
+    #[test]
+    /// # [`general::Map::get_ref`] Test 2
+    /// Here we test the function when the key not exist
+    fn test_2_get_ref(){
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+       n.insert_ref(&3, "hello".to_string());
+       n.insert_ref(&3, "world".to_string());
+       n.insert_ref(&3, "chao".to_string());
+       assert_eq!(None, n.get_ref(&5));
+    }
+    #[test]
+    /// # [`general::Map::get_ref`] Test 3
+    /// Here we test the funciton when the vecdeque for the key is empty
+    fn test_3_get_ref(){
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+       n.insert_ref(&3, "hello".to_string());
+       n.insert_ref(&3, "world".to_string());
+       n.insert_ref(&3, "chao".to_string());
+      let mut s = n.get_mut_ref_to_all_ref(&3).unwrap();
+        s.clear();
+       assert_eq!(true, n.contains_key_ref(&3));
+       assert_eq!(None, n.get_ref(&3));
+       assert_eq!(false, n.contains_key_ref(&3));
+    }
+
+    #[test]
+    /// # [`general::Map::get_some`] Test
+    fn test_get_some(){
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+       n.insert_some(&3, Some(10));
+       n.insert_some(&3, Some(20));
+       n.insert_some(&3, Some(30));
+       assert_eq!(Some(10), n.get_some(&3).unwrap().clone());
+    }
+    #[test]
+    /// # [`general::Map::get_some`] Test 2
+    /// Here we test the function when the key not exist
+    fn test_2_get_some(){
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+       n.insert_some(&3, Some(10));
+       n.insert_some(&3, Some(20));
+       n.insert_some(&3, Some(30));
+       assert_eq!(None, n.get_some(&5));
+    }
+    #[test]
+    /// # [`general::Map::get_some`] Test 3
+    /// Here we test the funciton when the vecdeque for the key is empty
+    fn test_3_get_some(){
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+       n.insert_some(&3, Some(10));
+       n.insert_some(&3, Some(20));
+       n.insert_some(&3, Some(30));
+      let mut s = n.get_mut_ref_to_all_some(&3).unwrap();
+        s.clear();
+       assert_eq!(true, n.contains_key_some(&3));
+       assert_eq!(None, n.get_some(&3));
+       assert_eq!(false, n.contains_key_some(&3));
+    }
+    #[test]
+    /// # [`general::Map::remove`] Test
+    fn test_remove(){
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+       n.insert(&3,& "hello".to_string());
+       n.insert(&3,& "world".to_string());
+       n.insert(&3, &"chao".to_string());
+       n.remove(&3);
+       assert_eq!("world".to_string(), n.get(&3).unwrap().clone());
+    }
+    #[test]
+    /// # [`general::Map::remove`] Test 2
+    /// Here we test the function when the key not exist
+    fn test_2_remove(){
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+       n.insert(&3,& "hello".to_string());
+       n.insert(&3,& "world".to_string());
+       n.insert(&3, &"chao".to_string());
+       n.remove(&5);
+       assert_eq!("hello".to_string(), n.get(&3).unwrap().clone());
+    }
+    #[test]
+    /// # [`general::Map::remove`] Test 3
+    /// Here we test the funciton when the key has just 1 element
+    fn test_3_remove(){
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+       n.insert(&3,& "hello".to_string());
+       n.remove(&3);
+       assert_eq!(None, n.get(&3));
+    }
+    #[test]
+    /// # [`general::Map::remove_ref`] Test
+    fn test_remove_ref(){
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+       n.insert_ref(&3, "hello".to_string());
+       n.insert_ref(&3, "world".to_string());
+       n.insert_ref(&3, "chao".to_string());
+       n.remove_ref(&3);
+       assert_eq!("world".to_string(), n.get_ref(&3).unwrap().clone());
+    }
+    #[test]
+    /// # [`general::Map::remove_ref`] Test 2
+    /// Here we test the function when the key not exist
+    fn test_2_remove_ref(){
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+       n.insert_ref(&3, "hello".to_string());
+       n.insert_ref(&3, "world".to_string());
+       n.insert_ref(&3, "chao".to_string());
+       n.remove_ref(&5);
+       assert_eq!("hello".to_string(), n.get_ref(&3).unwrap().clone());
+    }
+    #[test]
+    /// # [`general::Map::remove_ref`] Test 3
+    /// Here we test the funciton when the key has just 1 element
+    fn test_3_remove_ref(){
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+       n.insert_ref(&3, "hello".to_string());
+       n.remove_ref(&3);
+       assert_eq!(None, n.get_ref(&3));
+    }
+    #[test]
+    /// # [`general::Map::remove_some`] Test
+    fn test_remove_some(){
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+       n.insert_some(&3, Some(10));
+       n.insert_some(&3, Some(20));
+       n.insert_some(&3, Some(30));
+       n.remove_some(&3);
+       assert_eq!(Some(20), n.get_some(&3).unwrap().clone());
+    }
+    #[test]
+    /// # [`general::Map::remove_some`] Test 2
+    /// Here we test the function when the key not exist
+    fn test_2_remove_some(){
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+       n.insert_some(&3, Some(10));
+       n.insert_some(&3, Some(20));
+       n.insert_some(&3, Some(30));
+       n.remove_some(&5);
+       assert_eq!(Some(10), n.get_some(&3).unwrap().clone());
+    }
+    #[test]
+    /// # [`general::Map::remove_some`] Test 3
+    /// Here we test the funciton when the key has just 1 element
+    fn test_3_remove_some(){
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+       n.insert_some(&3, Some(10));
+       n.remove_some(&3);
+       assert_eq!(None, n.get_some(&3));
+    }
+    #[test]
+    /// # [`general::Map::remove_all`] Test
+    fn test_remove_all(){
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+       n.insert(&3,& "hello".to_string());
+       n.insert(&3,& "world".to_string());
+       n.insert(&3, &"chao".to_string());
+       n.remove_all(&3);
+       assert_eq!(None, n.get(&3));
+    }
+    #[test]
+    /// # [`general::Map::remove_all`] Test 2
+    /// Here we test the function when the key not exist
+    fn test_2_remove_all(){
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+       n.insert(&3,& "hello".to_string());
+       n.insert(&3,& "world".to_string());
+       n.insert(&3, &"chao".to_string());
+       n.remove_all(&5);
+       assert_eq!("hello".to_string(), n.get(&3).unwrap().clone());
+    }
+    #[test]
+    /// # [`general::Map::remove_all_ref`] Test
+    fn test_remove_all_ref(){
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+       n.insert_ref(&3, "hello".to_string());
+       n.insert_ref(&3, "world".to_string());
+       n.insert_ref(&3, "chao".to_string());
+       n.remove_all_ref(&3);
+       assert_eq!(None, n.get_ref(&3));
+    }
+    #[test]
+    /// # [`general::Map::remove_all_ref`] Test 2
+    /// Here we test the function when the key not exist
+    fn test_2_remove_all_ref(){
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+       n.insert_ref(&3, "hello".to_string());
+       n.insert_ref(&3, "world".to_string());
+       n.insert_ref(&3, "chao".to_string());
+       n.remove_all_ref(&5);
+       assert_eq!("hello".to_string(), n.get_ref(&3).unwrap().clone());
+    }
+    #[test]
+    /// # [`general::Map::remove_all_some`] Test
+    fn test_remove_all_some(){
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+       n.insert_some(&3, Some(10));
+       n.insert_some(&3, Some(20));
+       n.insert_some(&3, Some(30));
+       n.remove_all_some(&3);
+       assert_eq!(None, n.get_some(&3));
+    }
+    #[test]
+    /// # [`general::Map::remove_all_some`] Test 2
+    /// Here we test the function when the key not exist
+    fn test_2_remove_all_some(){
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+       n.insert_some(&3, Some(10));
+       n.insert_some(&3, Some(20));
+       n.insert_some(&3, Some(30));
+       n.remove_all_some(&5);
+       assert_eq!(Some(10), n.get_some(&3).unwrap().clone());
+    }
+    #[test]
+    /// # [`general::Map::get_all`] Test
+    fn test_get_all(){
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+       n.insert(&3,& "hello".to_string());
+       n.insert(&3,& "world".to_string());
+       n.insert(&3, &"chao".to_string());
+       assert_eq!(["hello".to_string(), "world".to_string(), "chao".to_string()].to_vec(), n.get_all(&3));
+    }
+    #[test]
+    /// # [`general::Map::get_all`] Test 2
+    /// Here we test the function when the key not exist
+    fn test_2_get_all(){
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+       n.insert(&3,& "hello".to_string());
+       n.insert(&3,& "world".to_string());
+       n.insert(&3, &"chao".to_string());
+       assert_eq!(Vec::<String>::new(), n.get_all(&5));
+    }
+    #[test]
+    /// # [`general::Map::get_all`] Test 3
+    /// Here we test the funciton when the vecdeque for the key is empty
+    fn test_3_get_all(){
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+       n.insert(&3,& "hello".to_string());
+       n.insert(&3,& "world".to_string());
+       n.insert(&3, &"chao".to_string());
+      let mut s = n.get_mut_ref_to_all(&3).unwrap();
+        s.clear();
+       assert_eq!(true, n.contains_key(&3));
+       assert_eq!(Vec::<String>::new(), n.get_all(&3));
+       assert_eq!(false, n.contains_key(&3));
+    }
+    #[test]
+    /// # [`general::Map::get_all_ref`] Test
+    fn test_get_all_ref(){
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+       n.insert_ref(&3, "hello".to_string());
+       n.insert_ref(&3, "world".to_string());
+       n.insert_ref(&3, "chao".to_string());
+       assert_eq!(["hello".to_string(), "world".to_string(), "chao".to_string()].to_vec(), n.get_all(&3));
+    }
+    #[test]
+    /// # [`general::Map::get_all_ref`] Test 2
+    /// Here we test the function when the key not exist
+    fn test_2_get_all_ref(){
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+       n.insert_ref(&3, "hello".to_string());
+       n.insert_ref(&3, "world".to_string());
+       n.insert_ref(&3, "chao".to_string());
+       assert_eq!(Vec::<String>::new(), n.get_all(&5));
+    }
+    #[test]
+    /// # [`general::Map::get_all_ref`] Test 3
+    /// Here we test the funciton when the vecdeque for the key is empty
+    fn test_3_get_all_ref(){
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+       n.insert_ref(&3, "hello".to_string());
+       n.insert_ref(&3, "world".to_string());
+       n.insert_ref(&3, "chao".to_string());
+      let mut s = n.get_mut_ref_to_all_ref(&3).unwrap();
+        s.clear();
+       assert_eq!(true, n.contains_key_ref(&3));
+       assert_eq!(Vec::<String>::new(), n.get_all(&3));
+       assert_eq!(false, n.contains_key_ref(&3));
+    }
+    #[test]
+    /// # [`general::Map::get_mut_ref_to_all`] Test
+    fn test_get_mut_ref_to_all(){
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+       n.insert_ref(&3, "hello".to_string());
+       n.insert_ref(&3, "world".to_string());
+       n.insert_ref(&3, "chao".to_string());
+       let vec_mut = n.get_mut_ref_to_all(&3).unwrap();
+       vec_mut.push_back("new_value".to_string());
+       let mut s = VecDeque::new();
+       s.push_back("hello".to_string());
+       s.push_back("world".to_string());
+        s.push_back("chao".to_string());
+        s.push_back("new_value".to_string());
+       assert_eq!(s, *n.get_ref_to_all(&3).unwrap());
+       assert_eq!(None, n.get_mut_ref_to_all(&5));
+    }
+    #[test]
+    /// # [`general::Map::get_mut_ref_to_all_ref`] Test
+    fn test_get_mut_ref_to_all_ref(){
+      
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+       n.insert_ref(&3, "hello".to_string());
+       n.insert_ref(&3, "world".to_string());
+       n.insert_ref(&3, "chao".to_string());
+       let vec_mut = n.get_mut_ref_to_all_ref(&3).unwrap();
+       vec_mut.push_back(Rc::new("new_value".to_string()));
+       let mut s = VecDeque::new();
+        s.push_back(Rc::new("hello".to_string()));
+        s.push_back(Rc::new("world".to_string()));
+        s.push_back(Rc::new("chao".to_string()));
+        s.push_back(Rc::new("new_value".to_string()));
+       assert_eq!(s, *n.get_ref_to_all_ref(&3).unwrap());
+       assert_eq!(None, n.get_mut_ref_to_all_ref(&5));
+    }
+    #[test]
+    /// # [`general::Map::get_mut_ref_to_all_some`] Test
+    fn test_get_mut_ref_to_all_some(){
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+       n.insert_some(&3, Some(10));
+       n.insert_some(&3, Some(20));
+       n.insert_some(&3, Some(30));
+       let vec_mut = n.get_mut_ref_to_all_some(&3).unwrap();
+       vec_mut.push_back(Some(40));
+       let mut s = VecDeque::new();
+        s.push_back(Some(10));
+        s.push_back(Some(20));
+        s.push_back(Some(30));
+        s.push_back(Some(40));
+       assert_eq!(s, *n.get_ref_to_all_some(&3).unwrap());
+        assert_eq!(None, n.get_mut_ref_to_all_some(&5));
+    }
+    #[test]
+    /// # [`general::Map::get_ref_to_all`] Test
+    fn test_get_ref_to_all(){
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+       n.insert(&3,& "hello".to_string());
+       n.insert(&3,& "world".to_string());
+       n.insert(&3, &"chao".to_string());
+       let mut s = VecDeque::new();
+       s.push_back("hello".to_string());
+       s.push_back("world".to_string());
+       s.push_back("chao".to_string());
+       assert_eq!(s, *n.get_ref_to_all(&3).unwrap());
+       assert_eq!(None, n.get_ref_to_all(&5));
+    }
+    #[test]
+    /// # [`general::Map::get_ref_to_all_ref`] Test
+    fn test_get_ref_to_all_ref(){
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+       n.insert_ref(&3, "hello".to_string());
+       n.insert_ref(&3, "world".to_string());
+       n.insert_ref(&3, "chao".to_string());
+       let mut s = VecDeque::new();
+       s.push_back(Rc::new("hello".to_string()));
+       s.push_back(Rc::new("world".to_string()));
+       s.push_back(Rc::new("chao".to_string()));
+       assert_eq!(s, *n.get_ref_to_all_ref(&3).unwrap());
+       assert_eq!(None, n.get_ref_to_all_ref(&5));
+    }
+    #[test]
+    /// # [`general::Map::get_ref_to_all_some`] Test
+    fn test_get_ref_to_all_some(){
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+       n.insert_some(&3, Some(10));
+       n.insert_some(&3, Some(20));
+       n.insert_some(&3, Some(30));
+       let mut s = VecDeque::new();
+       s.push_back(Some(10));
+       s.push_back(Some(20));
+       s.push_back(Some(30));
+       assert_eq!(s, *n.get_ref_to_all_some(&3).unwrap());
+       assert_eq!(None, n.get_ref_to_all_some(&5));
+    }
+    #[test]
+    /// # [`general::Map::set_value`] Test
+    fn test_set_value(){
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+       n.insert(&3,& "hello".to_string());
+       n.insert(&3,& "world".to_string());
+       n.insert(&3, &"chao".to_string());
+       n.set_value(&3, &["new_world".to_string()].to_vec());
+       let mut s = VecDeque::new();
+       s.push_back("new_world".to_string());
+       assert_eq!(s, *n.get_ref_to_all(&3).unwrap());
+  }
+  #[test]
+  /// # [`general::Map::set_value_ref`] Test
+    fn test_set_value_ref(){
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+       n.insert_ref(&3, "hello".to_string());
+       n.insert_ref(&3, "world".to_string());
+       n.insert_ref(&3, "chao".to_string());
+       n.set_value_ref(&3, ["new_world".to_string()].to_vec());
+       let mut s = VecDeque::new();
+       s.push_back(Rc::new("new_world".to_string()));
+       assert_eq!(s, *n.get_ref_to_all_ref(&3).unwrap());
+   }
+  #[test]
+  /// # [`general::Map::set_value_some`] Test
+    fn test_set_value_some(){
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+       n.insert_some(&3, Some(10));
+       n.insert_some(&3, Some(20));
+       n.insert_some(&3, Some(30));
+       n.set_value_some(&3, [Some(99)].to_vec());
+       let mut s = VecDeque::new();
+        s.push_back(Some(99));
+       assert_eq!(s, *n.get_ref_to_all_some(&3).unwrap());
+   }
+  #[test]
+  /// # [`general::Map::contains_key`] Test
+    fn test_contains_key(){
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+       n.insert_some(&3, Some(10));
+       n.insert_some(&3, Some(20));
+       n.insert_some(&3, Some(30));
+       assert_eq!(true, n.contains_key(&3));
+       assert_eq!(false, n.contains_key(&5));
+    }
+  #[test]
+  /// # [`general::Map::contains_key_ref`] Test
+    fn test_contains_key_ref(){
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+       n.insert_ref(&3, "hello".to_string());
+       n.insert_ref(&3, "world".to_string());
+       n.insert_ref(&3, "chao".to_string());
+       assert_eq!(true, n.contains_key_ref(&3));
+       assert_eq!(false, n.contains_key_ref(&5));
+
+    }
+  #[test]
+  /// # [`general::Map::contains_key_some`] Test
+    fn test_contains_key_some(){
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+       n.insert_some(&3, Some(10));
+       n.insert_some(&3, Some(20));
+       n.insert_some(&3, Some(30));
+       assert_eq!(true, n.contains_key_some(&3));
+       assert_eq!(false, n.contains_key_some(&5));
+    }
+  #[test]
+  /// # [`general::Map::set_value_element`] Test
+    fn test_set_value_element(){
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+       n.insert(&3,& "hello".to_string());
+       n.insert(&3,& "world".to_string());
+       n.insert(&3, &"chao".to_string());
+       n.set_value_element(&3, 1, &"new_world".to_string());
+       let mut s = VecDeque::new();
+        s.push_back("hello".to_string());
+        s.push_back("new_world".to_string());
+        s.push_back("chao".to_string());
+       assert_eq!(s, *n.get_ref_to_all(&3).unwrap());
+    }
+  #[test]
+  /// # [`general::Map::set_value_element_ref`] Test
+    fn test_set_value_element_ref(){
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+       n.insert_ref(&3, "hello".to_string());
+       n.insert_ref(&3, "world".to_string());
+       n.insert_ref(&3, "chao".to_string());
+       n.set_value_element_ref(&3, 1, "new_world".to_string());
+       let mut s = VecDeque::new();
+        s.push_back(Rc::new("hello".to_string()));
+        s.push_back(Rc::new("new_world".to_string()));
+        s.push_back(Rc::new("chao".to_string()));
+       assert_eq!(s, *n.get_ref_to_all_ref(&3).unwrap());
+    }
+  #[test]
+  /// # [`general::Map::set_value_element_some`] Test
+    fn test_set_value_element_some(){
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+       n.insert_some(&3, Some(10));
+       n.insert_some(&3, Some(20));
+       n.insert_some(&3, Some(30));
+       n.set_value_element_some(&3, 1, Some(99));
+       let mut s = VecDeque::new();
+        s.push_back(Some(10));
+        s.push_back(Some(99));
+        s.push_back(Some(30));
+       assert_eq!(s, *n.get_ref_to_all_some(&3).unwrap());
+    }
+  #[test]
+  /// # [`general::Map::enable_global_order`] Test
+    fn test_enable_global_order(){
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+      n.enable_global_order(false, false);
+       n.insert(&3,& "hello".to_string());
+       n.insert(&5,& "world".to_string());
+       n.insert(&2, &"chao".to_string());
+       n.insert_ref(&2, "chao".to_string());
+       n.insert_some(&2, Some(10));
+       assert_eq!([3,5,2,2,2].to_vec(), n.get_order());
+    }
+  #[test]
+  /// # [`general::Map::enable_global_order`] Test 2
+    fn test_2_enable_global_order(){
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+       n.enable_global_order(true, false);
+       n.insert(&3,& "hello".to_string());
+       n.insert(&5,& "world".to_string());
+       n.insert(&2, &"chao".to_string());
+       n.insert_ref(&5, "chao".to_string());
+       n.insert_some(&3, Some(10));
+       assert_eq!([2,5,3].to_vec(), n.get_order());   
+    }
+  #[test]
+  /// # [`general::Map::enable_global_order`] Test 3
+    fn test_3_enable_global_order(){
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+       n.enable_global_order(false, false);
+       n.insert(&3,& "hello".to_string());
+       n.insert(&5,& "world".to_string());
+       n.insert(&2, &"chao".to_string());
+       n.enable_global_order(true, false);
+       n.insert_ref(&5, "chao".to_string());
+       n.insert_some(&3, Some(10));
+       assert_eq!([2,5,3].to_vec(), n.get_order());
+    }
+  #[test]
+  /// # [`general::Map::enable_order`] Test
+    fn test_enable_order(){
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+       n.enable_order(true, false);
+       n.insert(&3,& "hello".to_string());
+       n.insert(&5,& "world".to_string());
+       n.insert(&2, &"chao".to_string());
+       n.insert_ref(&5, "chao".to_string());
+       n.insert_some(&3, Some(10));
+       assert_eq!([3,5,2].to_vec(), n.get_order());
+    }
+  #[test]
+  /// # [`general::Map::enable_order`] Test 2
+    fn test_2_enable_order(){
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+       n.enable_order(false, false);
+       n.insert(&3,& "hello".to_string());
+       n.insert(&5,& "world".to_string());
+       n.insert(&2, &"chao".to_string());
+       n.enable_order(true, true);
+       n.insert_ref(&5, "chao".to_string());
+       n.insert_some(&3, Some(10));
+       n.insert(&3, &"new_value".to_string());
+       assert_eq!([3,5,2,3].to_vec(), n.get_order());
+    }
+  #[test]
+  /// # [`general::Map::enable_order`] Test 3
+    fn test_3_enable_order(){
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+       n.enable_order(false, false);
+       n.insert(&3,& "hello".to_string());
+       n.insert(&5,& "world".to_string());
+       n.insert(&2, &"chao".to_string());
+       n.enable_order(true, false);
+       n.insert(&5, &"chao".to_string());
+       n.insert_some(&3, Some(10));
+       assert_eq!([3,2,5].to_vec(), n.get_order());
+    }
+  #[test]
+  /// # [`general::Map::enable_order_for_ref`] Test
+    fn test_enable_order_for_ref(){
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+       n.enable_order_for_ref(true, false);
+       n.insert_ref(&3, "hello".to_string());
+       n.insert_ref(&5, "world".to_string());
+       n.insert_ref(&2, "chao".to_string());
+       n.insert(&5, &"chao".to_string());
+       n.insert_some(&3, Some(10));
+       assert_eq!([3,5,2].to_vec(), n.get_order());
+    }
+  #[test]
+  /// # [`general::Map::enable_order_for_ref`] Test 2
+    fn test_2_enable_order_for_ref(){
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+       n.enable_order_for_ref(false, false);
+       n.insert_ref(&3, "hello".to_string());
+       n.insert_ref(&5, "world".to_string());
+       n.insert_ref(&2, "chao".to_string());
+       n.enable_order_for_ref(true, true);
+       n.insert(&5, &"chao".to_string());
+       n.insert_some(&3, Some(10));
+       n.insert_ref(&3, "new_value".to_string());
+       assert_eq!([3,5,2,3].to_vec(), n.get_order());
+    }
+  #[test]
+  /// # [`general::Map::enable_order_for_ref`] Test 3
+    fn test_3_enable_order_for_ref(){
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+       n.enable_order_for_ref(false, false);
+       n.insert_ref(&3, "hello".to_string());
+       n.insert_ref(&5, "world".to_string());
+       n.insert_ref(&2, "chao".to_string());
+       n.enable_order_for_ref(true, false);
+       n.insert_ref(&5, "chao".to_string());
+       n.insert_some(&3, Some(10));
+       assert_eq!([3,2,5].to_vec(), n.get_order());
+    }
+  #[test]
+  /// # [`general::Map::enable_order_for_some`] Test
+    fn test_enable_order_for_some(){
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+       n.enable_order_for_some(true, false);
+       n.insert_some(&3, Some(10));
+       n.insert_some(&5, Some(20));
+       n.insert_some(&2, Some(30));
+       n.insert(&5, &"chao".to_string());
+       n.insert_ref(&3, "hello".to_string());
+       assert_eq!([3,5,2].to_vec(), n.get_order());
+    }
+  #[test]
+  /// # [`general::Map::enable_order_for_some`] Test 2
+    fn test_2_enable_order_for_some(){
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+       n.enable_order_for_some(false, false);
+       n.insert_some(&3, Some(10));
+       n.insert_some(&5, Some(20));
+       n.insert_some(&2, Some(30));
+       n.enable_order_for_some(true, true);
+       n.insert(&5, &"chao".to_string());
+       n.insert_ref(&3, "hello".to_string());
+       n.insert_some(&3, Some(99));
+       assert_eq!([3,5,2,3].to_vec(), n.get_order());
+    }
+  #[test]
+  /// # [`general::Map::enable_order_for_some`] Test 3
+    fn test_3_enable_order_for_some(){
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+       n.enable_order_for_some(false, false);
+       n.insert_some(&3, Some(10));
+       n.insert_some(&5, Some(20));
+       n.insert_some(&2, Some(30));
+       n.enable_order_for_some(true, false);
+       n.insert_some(&5, Some(100));
+       n.insert_ref(&3, "Hello".to_string());
+       assert_eq!([3,2,5].to_vec(), n.get_order());
+    }
+  #[test]
+  /// # [`general::Map::disable_global_order`] Test
+    fn test_disable_global_order(){
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+       n.enable_global_order(true, false);
+       n.insert(&3,& "hello".to_string());
+       n.insert(&5,& "world".to_string());
+       n.insert(&2, &"chao".to_string());
+       n.disable_global_order();
+       n.insert_ref(&5, "chao".to_string());
+       n.insert_some(&3, Some(10));
+       assert_eq!([3,5,2].to_vec(), n.get_order());
+    }
+  #[test]
+  /// # [`general::Map::disable_order`] Test
+    fn test_disable_order(){
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+       n.enable_order(true, false);
+       n.insert(&3,& "hello".to_string());
+       n.insert(&5,& "world".to_string());
+       n.insert(&2, &"chao".to_string());
+       n.disable_order();
+       n.insert(&5, &"chao".to_string());
+       n.insert_some(&3, Some(10));
+       assert_eq!([3,5,2].to_vec(), n.get_order());
+    }
+  #[test]
+  /// # [`general::Map::disable_order_for_ref`] Test
+    fn test_disable_order_for_ref(){
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+       n.enable_order_for_ref(true, false);
+       n.insert_ref(&3,"hello".to_string());
+       n.insert_ref(&5, "world".to_string());
+       n.insert_ref(&2, "chao".to_string());
+       n.disable_order_for_ref();
+       n.insert_ref(&5, "chao".to_string());
+       n.insert_ref(&3, "Hello".to_string());
+       assert_eq!([3,5,2].to_vec(), n.get_order());
+    }
+  #[test]
+  /// # [`general::Map::disable_order_for_some`] Test
+    fn test_disable_order_for_some(){
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+       n.enable_order_for_some(true, false);
+       n.insert_some(&3, Some(10));
+       n.insert_some(&5, Some(20));
+       n.insert_some(&2, Some(30));
+       n.disable_order_for_some();
+       n.insert_some(&5, Some(200));
+       n.insert_some(&3, Some(100));
+       assert_eq!([3,5,2].to_vec(), n.get_order());
+    }
+  #[test]
+  /// # [`general::Map::get_order`] Test
+    fn test_get_order(){
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+       n.enable_order(false, false);
+       n.insert(&3,& "hello".to_string());
+       n.insert(&5,& "world".to_string());
+       n.insert(&2, &"chao".to_string());
+       assert_eq!([3,5,2].to_vec(), n.get_order());
+    }
+  #[test]
+  /// # [`general::Map::get_order_ref`] Test
+    fn test_get_order_ref(){
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+       n.enable_order_for_ref(false, false);
+       n.insert_ref(&3, "hello".to_string());
+       n.insert_ref(&5, "world".to_string());
+       n.insert_ref(&2, "chao".to_string());
+       let mut r = VecDeque::new();
+       r.push_back(0);
+       let mut r1 = VecDeque::new();
+       r1.push_back(1);
+       let mut r2 = VecDeque::new();
+       r1.push_back(2);
+       let mut s0 = HashMap::new();
+       s0.insert(3, r);
+       s0.insert(5, r1);
+       s0.insert(2, r2);
+       let mut s1 = HashMap::new();
+       s1.insert(0, 3);
+       s1.insert(1, 5);
+       s1.insert(2, 3);
+       assert_eq!((&s0, &s1), n.get_order_ref());
+    }
+  #[test]
+  /// # [`general::Map::remover_order`] Test
+    fn test_remover_order(){
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+       n.enable_order(false, false);
+       n.insert(&3,& "hello".to_string());
+       n.insert(&5,& "world".to_string());
+       n.insert(&2, &"chao".to_string());
+       n.remove_order();
+       let s:Vec<usize> = Vec::new();
+       assert_eq!(s, n.get_order());
+    }
+  #[test]
+  /// # [`general::Map::get_order_num`] Test
+    fn test_get_order_num(){
+      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
+       n.enable_order(false, false);
+       n.insert(&3,& "hello".to_string());
+       n.insert(&5,& "world".to_string());
+       n.insert(&2, &"chao".to_string());
+       assert_eq!(2, n.get_order_num());
+    }
+
   }
 }
 
@@ -3824,7 +4788,7 @@ pub mod formats{
        }else{
        self.map.insert(&format, &str_from_take_strict_format.to_string());
        }
-          self.format_from_str.insert(&str_from_take_strict_format.to_string(), &format);
+          self.format_from_str.insert(str_from_take_strict_format.to_string(), format.to_string());
         
        
        for i in specials{
@@ -3916,9 +4880,9 @@ pub mod formats{
      /// # Arguments
      /// * `example: &str` - String from which the strict format will be get
      /// # Return
-     /// - `Option<&VecDeque<String>>` - If the format exists, returns a reference to the Vec than contains all the formats that have this string, else returns None
-     pub fn get_format(&self, example: &str)->Option<&VecDeque<String>>{
-      self.format_from_str.get_ref_to_all(&example.to_string())
+     /// - `Option<&String>` - If the format exists, returns a reference to the format get from the string, else return None
+     pub fn get_format(&self, example: &str)->Option<&String>{
+      self.format_from_str.get(&example.to_string())
      }
 //-------------------------------------------------------------------
      /// # `get_str`
@@ -3926,7 +4890,7 @@ pub mod formats{
      /// # Arguments
      /// * `format: &str` - Strict format from which the string will be get
      /// # Return
-     /// - `Option<&VecDeque<String>>` - If the string exists, returns a reference to a vector of strings with all the strings that have this format, else returns None
+     /// - `Option<&String>` - If the string exists, returns a reference to a vector of strings with all the strings that have this format, else returns None
      pub fn get_str(&self, format: &str) ->Option<&VecDeque<String>>{
       self.map.get_ref_to_all(&format.to_string())
       }
@@ -3961,57 +4925,138 @@ pub mod formats{
         self.format_from_str.get_mut(example)
       }
 //-------------------------------------------------------------------
+      /// # `get_mut_str`
+      /// This function is used for get a mutable reference to all strings linked to a strict format
+      /// # Arguments
+      /// * `format: &str` - Strict format from which the strings will be get
+      /// # Return
+      /// - `Option<&mut VecDeque<String>>` - If the format exists, returns a mutable reference to a vector of strings with all the strings that have this format, else returns None
       pub fn get_mut_str(&mut self, format:&str)->Option<&mut VecDeque<String>>{
         self.map.get_mut_ref_to_all(&format.to_string())
       }
 //-------------------------------------------------------------------
+      /// # `get_mut_specials`
+      /// This function is used for get a mutable reference to all special characters linked to a string
+      /// # Arguments
+      /// * `string_in: &str` - String from which the special characters will be get
+      /// # Return
+      /// - `Option<&mut VecDeque<char>>` - If the string exists, returns a mutable reference to a vector of chars with all the special characters that have this string, else returns None
       pub fn get_mut_specials(&mut self, string_in:&str)->Option<&mut VecDeque<char>>{
         self.specials_for_str.get_mut_ref_to_all(&string_in.to_string())
       }
 //-------------------------------------------------------------------
+      /// # `get_mut_specials_from_a_format`
+      /// This function is used for get a mutable reference to all special characters linked to a strict format, this is useful when you before push and store a format directly and this had specials, not function with formats got from a string example
+      /// # Arguments
+      /// * `format: &str` - Strict format from which the special characters will be get
+      /// # Return
+      /// - `Option<&mut VecDeque<char>>` - If the format exists, returns a mutable reference to a vector of chars with all the special characters that have this format, else returns None
+      pub fn get_mut_specials_from_a_format(&mut self, format:&str)->Option<&mut VecDeque<char>>{
+        self.specials_for_format.get_mut_ref_to_all(&format.to_string())
+      }
+//-------------------------------------------------------------------
+      /// # `get_map_format`
+      /// This function is used for get a reference to the map that contains all the strict formats
+      /// # Return
+      /// - `&general::Map<String, String, i32>` - Returns a reference to the map that contains all the strict formats
       pub fn get_map_format(&self)->&general::Map<String, String, i32>{
         &self.map
       }
 //-------------------------------------------------------------------
+      /// # `get_mut_map_format`
+      /// This function is used for get a mutable reference to the map that contains all the strict formats
+      /// # Return
+      /// - `&mut general::Map<String, String, i32>` - Returns a mutable reference to the map that contains all the strict formats
       pub fn get_mut_map_format(&mut self)-> &general::Map<String, String, i32>{
         &mut self.map
       }
 //-------------------------------------------------------------------
+      /// # `get_map_str`
+      /// This function is used for get a reference to the map that contains all the strings linked to a strict format
+      /// # Return
+      /// - `&HashMap<String, String>` - Returns a reference to the HashMap that contains all the strings linked to a strict format
       pub fn get_map_str(&self)->&HashMap<String, String>{
         &self.format_from_str
       }
 //-------------------------------------------------------------------
+      /// # `get_mut_map_str`
+      /// This function is used for get a mutable reference to the map that contains all the strings linked to a strict format
+      /// # Return
+      /// - `&mut HashMap<String, String>` - Returns a mutable reference to the HashMap that contains all the strings linked to a strict format
       pub fn get_mut_map_str(&mut self)->&mut HashMap<String, String>{
         & mut self.format_from_str
       }
 //-------------------------------------------------------------------
+      /// # `get_map_specials`
+      /// This function is used for get a reference to the map that contains all the special characters linked to a string
+      /// # Return
+      /// - `&general::Map<String, char, i32>` - Returns a reference to the map that contains all the special characters linked to a string
       pub fn get_map_specials(&self)->&general::Map<String, char, i32>{
         &self.specials_for_str
       }
 //-------------------------------------------------------------------
+      /// # `get_mut_map_specials`
+      /// This function is used for get a mutable reference to the map that contains all the special characters linked to a string
+      /// # Return
+      /// - `&mut general::Map<String, char, i32>` - Returns a mutable reference to the map that contains all the special characters linked to a string
       pub fn get_mut_map_speciasl(&mut self)->&mut general::Map<String, char, i32>{
         &mut self.specials_for_str
       }
 //-------------------------------------------------------------------
+      /// # `get_scape`
+      /// This function is used for get a reference to the scape characters vector
+      /// # Return
+      /// - `&VecDeque<char>` - Returns a reference to the vector that contains all the scape characters
       pub fn get_scape(&self)->&VecDeque<char>{
         &self.scape
       }
 //-------------------------------------------------------------------
-      pub fn get_mut_scape(&mut self)->&mut VecDeque<char>{
-        &mut self.scape
+      /// # `set_scape`
+      /// This function is used for set the scape characters vector 
+      /// # Arguments
+      /// * `new_scape: &Vec<char>` - Vector of characters that will be set as scape characters
+      /// # Notes
+      /// - The scape characters cannot contain the or character or some reserved character like '<', '>', '\'' and '\'', for avoid ambiguities
+      /// - If the scape characters contain the or character  or some reserved character like
+      pub fn set_scape(&mut self, new_scape: &Vec<char>){
+        if new_scape.contains(&self.or) || self.chars_predet.iter().any(|x| new_scape.contains(x)){
+          println!("ERROR: The scape characters cannot contain the 'or' character or '?' or some reserved character like '<', '>', \"'\" and \"'\", the change was not made");
+        }else{
+        self.scape.clear();
+        for i in new_scape{
+          self.scape.push_back(*i);
+        }
+       }
       }
 //-------------------------------------------------------------------
+      /// # `get_or`
+      /// This function is used for get the or character
+      /// # Return
+      /// - `&char` - Returns a reference to the or character
       pub fn get_or(&self)->&char{
         &self.or
       }
 //-------------------------------------------------------------------
+      /// # `set_or`
+      /// This function is used for set the or character
+      /// # Arguments
+      /// * `new_or: char` - Character that will be set as or character
+      /// # Notes
+      /// - The or character cannot be '?' or any scape character for avoid ambiguities
+      /// - If the or character is '?' or any scape character, the change will not be made and an error message will be printed
       pub fn set_or(&mut self, new_or: char){
-        if new_or == '?'{
-          println!("ERROR: The 'or' character cannot be '?', the change was not made");
+        if new_or == '?' || self.scape.contains(&new_or) || self.chars_predet.contains(&new_or){
+          println!("ERROR: The 'or' character cannot be '?' or any scape character or some reserved character like '<', '>', \"'\" and \"'\", the change was not made");
         }
-        self.or = new_or;
+        else{self.or = new_or;}
       }
 //-------------------------------------------------------------------
+      /// # `reset`
+      /// This function is used for reset all the properties of the struct to the predeterminate values
+      /// * scape characters: ['\'] (can be modified but cannot be any in or_characters for avoid ambiguities)
+      /// * or: '|' (can be modified but cannot be '?' or any in scape_characters for avoid ambiguities)
+      /// # Notes
+      /// - This function will clear all the maps and set the scape characters and or character to the predeterminate values
       pub fn reset(&mut self){
         let mut vec = VecDeque::new();
       vec.push_back('\\');
@@ -4022,8 +5067,28 @@ pub mod formats{
         self.scape = vec;
         self.or = '|';
       }
+//--------------------------------------------------------------------
+      /// # `get_reserved_chars`
+      /// This function is used for get a reference to the reserved characters vector
+      /// # Return
+      /// - `&Vec<char>` - Returns a reference to the vector that contains all the reserved characters
+      pub fn get_reserved_chars(&self)->&Vec<char>{
+        &self.chars_predet
+      }
   }
-  pub struct Flexible{
+
+
+//---------------------------------------------------------------------------------------------------
+
+  /// # `Flexible`
+  /// This struct is used for manage and create flexible formats 
+  /// Predeterminates values:
+  /// * scape characters: ['\\'] (can be modified but cannot be any in or_characters for avoid ambiguities)
+  /// * chars reserved for strict format: ['<', '>', '\'', '\''] 
+  /// * or character: '|' (can be modified but cannot be '?' or any in scape_characters for avoid ambiguities)
+  /// # Note:
+  /// The properties and characteristics of a `flexible formats` are in the `formats` folder at the repository where you found this crate
+ pub struct Flexible{
     map: general::Map<String, String, i32>,
     format_from_str: HashMap<String, String>,
     specials_for_str: general::Map<String, char, i32>,
@@ -4032,6 +5097,8 @@ pub mod formats{
     or: char
   }
   impl Flexible{
+    /// # `new`
+    /// Create a new instance of the struct Flexible with the predeterminate values
     pub fn new()->Self{
       let mut vec = VecDeque::new();
       vec.push_back('\\');
@@ -4046,9 +5113,34 @@ pub mod formats{
       }
     }
 //-------------------------------------------------------------------
-    pub fn flexible(&mut self, str_from_take_strict_format: &str, sensible_to_upper: bool, specials: &Vec<char>, store: bool, is_a_strict_format:bool)-> Result<Option<VecDeque<String>>, (String, VecDeque<String>, VecDeque<String>)>{
+    /// # `flexible`
+    /// This function is used for create a flexible format from a string
+    /// # Arguments
+    /// * `str_from_take_flexible_format: &str` - String from which the flexible format will be created
+    /// * `sensible_to_upper: bool` - If true, the format will be sensible to upper and lower case
+    /// * `specials: &Vec<char>` - Vector of special characters that will be used in the format
+    /// * `store: bool` - If true, the format will be stored in the map
+    /// * `is_a_flexible_format: bool` - If true, the string is already as a flexible format
+    /// # Return
+    /// - `Ok(Some(String))` - If the format was created successfully, returns a string with the format generate from the example string
+    /// - `Ok(None)` - If the string is empty and is_a_flexible_format is false
+    /// - `Err((String, VecDeque<String>, String))` - If there was an error, returns a tuple with the error message, the warnings and the errors (This occurs just when is_a_flexible_format is true)
+    /// # Notes
+    /// - Use this function for create a flexible format from a string
+    /// - If the string is already a flexible format, set is_a_flexible_format to true
+    /// - If the string is not a flexible format, set is_a_flexible_format to false
+    /// - If the string is not a flexible format, the function will create the flexible format and store it in the map if store is true
+    /// - If the string is already a flexible format, the function will just verify if the format is correct and return the different options of the format and store it in the map if store is true
+    /// - If the string is empty and is_a_flexible_format is false, the function will return Ok(None)
+    /// - If the string is empty and is_a_flexible_format is true, the function will return Err with an error message
+    /// - If the specials vector is empty and the string contains 'S' or 's' and is_a_flexible_format is true, the function will return Err with an error message
+    /// * Err tuple:
+    /// - `1: String`: Serious Errors than can make a unexpected format
+    /// - `2: VecDeque<String>`: Warnings Than indicate a posible unexpected format
+    /// - `3: String`: Information than can be useful here return the format result of the proccess, with all problems and ambiguities solved and the format stored if store is true
+    pub fn flexible(&mut self, str_from_take_flexible_format: &str, sensible_to_upper: bool, specials: &Vec<char>, store: bool, is_a_flexible_format:bool)-> Result<Option<String>, (String, VecDeque<String>, String)>{
            let mut format = String::new();
-      if !str_from_take_strict_format.is_empty() && !is_a_strict_format{
+      if !str_from_take_flexible_format.is_empty() && !is_a_flexible_format{
       let mut in_scape = false;
       let mut end = HashMap::new();
       let mut in_literal = false;
@@ -4061,7 +5153,7 @@ pub mod formats{
         end.insert(vec[0].clone(), vec[1].clone());
         j+=2;
       } 
-      for i in str_from_take_strict_format.chars(){
+      for i in str_from_take_flexible_format.chars(){
 
         if in_scape{
           if !in_literal{
@@ -4130,42 +5222,49 @@ pub mod formats{
           format.push(i);
          }
         }
-         let or_options = get_or_options(&format, &self.or, &self.scape);
-      
+
        if store{
-        for format2 in &or_options{
-       if let Some(s) = self.map.get_ref_to_all(format2){
-        if !s.contains(&str_from_take_strict_format.to_string()){
-          self.map.insert(format2, &str_from_take_strict_format.to_string());
+    
+       if let Some(s) = self.map.get_ref_to_all(&format){
+        if !s.contains(&str_from_take_flexible_format.to_string()){
+          self.map.insert(&format, &str_from_take_flexible_format.to_string());
         }
        }else{
-       self.map.insert(format2, &str_from_take_strict_format.to_string());
+       self.map.insert(&format, &str_from_take_flexible_format.to_string());
        }
-       self.format_from_str.insert(str_from_take_strict_format.to_string(), format2.clone());
+       self.format_from_str.insert(str_from_take_flexible_format.to_string(), format.to_string());
        for i in specials{
-       match self.specials_for_str.get_ref_to_all(&str_from_take_strict_format.to_string()){
-         None => {self.specials_for_str.insert(&str_from_take_strict_format.to_string(), i);},
+       match self.specials_for_str.get_ref_to_all(&str_from_take_flexible_format.to_string()){
+         None => {self.specials_for_str.insert(&str_from_take_flexible_format.to_string(), i);},
          Some(r) =>{
           if !r.contains(i){
-            self.specials_for_str.insert(&str_from_take_strict_format.to_string(), i);
+            self.specials_for_str.insert(&str_from_take_flexible_format.to_string(), i);
           }
          }
         };
         } 
-       }
+       
       }
-      return Ok(Some(or_options));
-     }else if is_a_strict_format{
-      return Self::handle_format(self, str_from_take_strict_format, specials, store);
+      return Ok(Some(format));
+     }else if is_a_flexible_format{
+      return Self::handle_format(self, str_from_take_flexible_format, specials, store);
      }else{return Ok(None);}
      
     }
-
 //-------------------------------------------------------------------
-     fn handle_format(&mut self, str_from_take_strict_format:&str, specials: &Vec<char>, store:bool)->Result<Option<String>, (String, VecDeque<String>, String)>{
+      /// # `handle_format`
+      /// This function is used for handle a flexible format from a string
+      /// # Arguments
+      /// * `str_from_take_flexible_format: &str` - String from which the flexible format will be handled
+      /// * `specials: &Vec<char>` - Vector of special characters that will be
+      /// * `store: bool` - If true, the format will be stored in the map
+      /// # Return
+      /// - `Ok(Some(String))` - If the format was handled successfully, returns a format result of the proccess with all problems and ambiguities solved and the format stored if store is true
+      /// - `Err((String, VecDeque<String>, String))` - If there was an error, returns a tuple with the error message, the warnings and the errors
+     fn handle_format(&mut self, str_from_take_flexible_format:&str, specials: &Vec<char>, store:bool)->Result<Option<String>, (String, VecDeque<String>, String)>{
       let mut panic_err = String::new();
       let mut warns = VecDeque::new();
-      if str_from_take_strict_format.contains(&"S") || str_from_take_strict_format.contains(&"s") && specials.is_empty(){
+      if str_from_take_flexible_format.contains(&"S") || str_from_take_flexible_format.contains(&"s") && specials.is_empty(){
         panic_err = "Error: can't recognize the specials in the format passed if you not pass them specials, so the 'S' or 's' in the format are not be considered".to_string();
       }
       let mut sub_format = String::new();
@@ -4173,7 +5272,7 @@ pub mod formats{
       let mut last_flexible = '\0';
   
       let mut liter_str = String::new();
-      let mut temp = str_from_take_strict_format.trim().chars().peekable();
+      let mut temp = str_from_take_flexible_format.trim().chars().peekable();
       while let Some(i) = temp.next(){
            
           if i != 'S' && i != 's' && i!='L' && i!='l' && i!='W' && i!='w' && i!='U' && i!='u' && i!='N' && i!='n' && i != '|'{
@@ -4195,19 +5294,19 @@ pub mod formats{
         }
       if store{
        if let Some(s) = self.map.get_ref_to_all(&sub_format){
-        if !s.contains(&str_from_take_strict_format.to_string()){
-          self.map.insert(&sub_format, &str_from_take_strict_format.to_string());
+        if !s.contains(&str_from_take_flexible_format.to_string()){
+          self.map.insert(&sub_format, &str_from_take_flexible_format.to_string());
         }
        }else{
-       self.map.insert(&sub_format, &str_from_take_strict_format.to_string());
+       self.map.insert(&sub_format, &str_from_take_flexible_format.to_string());
        }
-       self.format_from_str.insert(str_from_take_strict_format.to_string(), sub_format.clone());
+       self.format_from_str.insert(str_from_take_flexible_format.to_string(), sub_format.clone());
        for i in specials{
-       match self.specials_for_str.get_ref_to_all(&str_from_take_strict_format.to_string()){
-         None => {self.specials_for_str.insert(&str_from_take_strict_format.to_string(), i);},
+       match self.specials_for_str.get_ref_to_all(&str_from_take_flexible_format.to_string()){
+         None => {self.specials_for_str.insert(&str_from_take_flexible_format.to_string(), i);},
          Some(r) =>{
           if !r.contains(i){
-            self.specials_for_str.insert(&str_from_take_strict_format.to_string(), i);
+            self.specials_for_str.insert(&str_from_take_flexible_format.to_string(), i);
            }
           }
          };
@@ -4218,6 +5317,12 @@ pub mod formats{
       else{return Err((panic_err, warns, sub_format));}
      }
 //-------------------------------------------------------------------
+      /// # `get_format`
+      /// This function is used for get a flexible format from a string
+      /// # Arguments
+      /// * `example: &str` - String from which the flexible format will be get
+      /// # Return
+      /// - `Option<&String>` - If the format exists, returns a reference to the format get from the string, else return None
      pub fn get_format(&self, example: &str)->Option<&String>{
       self.format_from_str.get(example)
      }
@@ -4262,7 +5367,7 @@ pub mod formats{
         &self.specials_for_str
       }
 //-------------------------------------------------------------------
-      pub fn get_mut_map_speciasl(&mut self)->&mut general::Map<String, char, i32>{
+      pub fn get_mut_map_specials(&mut self)->&mut general::Map<String, char, i32>{
         &mut self.specials_for_str
       }
 
@@ -4307,6 +5412,44 @@ pub mod formats{
 //------------------------------------------------------------------
   pub fn handle_random_order(){
     
+  }
+//------------------------------------------------------------------
+  pub fn compare_formats(formats_for_compare:Vec<&String>, format_to_compare:&String, or_delimiter: &char, literal_delimiters: &Vec<char>)/*->Option<(bool, Vec<usize>)>*/{
+    if (*or_delimiter!='\0' && *or_delimiter != '\r' && *or_delimiter!='\n') && !literal_delimiters.is_empty(){
+      if literal_delimiters.contains(or_delimiter){
+        println!("ERROR: The or delimiter cannot be a literal delimiter for avoid ambiguities");
+        return;
+      }
+    }
+    if !literal_delimiters.is_empty(){
+      if literal_delimiters.len() % 2 != 0{
+        println!("ERROR: The literal delimiters vector must be even, for generate the pair of delimiters when the right is the open delimiter and the left is the closed delimiter");
+        return;
+      }
+    }
+    for i in formats_for_compare{
+      let mut in_or = false;
+      let mut in_literal = false;
+      let mut position_options:general::Map<usize, String, usize> = general::Map::new();
+      let mut copy = i.to_string().chars().peekable();
+      let mut position = 0;
+      for (i2, n) in copy.enumerate(){
+        if n == *or_delimiter && !in_literal && !in_or{
+          position = i2;
+          in_or = true;
+        }
+        if in_or{
+          if n != *or_delimiter{
+            position_options.insert(&position, &n.to_string());
+            in_or = false;
+          }
+          continue;
+        }else{
+            position_options.insert(&i2, &n.to_string());
+        }
+      }
+    }
+
   }
     
 }
