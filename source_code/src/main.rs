@@ -1,6 +1,6 @@
 
 mod main_code;
-fn main() {
+fn main() {/* 
 //  use crate::main_code::utilities::formats;
   use crate::main_code::parsing_sintax::parser;
     //  use std::io::Write;
@@ -17,5 +17,5 @@ fn main() {
         
       
     };
-  
+  */
 }

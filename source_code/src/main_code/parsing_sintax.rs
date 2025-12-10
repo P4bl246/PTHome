@@ -1,7 +1,8 @@
+/*
 /// This module provide functions to normalize files
 /// It usees [`crate::main_code::utilities::{general, remove_comments}`] for the actual implementations. 
 /// Contains the API for the user.
-
+ 
 pub mod normalize_file{
     #![allow(unused)]
     use std::fs;
@@ -1033,3 +1034,4 @@ use std::rc::Rc;
 //------------------------------------------------------------------------------------
     pub fn parser_equialites(){}
  }
+ */
