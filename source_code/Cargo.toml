@@ -2,7 +2,7 @@
 name = "PTHome"
 version = "0.1.0"
 edition = "2024"
-description = "ParserToolHome (PTHome) is a tool to generate automatically syntax parsers for different languages or tools that require a syntax parser, similar to ANTLR (Java) or PLY (Python), but written in Rust. It aims to be faster, use less memory, and be simpler and easier to configure, while offering similar power to the mentioned tools. Suitable for small, medium, and some large projects such as compilers, interpreters, and more."
+description = "ParserToolHome (PTHome) is a tool to generate automatically syntax parsers for different languages or tools that need a syntax parser, similar to ANTLR (Java) or PLY (Python), but written in Rust. It aims to be faster, use less memory, and be simpler and easier to configure, while offering similar power to the mentioned tools. Suitable for small, medium, and large projects such as compilers, interpreters, and more."
  license = "MIT"
  repository = "https://github.com/P4bl246/PTHome"
 
