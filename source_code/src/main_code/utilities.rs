@@ -1,26 +1,26 @@
-/// # Mod `general` from `utilities.rs`
-/// This module provides general utility functions for file operations use in the soruce code of PTHome aplication.
-/// It includes functions to remove empty lines, numerate lines, skip line numbers, and others.
+/// # Mod `general`
+/// Provides general utility functions used in the source code of the PTHome application.
+/// Includes functions to manage lines, strings, data structures and vectors.
 pub mod general{
   #![allow(unused)]
     use std::fs;
     use std::io::Write;
     /// # `remove_empty_lines`
-    /// Removes empty lines from a content and return it.
+    /// Removes empty lines from the content.
     /// # Arguments
     /// * `content: &str` - The content from which empty lines will be removed.
     /// # Example
-    /// ```rust
-    /// mod main_code;
-    /// fn main (){
-    /// use crate::main_code::utilities::general;
-    /// let input_file = "example\n \n";
-    /// general::remove_empty_lines(input_file);
+    /// ```
+    /// {
+    /// use PTHome::main_code::utilities::general;
+    ///  let content = "This is a test.\n\nThis is another test.\n\n\nEnd of test.";
+    ///  let result = general::remove_empty_lines(content);
+    ///  let expected = "This is a test.\nThis is another test.\nEnd of test.\n";
+    ///  assert_eq!(result, expected);
     /// }
     /// ```
-    /// The result is a file withouth empty lines.
-    /// # Errors
-    /// If the file cannot be read or written, the function will panic with an error message.
+    /// # Return
+    /// A copy of the content without empty lines.
    pub fn remove_empty_lines(content: &str) -> String{
     println!("REMOVING VOID LINES");
      let mut new_content = String::new();
@@ -37,7 +37,7 @@ pub mod general{
      println!("VOID LINES REMOVED");
      return new_content;
    }
-//------------------------------------------------------------------------------------------
+ //------------------------------------------------------------------------------------------
     /// # `num_lines`
     /// A struct to hold the configuration for the `NumLines` instance and his metods.
      pub struct NumLines<'a> {
@@ -47,54 +47,53 @@ pub mod general{
     
     /// # `impl num_lines`
     /// This implementation provides methods to handle line numbers in a file.
-    /// It includes functions to push and remove line numbers, skip line numbers, and get the current line number.
-    /// Include setters an getters
-    /// * `get_input_file`
-    /// * `get_delimiter`
-    /// * `set_input_file`
-    /// * `set_delimiter`
+    /// Includes functions to add and remove line numbers, skip line numbers, and get the current line number.
+    /// Setters an getters:
+    /// * [`crate::main_code::utilities::general::NumLines::get_content`]
+    /// * [`crate::main_code::utilities::general::NumLines::get_delimiter`]
+    /// * [`crate::main_code::utilities::general::NumLines::set_content`]
+    /// * [`crate::main_code::utilities::general::NumLines::set_delimiter`]
     impl<'a> NumLines<'a>{
     /// # `new`
     /// Creates a new instance of `NumLines`.
     /// # Arguments
-    /// * `content: &'a str` - The str to be processed.
+    /// * `content: &'a str` - The string to be processed.
     /// * `delimiter: &'a str` - The delimiter to be used for line numbering.
     /// # Example
     /// ```rust
-    /// mod main_code;
-    /// fn main (){
-    /// use crate::main_code::utilities::general;
-    /// let instance = general::NumLines::new("example\n   \nsdf", " - ");
+    /// {
+    /// use PTHome::main_code::utilities::general;
+    ///  let instance = general::NumLines::new("example\n   \nsdf", " - ");
+    ///  assert_eq!(instance.get_content(), "example\n   \nsdf");
     /// }
     /// ```
     /// # Return
-    /// Returns a new instance of `NumLines` with the specified input file and delimiter.
+    /// Returns a new instance of `NumLines` with the specified input and delimiter.
     /// # IMPORTANT
     /// If don't want use a delimiter just use an empty string `""`.
-    /// **NOTE:** The default delimiter is an space `' '`
+    /// **NOTE:** The default delimiter is an space `' '`.
     pub fn new(content: &'a str, delimiter: &'a str) -> Self{
       Self {
         content:content,
         delimiter:delimiter,
       }
     }
-//---------------------------------------------------------------------
+ //---------------------------------------------------------------------
        /// # `numerate_lines`
-       /// Numerates the lines of `content` and return a String with the `content` numerate
+       /// Numerates the lines of `content` and returns a String with the `content` numerated.
        /// # Example
        /// ```rust
-       /// mod main_code;
-       /// fn main (){
-       /// use crate::main_code::utilities::general;
-       /// 
+       /// {
+       /// use PTHome::main_code::utilities::general;
        /// let mut instance = general::NumLines::new("example.txt", " - ");
        /// let numerate = instance.numerate_lines();
        /// //Upload content just as here
        /// instance.set_content(&numerate);
+       /// assert_eq!(instance.get_content(), "1 - example.txt\n");
        /// }
        /// ```
        /// # Return
-       /// String with the `content` str numerated
+       /// A string with the `content` numerated.
        pub fn numerate_lines(&self) -> String{
         println!("NUMERATING LINES FROM CONTENT");
         let mut new_content = String::new();
@@ -116,24 +115,24 @@ pub mod general{
         println!("LINES NUMERATED FROM CONTENT");
         return new_content;
     }
-//---------------------------------------------------------------------
+ //---------------------------------------------------------------------
         /// # `remove_num_lines`
-        /// Removes line numbers from `content`. Recomended use this just if you use before the function `numerate_lines` and upload `content`.
+        /// Removes line numbers from `content`. It is recommended to use this only if you used the method `numerate_lines` and update the `content`.
         /// # Example
         /// ```rust
-        /// mod main_code;
-        /// fn main (){
-        /// use crate::main_code::utilities::general;
-        /// let instance = general::NumLines::new("example.txt", " - ");
-        /// let mut rmv_num = instance.remove_num_lines();
-        /// //Upload content just as here
-        /// instance.set_content(&rmv_num);
-        /// let removed = instace.remove_num_lines();
-        /// }   
+        /// {
+        /// use PTHome::main_code::utilities::general;
+        ///  let mut instance = general::NumLines::new("example.txt", " - ");
+        ///  let mut rmv_num = instance.numerate_lines();
+        ///  //Upload content just as here
+        ///  instance.set_content(&rmv_num);
+        ///  let removed = instance.remove_num_lines();
+        ///  assert_eq!(removed, "example.txt\n");
+        /// }
         /// ```
         /// # Return
-        /// String with the `content` cleaned of numeber of lines
-        /// The same content if the `content` haven't any delimiter
+        /// * A string with the `content` cleaned of number of line.
+        /// * The same content if the `content` haven't any delimiter.
         pub fn remove_num_lines(&self) -> String{
             println!("REMOVING LINE NUMBERS FROM CONTENT");
             let mut new_content = String::new();
@@ -160,25 +159,23 @@ pub mod general{
             println!("LINE NUMBERS REMOVED FROM CONTENT");
             return new_content;
         }
-//---------------------------------------------------------------------
+ //---------------------------------------------------------------------
         /// # `skip_num_line`
-        /// Skips the line number in str. Use this just if you use before the function `numerate_lines`.
+        /// Skips the line number in the string. It is recommended to use this only if you used the method `numerate_lines`.
         /// # Arguments
         /// * `line: &str` - The line from which the line number will be skipped.
         /// # Example
         /// ```rust
-        /// mod main_code;
-        /// fn main (){
-        /// use crate::main_code::utilities::fn_num_lines;
-        /// let input_file = general::NumLines::new("example.txt", " - ");
-        /// 
-        /// let all_after_num_line = input_file.skip_num_line("1 - This is a test line.");
-        /// println!("Line without number: {}", all_after_num_line);
+        /// {
+        /// use PTHome::main_code::utilities::general;
+        /// let ins = general::NumLines::new("example.txt", " - ");
+        /// let all_after_num_line = ins.skip_num_line("1 - This is a test line.");
+        /// assert_eq!(all_after_num_line, "This is a test line.");
         /// }
         /// ```
         /// # Return
-        /// Return a `String` with the line without the line numbers.
-        /// Return the same line if the delimiter is not found.
+        /// * Return a `String` without the line number.
+        /// * Return the same line if the delimiter is not found.
         pub fn skip_num_line(&self, line:&str) -> String{
             let mut new_content = String::new();
             if self.delimiter.is_empty(){
@@ -196,27 +193,26 @@ pub mod general{
                 
             return new_content; 
         }
-//---------------------------------------------------------------------
+ //---------------------------------------------------------------------
         /// # `get_num_line`
-        /// Gets the current line number from a str.
+        /// Gets the current line number from a string.
         /// # Arguments
         /// * `line: &str` - The line from which the current line number will be extracted.
         /// 
         /// # Example
         /// ```rust
-        /// mod main_code;
-        ///fn main (){
-        /// use crate::main_code::utilities::fn_num_lines;
-        /// let input_file = general::NumLines::new("example.txt", " - ");
-        /// let current_line = input_file.get_num_line("1 - This is a test line.");
-        /// println!("Current line number: {}", current_line);
+        /// {
+        /// use PTHome::main_code::utilities::general;
+        /// let ins = general::NumLines::new("example.txt", " - ");
+        /// let current_line = ins.get_num_line("1 - This is a test line.");
+        /// assert_eq!(current_line, 1);
         /// }
         /// ```
         /// # Return
-        /// Returns the current line number as a `i32`.
-        /// If the delimiter is not found, it returns an empty -1
+        /// * Returns the current line number as a `i32`.
+        /// * If the delimiter is not found returns -1.
         /// # Errors
-        /// If the line number cannot be parsed, the function will panic with an error message.
+        /// * If the line number cannot be convert, the function will returns panic with an error message.
         pub fn get_num_line(&self, line:&str) -> i32{
             let mut new_content = String::new();
             if self.delimiter.is_empty(){
@@ -233,15 +229,15 @@ pub mod general{
             }
             return new_content.parse().expect(&format!("Error trying to parse the line number from '{}'", new_content));
         }
-//---------------------------------------------------------------------   
-       /// # `get_input_file`
+ //---------------------------------------------------------------------   
+       /// # `get_content`
        /// Gets the content.
        /// # Return
        /// Returns the content as a `String`.
        pub fn get_content(&self) -> String{
             self.content.to_string()
         }
-//---------------------------------------------------------------------
+ //---------------------------------------------------------------------
        /// # `get_delimiter`
        /// Gets the delimiter used for line numbering.
        /// # Return
@@ -249,35 +245,35 @@ pub mod general{
        pub fn get_delimiter(&self) -> String{
             self.delimiter.to_string()
         }
-//---------------------------------------------------------------------
+ //---------------------------------------------------------------------
        /// # `set_content`
-       /// Sets the input file path.
+       /// Sets the content stored.
        /// # Arguments
-       /// * `new_value: &'a str` - The new content to from make set.
+       /// * `new_value: &'a str` - The new content.
        /// # Example
        /// ```rust
-       /// mod main_code;
-       /// fn main (){
-       /// use crate::main_code::utilities::general;
-       /// let mut input_file = general::NumLines::new("example.txt", " - ");
-       /// input_file.set_content("new_example.txt");
+       /// {
+       /// use PTHome::main_code::utilities::general;
+       /// let mut ins = general::NumLines::new("example.txt", " - ");
+       /// ins.set_content("new_example.txt");
+       /// assert_eq!(ins.get_content(), "new_example.txt");
        /// }
        /// ```
        pub fn set_content(&mut self, new_value:&'a str){
             self.content = new_value;
         }
-//---------------------------------------------------------------------
+ //---------------------------------------------------------------------
        /// # `set_delimiter`
-       /// Sets the delimiter
+       /// Sets the delimiter.
        /// ## Arguments 
-       /// * `delimiter: &'a str` - The new delimiter to be set.
+       /// * `delimiter: &'a str` - The new delimiter.
        /// # Example  
        /// ```rust
-       /// mod main_code;
-       /// fn main (){
-       /// use crate::main_code::utilities::general;
-       /// let mut input_file = general::NumLines::new("example.txt", " - ");
-       /// input_file.set_delimiter(" | ");
+       /// {
+       /// use PTHome::main_code::utilities::general;
+       /// let mut ins = general::NumLines::new("example.txt", " - ");
+       /// ins.set_delimiter(" | ");
+       /// assert_eq!(ins.get_delimiter(), " | ");
        /// }
        /// ```
        pub fn set_delimiter(&mut self, new_value:&'a str){
@@ -285,30 +281,27 @@ pub mod general{
        }
        
     }
-//------------------------------------------------------------------------------------------
+ //------------------------------------------------------------------------------------------
     /// # `all_appears_index`
-    /// Finds all occurrences of a substring in a string and returns their indexes.
+    /// Finds all the appearances of a substring in a string and returns their indexes.
     /// # Arguments
-    /// * `input_str: &str` - The string in which to search for the substring.
+    /// * `input_str: &str` - Where search the substring.
     /// * `search_str: &str` - The substring to search for.
     /// # Example
     /// ```rust 
-    /// #[derive(Debug)]
-    /// mod main_code;
-    /// fn main (){ 
-    /// use crate::main_code::utilities::general;
+    /// { 
+    /// use PTHome::main_code::utilities::general;
     /// let input_str = "This is a test string. This is another test string.";
     /// let search_str = "test";
     /// let indexes = general::all_appears_index(input_str, search_str);
-    /// println!("Indexes of '{}' in '{}': {:?}", search_str, input_str, indexes);
+    /// assert_eq!(indexes, vec![10, 39]);
     /// }
     /// ```
-    /// The result is a vector with the indexes of all occurrences of the substring in the string.
     /// # Return
-    /// Returns a vector of `usize` containing the indexes of all occurrences of the substring in the string.
-    /// If the substring or the string is empty, it returns an empty vector.
+    /// * Returns a vector of `usize` containing the indexes of all occurrences of the substring in the string.
+    /// * If the substring or the string is empty, it returns an empty vector.
     /// # Errors
-    /// If the input string or the search string is empty, the function will return an empty vector.
+    /// If the input string or the search string was empty, the function will returns an empty vector.
   pub fn all_appears_index(input_str:&str, search_str: &str) -> Vec<usize>{
     let mut indexes = Vec::new();
     let mut copy = input_str.to_string();
@@ -330,7 +323,7 @@ pub mod general{
     return indexes;
      
   }
-//------------------------------------------------------------------------------------------
+ //------------------------------------------------------------------------------------------
   /// # `sub_vec`
   /// Returns a sub-vector from a given vector starting at a specified index and taking a specified number of elements.
   /// # Arguments
@@ -339,12 +332,11 @@ pub mod general{
   /// * `start_index: usize` - The index at which to start taking elements from the vector.
   /// # Example
   /// ```rust
-  /// mod main_code;
-  /// fn main (){
-  /// use crate::main_code::utilities::general;
+  /// {
+  /// use PTHome::main_code::utilities::general;
   /// let vec = vec![1, 2, 3, 4, 5];
   /// let sub_vec = general::sub_vec(&vec, 3, 1);
-  /// println!("Sub-vector: {:?}", sub_vec);  
+  /// assert_eq!(sub_vec, vec![2, 3, 4]); 
   /// }
   /// ```
   /// The result is a sub-vector containing the specified number of elements starting from the specified index.
@@ -370,23 +362,24 @@ pub mod general{
     let sub_vec = vec[start_i..start_i+num_elements].to_vec();
     return sub_vec;
   }
-//-----------------------------------------------------------------------------------------------
+ //-----------------------------------------------------------------------------------------------
   /// # `str_of_n_str`
-  /// Create a string of n leng from other string
+  /// Create a string of n length from other string.
   /// # Arguments
-  /// * `str_use:&str` - String to use for generate the new string
-  /// * `len_new_str:usize` - Indicate the length of the new string
+  /// * `str_use:&str` - String which will be used for make the new string.
+  /// * `len_new_str:usize` - The length of the new string.
   /// # Return
-  /// A string with n length, all his content are the `str_use`
+  /// A string with n length, all his content are the `str_use`.
   /// # Example 
   /// ```rust
-  /// mod main_code;
-  /// fn main(){
-  /// use crate::main_code::utilities::general;
+  /// {
+  /// use PTHome::main_code::utilities::general;
   /// let str = general::str_of_n_str("S", 5);
-  /// println!("{}", str); //result is "SSSSS"
+  /// assert_eq!(str, "SSSSS");
   /// }
   /// ``` 
+  /// # Return 
+  /// A string with n length, where all its content is made from the `str_use`.
   pub fn str_of_n_str(str_use: &str, len_new_str: usize) -> String{
      let mut new = String::new();
      let mut i = 0;
@@ -396,26 +389,29 @@ pub mod general{
      }
      return new;
   }
-//-----------------------------------------------------------------------------------------------
+ //-----------------------------------------------------------------------------------------------
    /// # `replace_index`
-   /// Replace a character with his index in a string
+   /// Replace a character with his index in a string.
    /// # Arguments
-   /// * `str_in:&str` - string to remove the character
-   /// * `repalce:&str` - string for replace
-   /// * `index:usize` - index to replace
+   /// * `str_in:&str` - String to remove the character.
+   /// * `repalce:&str` - String for replace.
+   /// * `index:usize` -Index to replace.
    /// # Return
-   /// The input string if `str_in` or `replace` is empty
-   /// A String with the index replaced
-   ///   /// # Example 
-  /// ```rust
-  /// mod main_code;
-  /// fn main(){
-  /// use crate::main_code::utilities::general;
-  /// let main_str = "Hello. This is my show?";
-  /// let str = general::replace_index(main_str.find("?").unwrap(), "!");
-  /// println!("{}", str); //result is "Hello. This is my show!"
-  /// }
-  /// ``` 
+   /// The input string if `str_in` or `replace` is empty.
+   /// A String with the index replaced.
+   /// # Example 
+   /// ```rust
+   /// {
+   /// use PTHome::main_code::utilities::general;
+   /// let main_str = "Hello. This is my show?";
+   /// let mut str = general::replace_index(main_str, "!", main_str.find("?").unwrap());
+   /// str = general::replace_index(&str, "the hour of the ", str.find("my").unwrap()); // 'y' is part of "my"; when we replace 'm', the 'y' remains.
+   /// assert_eq!(str, "Hello. This is the hour of the y show!");
+   /// }
+   /// ``` 
+   /// # Return 
+   /// * The input string if `str_in` or `replace` is empty, or index is greather than the lenght from the input string.
+   /// * A String with the index replaced.
   pub fn replace_index(str_in: &str, replace: &str, index: usize)-> String{
     if str_in.is_empty(){
       return str_in.to_string();
@@ -435,15 +431,15 @@ pub mod general{
     }
     return new_str;
   }
-//-------------------------------------------------------------------------------------------------
+ //-------------------------------------------------------------------------------------------------
   //// # `ordered_combination`
-  /// Create a ordered combination of two vectors of strings where the elements of the first vector are combinated with all the elements of the second vector for each of elements from the first vector
+  /// Create a ordered combination of two vectors of strings where each element from the first vector are merge with each element from the second vector.
   /// # Arguments
-  /// * `vecs: (&Vec<String>, &Vec<String>)` - Tuple with two vectors of strings
-  /// - `Vec<String>` - First vector of strings this will be the first part of the combination
-  /// - `Vec<String>` - Second vector of strings this will be the second part of the combination
+  /// * `vecs: (&Vec<String>, &Vec<String>)` - Tuple with two vectors of strings.
+  /// - `Vec<String>` - First vector for the combination.
+  /// - `Vec<String>` - Second vector for the combination.
   /// # Return
-  /// A vector of strings with the ordered combination of the two input vectors 
+  /// A vector of strings with the ordered combination made from the two input vectors.
   pub fn ordered_combination(vecs:(&Vec<String>, &Vec<String>))->Vec<String>{
     let mut sub_vec:Vec<String> = Vec::new();
     if vecs.0.is_empty(){
@@ -458,17 +454,17 @@ pub mod general{
     }
     return sub_vec;
   }
-//-------------------------------------------------------------------------------------------------
+ //-------------------------------------------------------------------------------------------------
 use std::collections::HashMap;
 use std::hash::Hash;
 use std::collections::VecDeque;
 use std::collections::hash_map::{Keys, IterMut, Iter};
 use std::rc::Rc;
 /// # `Map<T, U, F>`
-/// Map for support multiples values for a same key in a HashMap, with the same temporary complexity (O(1) aproximately)
+/// Map supports multiples values for a key, with the similar temporary complexity from the HashMaps (O(1) aproximately).
 /// # Note  
-/// Here we call `queue` a vector of values for a key, enable the support for multiples values for the same key. The values insert in vector are in last input in the 
-/// last field and for extract in FIFO order, properties from a `queue`
+/// Here we call `queue` a vector which stored values for a key, enabling support multiples values for the same key. 
+/// The values will be extracted in FIFO order (properties from a `queue`).
  #[derive(Debug)]
  #[derive(Clone)]
 pub struct Map<T, U, F>
@@ -497,7 +493,7 @@ where
   U: Clone + PartialEq
  {
   /// # `new`
-  /// Create a new instance of Map struct
+  /// Create a new instance of the Map struct.
   pub fn new() -> Self{
     Self{
       hash: HashMap::new(),
@@ -519,21 +515,21 @@ where
   
   //--------------------------------------------
   /// # `insert`
-  /// Insert a new element in the HashMap of copies, if the key exist and has some value the value to insert goes to the queue of that key 
+  /// Inserts a new element in the HashMap of copies, if the key exists the element to be inserted goes to the end of the queue. 
   /// # Arguments
-  /// * `key: &T` - Key of the Value
-  /// * `value: &U` - Value of the key
-  /// # IMPORTANT IF YOU ENABLE THE INSERTION HISTORY 
-  /// The order is in the same vector, so if you select push all the inserts of the key in the order and after change for just last insert for key, all values store before are be removed and just store the last insert for key,
-  /// if you want avoid this active the 'preserve before' flag.
-  /// And the order not distingue between insertion in hash of clones, insertion in hash of refs or insertion in hash of some
-  pub fn insert(&mut self, key: &T, value: &U){
+  /// * `key: &T` - Key of the Value.
+  /// * `element: &U` - Element to insert.
+  /// # IMPORTANT ONLY IF YOU ENABLED THE INSERTION HISTORY 
+  /// The order is in the same vector, so if you select put all the inserts of the key in the order and after change for just last insert for key, all elements stored will be removed and just stored the last insertion for each key,
+  /// if you want to avoid this behavior enables the 'preserve_before' flag.
+  /// And the order do not distingues between insertions in hash of clones, insertions in hash of refs or insertions in hash of some.
+  pub fn insert(&mut self, key: &T, element: &U){
     if let Some(vec) = self.hash.get_mut(key){
-      vec.push_back(value.clone());
+      vec.push_back(element.clone());
     }
     else{
         let mut vec_new = VecDeque::new();
-      vec_new.push_back(value.clone());
+      vec_new.push_back(element.clone());
       self.hash.insert(key.clone(),vec_new);
       }
       if self.order_hash{
@@ -589,22 +585,22 @@ where
   }
 
   /// # `insert_ref`
-  /// Insert a new element in the HashMap of references, if the key exist and has some value the value to insert goes to the queue of that key 
+  /// Inserts a new element in the HashMap of references, if the key exists the element to be inserted goes to the end of the queue. 
   /// # Arguments
-  /// * `key: &T` - Key of the Value
-  /// * `value: &U` - Value of the key
-  /// # IMPORTANT IF YOU ENABLE THE INSERTION HISTORY 
-  /// The order is in the same vector, so if you select push all the inserts of the key in the order and after change for just last insert for key, all values store before are be removed and just store the last insert for key,
-  /// if you want avoid this active the 'preserve before' flag.
-  /// And the order not distingue between insertion in hash of clones, insertion in hash of refs or insertion in hash of some
-  pub fn insert_ref(&mut self, key: &T, value: U){
+  /// * `key: &T` - Key of the element.
+  /// * `element: &U` - Element to insert.
+  /// # IMPORTANT ONLY IF YOU ENABLED THE INSERTION HISTORY 
+  /// The order is in the same vector, so if you select put all the inserts of the key in the order and after change for just last insert for key, all elements stored will be removed and just stored the last insertion for each key,
+  /// if you want to avoid this behavior enables the 'preserve_before' flag.
+  /// And the order do not distingues between insertions in hash of clones, insertions in hash of refs or insertions in hash of some.
+  pub fn insert_ref(&mut self, key: &T, element: U){
     if let Some(vec) = self.hash_ref.get_mut(key){
-      vec.push_back(Rc::new(value));
+      vec.push_back(Rc::new(element));
     }
     else{
     let mut vec_new = VecDeque::new();
-    let ref_value = Rc::new(value);
-      vec_new.push_back(ref_value.clone());
+    let ref_element = Rc::new(element);
+      vec_new.push_back(ref_element.clone());
       self.hash_ref.insert(key.clone(),vec_new);
       }
     if self.order_hash_ref{
@@ -660,23 +656,23 @@ where
   }
 
   /// # `insert_some`
-  /// Insert a new element in the HashMap of random values, if the key exist and has some value the value to insert goes to the queue of that key 
+  /// Inserts a new element in the HashMap of random elements, if the key exist and has some element the element to insert goes to the queue of that key. 
   /// # Arguments
-  /// * `key: &T` - Key of the Value
-  /// * `value: F` - Value of the key
-  /// # IMPORTANT IF YOU ENABLE THE INSERTION HISTORY
-  /// The order is in the same vector, so if you select push all the inserts of the key in the order and after change for just last insert for key, all values store before are be removed and just store the last insert for key,
-  /// if you want avoid this active the 'preserve before' flag.
-  /// And the order not distingue between insertion in hash of clones, insertion in hash of refs or insertion in hash of some
-  pub fn insert_some(&mut self, key:&T, value:F){
+  /// * `key: &T` - Key of the element.
+  /// * `element: F` - Element to insert.
+  /// # IMPORTANT ONLY IF YOU ENABLED THE INSERTION HISTORY
+  /// The order is in the same vector, so if you select put all the inserts of the key in the order and after change for just last insert for key, all elements stored will be removed and just stored the last insert for each key,
+  /// if you want to avoid this behavior enables the 'preserve_before' flag.
+  /// And the order do not distingues between insertions in hash of clones, insertions in hash of refs or insertions in hash of some.
+  pub fn insert_some(&mut self, key:&T, element:F){
       match self.hash_some.get_mut(key){
         None=>{
           let mut new_vec = VecDeque::new();
-          new_vec.push_back(value);
+          new_vec.push_back(element);
           self.hash_some.insert(key.clone(), new_vec);
         }
         Some(i)=>{
-          i.push_back(value);
+          i.push_back(element);
         }
       };
       if self.order_hash_some{
@@ -734,12 +730,12 @@ where
 
   //---------------------------------------------
   /// # `get`
-  /// Get the value for some key
+  /// Gets the first element from some key.
   /// # Arguments
-  /// * `key: &T` - key for get the value
+  /// * `key: &T` - key to get the element.
   /// # Return    
-  /// * `None` - If this key not exist
-  /// * `&U` - A reference of the value
+  /// * `None` - If the key does not exist.
+  /// * `&U` - A reference to the element.
   pub fn get(&self, key: &T)-> Option<&U>{
    match &mut self.hash.get(key){
     Some(i) => i.front(),
@@ -748,12 +744,12 @@ where
   }
  
   /// # `get_ref`
-  /// Get the value for this key in the HashMap of references
+  /// Gets the first element from some key in the HashMap of references.
   /// # Arguments
-  /// * `key: &T` - key for get the value
+  /// * `key: &T` - key to get the element.
   /// # Return    
-  /// * `None` - If this key not exist
-  /// * `Some(&U)` - A reference of the value
+  /// * `None` - If the key does not exist.
+  /// * `Some(&U)` - A reference to the element.
   pub fn get_ref(&self, key: &T)-> Option<&U>{
    match &mut self.hash_ref.get(key){
     Some(i) => {
@@ -768,12 +764,12 @@ where
   }
 
   /// # `get_some`
-  /// Get the value for this key in the HashMap of random values
+  /// Gets the frist element from some key in the HashMap of random elements.
   /// # Arguments
-  /// * `key: &T` - key for get the value
+  /// * `key: &T` - key to get the element.
   /// # Return
-  /// * `None` - If this key not exist
-  /// * `Some(&F)` - A reference of the value
+  /// * `None` - If the key does not exist.
+  /// * `Some(&F)` - A reference to the element.
   pub fn get_some(&self, key:&T)->Option<&F>{
     if let Some(vec) = self.hash_some.get(key){
       return vec.front();
@@ -785,9 +781,9 @@ where
 
   //----------------------------------------------
   /// # `remove` 
-  /// Remove the first element in the HashMap and replace this with the next element on the queue
+  /// Removes the first element in the HashMap and replaces it with the next element in the queue.
   /// # Arguments  
-  /// * `key: &T` - Key for search and remove the key from the HashMap
+  /// * `key: &T` - Key to altering its queue.
   pub fn remove(&mut self, key: &T){
     if let Some(replace) = self.hash.get_mut(key){ 
        if replace.len() > 0{replace.pop_front();}
@@ -796,9 +792,9 @@ where
   }
   
   /// # `remove_ref` 
-  /// Remove the first element in the HashMap of references and replace this with the next element in the queue of that key
+  /// Removes the first element in the HashMap of references and replaces it with the next element in the queue.
   /// # Arguments  
-  /// * `key: &T` - Key for search and remove the key from the HashMap
+  /// * `key: &T` - Key to altering its queue.
   pub fn remove_ref(&mut self, key: &T){
       if let Some(replace) = self.hash_ref.get_mut(key){ 
        if replace.len() > 0{replace.pop_front();}
@@ -807,12 +803,9 @@ where
   }
   
   /// # `remove_some`
-  /// Remove the first element in the HashMap of random values and replace this with the next element in the queue of that key
+  /// Remove the first element in the HashMap of random items and replaces it with the next element in the queue.
   /// # Arguments
-  /// * `key: &T` - Key for search and remove the key from the HashMap
-  /// # Return
-  /// * `None` - If this key not exist
-  /// * `Some(&F)` - A reference of the value
+  /// * `key: &T` - Key to altering its queue.
   pub fn remove_some(&mut self, key:&T){
     if let Some(vec) = self.hash_some.get_mut(key){
       vec.pop_front();
@@ -824,9 +817,9 @@ where
 
   //----------------------------------------------
   /// # `remove_all`
-  /// Remove a key from the HashMap of copies inclusive if thath have more values in his queue
+  /// Removes a key from the HashMap of copies even if that has more elements in its queue.
   /// # Arguments   
-  /// * `key: &T` - Key to remove
+  /// * `key: &T` - Key to remove.
   pub fn remove_all(&mut self, key: &T){
     if self.hash.contains_key(key){
       self.hash.remove(key);
@@ -834,9 +827,9 @@ where
   }
   
   /// # `remove_all_ref`
-  /// Remove a key from the HashMap of references inclusive if thath have more values in his queue
+  /// Removes a key from the HashMap of references even if that has more elements in its queue.
   /// # Arguments   
-  /// * `key: &T` - Key to remove
+  /// * `key: &T` - Key to remove.
   pub fn remove_all_ref(&mut self, key: &T){
     if self.hash_ref.contains_key(key){
       self.hash_ref.remove(key);
@@ -844,9 +837,9 @@ where
   }
 
   /// # `remove_all_some`
-  /// Remove a key from the HashMap of random values inclusive if thath have more values in his queue
+  /// Removes a key from the HashMap of random elements even if that has more elements in its queue.
   /// # Arguments
-  /// * `key: &T` - Key to remove
+  /// * `key: &T` - Key to remove.
   pub fn remove_all_some(&mut self, key:&T){
     if self.hash_some.contains_key(key){
     self.hash_some.remove(key);
@@ -856,11 +849,11 @@ where
 
   //----------------------------------------------
   /// # `get_all`
-  /// Get all the values assigned for that key 
+  /// Gets all the elements in the key queue.
   /// # Arguments
-  /// * `key:&T` - Key for get his values in his queue and create and return a vector
+  /// * `key:&T` - key to taking the elements in its queue and putting them into a vector.
   /// # Return 
-  /// A empty vector if this key not exist, else a vector with the values for that key in his the queue
+  /// A empty vector if this key does not exist, else a vector with the values for that key in his the queue.
   pub fn get_all(&mut self, key: &T)-> Vec<U>{
     let mut vec_ret = Vec::new();
     if let Some(i)  = self.hash.get(key){
@@ -875,11 +868,11 @@ where
   }
   
   /// # `get_all_ref`
-  /// Get all the values of that key in the HashMap of references
+  /// Get all the values of that key in the HashMap of references.
   /// # Arguments
-  /// * `key:&T` - Key for get his queue and create and return the vector
+  /// * `key:&T` - key to taking the elements in its tail and putting them into a vector.
   /// # Return 
-  /// A empty vector if the key not exist, else a vector with the values in the queue for that key
+  /// A empty vector if the key does not exist, else a vector with the values in the queue for that key.
   pub fn get_all_ref(&mut self, key: &T)-> Vec<U>{
     let mut vec_ret = Vec::new();
     
@@ -897,22 +890,22 @@ where
 
   //----------------------------------------------
   /// # `get_mut_ref_to_all`
-  /// For get a mutable reference to VecDeque for this key
+  /// Gets a mutable reference to the VecDeque (queue) of the key.
   /// # Arguments
-  /// * `key:&T` - Key to get the VecDeque
+  /// * `key:&T` - Key to getting its VecDeque.
   /// # Return
-  /// * `None` - If the key not exist
-  /// * `Some(&mut VecDeque<U>)` - Mutable referencie to VecDeque vector
+  /// * `None` - If the key does not exist.
+  /// * `Some(&mut VecDeque<U>)` - Mutable referencie to VecDeque vector.
   /// # IMPORTANT
-  /// If you use this option, you need to know what is a VecDeque and his propierties, for avoid break the HashMap and the vector
+  /// If you use this option, you need to know what is a VecDeque and his propierties, for avoid break the HashMap and the vector.
   pub fn get_mut_ref_to_all(&mut self, key: &T) -> Option<&mut VecDeque<U>>{
     self.hash.get_mut(key)
   }
   
   /// # `get_mut_ref_to_all_ref`
-  /// For get a mutable referencie to VecDeque for that key
+  /// Gets a mutable reference to the VecDeque (queue) of the key.
   /// # Arguments
-  /// * `key:&T` - Key to get the VecDeque
+  /// * `key:&T` - Key to getting its VecDeque
   /// # Return
   /// * `None` - if the key not exist
   /// * `Some(&mut VecDeque<Rc<U>>) - Mutable reference to VecDeque vector, the values into the VecDeque are Rc<U>
@@ -1872,8 +1865,8 @@ where
   }
   */
 }
-
 //------------------------------------------------------------------
+
 /// # Mod `remove_comments` from `utilities.rs`
 /// This module provides functions to remove comments from files.   
 pub mod remove_comments{
