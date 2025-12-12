@@ -212,17 +212,17 @@
      assert_eq!(["hello".to_string(), "world".to_string(), "chao".to_string()].to_vec(), n.get_all_ref(&3));
    }
     #[test]
-    /// # [`general::Map::insert_some`] Test
-    fn test_insert_some(){
+    /// # [`general::Map::insert_something`] Test
+    fn test_insert_something(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
-       n.insert_some(&3, Some(10));
-       n.insert_some(&3, Some(20));
-       n.insert_some(&3, Some(30));
+       n.insert_something(&3, Some(10));
+       n.insert_something(&3, Some(20));
+       n.insert_something(&3, Some(30));
        let mut s = VecDeque::new();
        s.push_back(Some(10));
        s.push_back(Some(20));
        s.push_back(Some(30));
-       assert_eq!(s, *n.get_ref_to_all_some(&3).unwrap());
+       assert_eq!(s, *n.get_ref_to_all_something(&3).unwrap());
     }
        #[test]
     /// # [`general::Map::get`] Test
@@ -292,37 +292,37 @@
     }
 
     #[test]
-    /// # [`general::Map::get_some`] Test
-    fn test_get_some(){
+    /// # [`general::Map::get_something`] Test
+    fn test_get_something(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
-       n.insert_some(&3, Some(10));
-       n.insert_some(&3, Some(20));
-       n.insert_some(&3, Some(30));
-       assert_eq!(Some(10), n.get_some(&3).unwrap().clone());
+       n.insert_something(&3, Some(10));
+       n.insert_something(&3, Some(20));
+       n.insert_something(&3, Some(30));
+       assert_eq!(Some(10), n.get_something(&3).unwrap().clone());
     }
     #[test]
-    /// # [`general::Map::get_some`] Test 2
+    /// # [`general::Map::get_something`] Test 2
     /// Here we test the function when the key not exist
-    fn test_2_get_some(){
+    fn test_2_get_something(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
-       n.insert_some(&3, Some(10));
-       n.insert_some(&3, Some(20));
-       n.insert_some(&3, Some(30));
-       assert_eq!(None, n.get_some(&5));
+       n.insert_something(&3, Some(10));
+       n.insert_something(&3, Some(20));
+       n.insert_something(&3, Some(30));
+       assert_eq!(None, n.get_something(&5));
     }
     #[test]
-    /// # [`general::Map::get_some`] Test 3
+    /// # [`general::Map::get_something`] Test 3
     /// Here we test the funciton when the vecdeque for the key is empty
-    fn test_3_get_some(){
+    fn test_3_get_something(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
-       n.insert_some(&3, Some(10));
-       n.insert_some(&3, Some(20));
-       n.insert_some(&3, Some(30));
-      let s = n.get_mut_ref_to_all_some(&3).unwrap();
+       n.insert_something(&3, Some(10));
+       n.insert_something(&3, Some(20));
+       n.insert_something(&3, Some(30));
+      let s = n.get_mut_ref_to_all_something(&3).unwrap();
         s.clear();
-       assert_eq!(true, n.contains_key_some(&3));
-       assert_eq!(None, n.get_some(&3));
-       assert_eq!(true, n.contains_key_some(&3));
+       assert_eq!(true, n.contains_key_something(&3));
+       assert_eq!(None, n.get_something(&3));
+       assert_eq!(true, n.contains_key_something(&3));
     }
     #[test]
     /// # [`general::Map::remove`] Test
@@ -385,34 +385,34 @@
        assert_eq!(None, n.get_ref(&3));
     }
     #[test]
-    /// # [`general::Map::remove_some`] Test
-    fn test_remove_some(){
+    /// # [`general::Map::remove_something`] Test
+    fn test_remove_something(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
-       n.insert_some(&3, Some(10));
-       n.insert_some(&3, Some(20));
-       n.insert_some(&3, Some(30));
-       n.remove_some(&3);
-       assert_eq!(Some(20), n.get_some(&3).unwrap().clone());
+       n.insert_something(&3, Some(10));
+       n.insert_something(&3, Some(20));
+       n.insert_something(&3, Some(30));
+       n.remove_something(&3);
+       assert_eq!(Some(20), n.get_something(&3).unwrap().clone());
     }
     #[test]
-    /// # [`general::Map::remove_some`] Test 2
+    /// # [`general::Map::remove_something`] Test 2
     /// Here we test the function when the key not exist
-    fn test_2_remove_some(){
+    fn test_2_remove_something(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
-       n.insert_some(&3, Some(10));
-       n.insert_some(&3, Some(20));
-       n.insert_some(&3, Some(30));
-       n.remove_some(&5);
-       assert_eq!(Some(10), n.get_some(&3).unwrap().clone());
+       n.insert_something(&3, Some(10));
+       n.insert_something(&3, Some(20));
+       n.insert_something(&3, Some(30));
+       n.remove_something(&5);
+       assert_eq!(Some(10), n.get_something(&3).unwrap().clone());
     }
     #[test]
-    /// # [`general::Map::remove_some`] Test 3
+    /// # [`general::Map::remove_something`] Test 3
     /// Here we test the funciton when the key has just 1 element
-    fn test_3_remove_some(){
+    fn test_3_remove_something(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
-       n.insert_some(&3, Some(10));
-       n.remove_some(&3);
-       assert_eq!(None, n.get_some(&3));
+       n.insert_something(&3, Some(10));
+       n.remove_something(&3);
+       assert_eq!(None, n.get_something(&3));
     }
     #[test]
     /// # [`general::Map::remove_all`] Test
@@ -457,25 +457,25 @@
        assert_eq!("hello".to_string(), n.get_ref(&3).unwrap().clone());
     }
     #[test]
-    /// # [`general::Map::remove_all_some`] Test
-    fn test_remove_all_some(){
+    /// # [`general::Map::remove_all_something`] Test
+    fn test_remove_all_something(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
-       n.insert_some(&3, Some(10));
-       n.insert_some(&3, Some(20));
-       n.insert_some(&3, Some(30));
-       n.remove_all_some(&3);
-       assert_eq!(None, n.get_some(&3));
+       n.insert_something(&3, Some(10));
+       n.insert_something(&3, Some(20));
+       n.insert_something(&3, Some(30));
+       n.remove_all_something(&3);
+       assert_eq!(None, n.get_something(&3));
     }
     #[test]
-    /// # [`general::Map::remove_all_some`] Test 2
+    /// # [`general::Map::remove_all_something`] Test 2
     /// Here we test the function when the key not exist
-    fn test_2_remove_all_some(){
+    fn test_2_remove_all_something(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
-       n.insert_some(&3, Some(10));
-       n.insert_some(&3, Some(20));
-       n.insert_some(&3, Some(30));
-       n.remove_all_some(&5);
-       assert_eq!(Some(10), n.get_some(&3).unwrap().clone());
+       n.insert_something(&3, Some(10));
+       n.insert_something(&3, Some(20));
+       n.insert_something(&3, Some(30));
+       n.remove_all_something(&5);
+       assert_eq!(Some(10), n.get_something(&3).unwrap().clone());
     }
     #[test]
     /// # [`general::Map::get_all`] Test
@@ -579,21 +579,21 @@
        assert_eq!(None, n.get_mut_ref_to_all_ref(&5));
     }
     #[test]
-    /// # [`general::Map::get_mut_ref_to_all_some`] Test
-    fn test_get_mut_ref_to_all_some(){
+    /// # [`general::Map::get_mut_ref_to_all_something`] Test
+    fn test_get_mut_ref_to_all_something(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
-       n.insert_some(&3, Some(10));
-       n.insert_some(&3, Some(20));
-       n.insert_some(&3, Some(30));
-       let vec_mut = n.get_mut_ref_to_all_some(&3).unwrap();
+       n.insert_something(&3, Some(10));
+       n.insert_something(&3, Some(20));
+       n.insert_something(&3, Some(30));
+       let vec_mut = n.get_mut_ref_to_all_something(&3).unwrap();
        vec_mut.push_back(Some(40));
        let mut s = VecDeque::new();
         s.push_back(Some(10));
         s.push_back(Some(20));
         s.push_back(Some(30));
         s.push_back(Some(40));
-       assert_eq!(s, *n.get_ref_to_all_some(&3).unwrap());
-        assert_eq!(None, n.get_mut_ref_to_all_some(&5));
+       assert_eq!(s, *n.get_ref_to_all_something(&3).unwrap());
+        assert_eq!(None, n.get_mut_ref_to_all_something(&5));
     }
     #[test]
     /// # [`general::Map::get_ref_to_all`] Test
@@ -624,18 +624,18 @@
        assert_eq!(None, n.get_ref_to_all_ref(&5));
     }
     #[test]
-    /// # [`general::Map::get_ref_to_all_some`] Test
-    fn test_get_ref_to_all_some(){
+    /// # [`general::Map::get_ref_to_all_something`] Test
+    fn test_get_ref_to_all_something(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
-       n.insert_some(&3, Some(10));
-       n.insert_some(&3, Some(20));
-       n.insert_some(&3, Some(30));
+       n.insert_something(&3, Some(10));
+       n.insert_something(&3, Some(20));
+       n.insert_something(&3, Some(30));
        let mut s = VecDeque::new();
        s.push_back(Some(10));
        s.push_back(Some(20));
        s.push_back(Some(30));
-       assert_eq!(s, *n.get_ref_to_all_some(&3).unwrap());
-       assert_eq!(None, n.get_ref_to_all_some(&5));
+       assert_eq!(s, *n.get_ref_to_all_something(&3).unwrap());
+       assert_eq!(None, n.get_ref_to_all_something(&5));
     }
     #[test]
     /// # [`general::Map::set_value`] Test
@@ -662,16 +662,16 @@
        assert_eq!(s, *n.get_ref_to_all_ref(&3).unwrap());
    }
   #[test]
-  /// # [`general::Map::set_value_some`] Test
-    fn test_set_value_some(){
+  /// # [`general::Map::set_value_something`] Test
+    fn test_set_value_something(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
-       n.insert_some(&3, Some(10));
-       n.insert_some(&3, Some(20));
-       n.insert_some(&3, Some(30));
-       n.set_value_some(&3, [Some(99)].to_vec());
+       n.insert_something(&3, Some(10));
+       n.insert_something(&3, Some(20));
+       n.insert_something(&3, Some(30));
+       n.set_value_something(&3, [Some(99)].to_vec());
        let mut s = VecDeque::new();
         s.push_back(Some(99));
-       assert_eq!(s, *n.get_ref_to_all_some(&3).unwrap());
+       assert_eq!(s, *n.get_ref_to_all_something(&3).unwrap());
    }
   #[test]
   /// # [`general::Map::contains_key`] Test
@@ -695,14 +695,14 @@
 
     }
   #[test]
-  /// # [`general::Map::contains_key_some`] Test
-    fn test_contains_key_some(){
+  /// # [`general::Map::contains_key_something`] Test
+    fn test_contains_key_something(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
-       n.insert_some(&3, Some(10));
-       n.insert_some(&3, Some(20));
-       n.insert_some(&3, Some(30));
-       assert_eq!(true, n.contains_key_some(&3));
-       assert_eq!(false, n.contains_key_some(&5));
+       n.insert_something(&3, Some(10));
+       n.insert_something(&3, Some(20));
+       n.insert_something(&3, Some(30));
+       assert_eq!(true, n.contains_key_something(&3));
+       assert_eq!(false, n.contains_key_something(&5));
     }
   #[test]
   /// # [`general::Map::set_value_element`] Test
@@ -733,18 +733,18 @@
        assert_eq!(s, *n.get_ref_to_all_ref(&3).unwrap());
     }
   #[test]
-  /// # [`general::Map::set_value_element_some`] Test
-    fn test_set_value_element_some(){
+  /// # [`general::Map::set_value_element_something`] Test
+    fn test_set_value_element_something(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
-       n.insert_some(&3, Some(10));
-       n.insert_some(&3, Some(20));
-       n.insert_some(&3, Some(30));
-       n.set_value_element_some(&3, 1, Some(99));
+       n.insert_something(&3, Some(10));
+       n.insert_something(&3, Some(20));
+       n.insert_something(&3, Some(30));
+       n.set_value_element_something(&3, 1, Some(99));
        let mut s = VecDeque::new();
         s.push_back(Some(10));
         s.push_back(Some(99));
         s.push_back(Some(30));
-       assert_eq!(s, *n.get_ref_to_all_some(&3).unwrap());
+       assert_eq!(s, *n.get_ref_to_all_something(&3).unwrap());
     }
   #[test]
   /// # [`general::Map::enable_global_order`] Test
@@ -755,7 +755,7 @@
        n.insert(&5,& "world".to_string());
        n.insert(&2, &"chao".to_string());
        n.insert_ref(&2, "chao".to_string());
-       n.insert_some(&2, Some(10));
+       n.insert_something(&2, Some(10));
        assert_eq!([3,5,2,2,2].to_vec(), n.get_order());
     }
   #[test]
@@ -767,7 +767,7 @@
        n.insert(&5,& "world".to_string());
        n.insert(&2, &"chao".to_string());
        n.insert_ref(&5, "chao".to_string());
-       n.insert_some(&3, Some(10));
+       n.insert_something(&3, Some(10));
        assert_eq!([2,5,3].to_vec(), n.get_order());   
     }
   #[test]
@@ -780,7 +780,7 @@
        n.insert(&2, &"chao".to_string());
        n.enable_global_order(true, false);
        n.insert_ref(&5, "chao".to_string());
-       n.insert_some(&3, Some(10));
+       n.insert_something(&3, Some(10));
        assert_eq!([2,5,3].to_vec(), n.get_order());
     }
   #[test]
@@ -792,7 +792,7 @@
        n.insert(&5,& "world".to_string());
        n.insert(&2, &"chao".to_string());
        n.insert_ref(&5, "chao".to_string());
-       n.insert_some(&3, Some(10));
+       n.insert_something(&3, Some(10));
        assert_eq!([3,5,2].to_vec(), n.get_order());
     }
   #[test]
@@ -805,7 +805,7 @@
        n.insert(&2, &"chao".to_string());
        n.enable_order(true, true);
        n.insert_ref(&5, "chao".to_string());
-       n.insert_some(&3, Some(10));
+       n.insert_something(&3, Some(10));
        n.insert(&3, &"new_value".to_string());
        assert_eq!([3,5,2,3].to_vec(), n.get_order());
     }
@@ -819,7 +819,7 @@
        n.insert(&2, &"chao".to_string());
        n.enable_order(true, false);
        n.insert(&5, &"chao".to_string());
-       n.insert_some(&3, Some(10));
+       n.insert_something(&3, Some(10));
        assert_eq!([3,2,5].to_vec(), n.get_order());
     }
   #[test]
@@ -831,7 +831,7 @@
        n.insert_ref(&5, "world".to_string());
        n.insert_ref(&2, "chao".to_string());
        n.insert(&5, &"chao".to_string());
-       n.insert_some(&3, Some(10));
+       n.insert_something(&3, Some(10));
        assert_eq!([3,5,2].to_vec(), n.get_order());
     }
   #[test]
@@ -844,7 +844,7 @@
        n.insert_ref(&2, "chao".to_string());
        n.enable_order_for_ref(true, true);
        n.insert(&5, &"chao".to_string());
-       n.insert_some(&3, Some(10));
+       n.insert_something(&3, Some(10));
        n.insert_ref(&3, "new_value".to_string());
        assert_eq!([3,5,2,3].to_vec(), n.get_order());
     }
@@ -858,45 +858,45 @@
        n.insert_ref(&2, "chao".to_string());
        n.enable_order_for_ref(true, false);
        n.insert_ref(&5, "chao".to_string());
-       n.insert_some(&3, Some(10));
+       n.insert_something(&3, Some(10));
        assert_eq!([3,2,5].to_vec(), n.get_order());
     }
   #[test]
-  /// # [`general::Map::enable_order_for_some`] Test
-    fn test_enable_order_for_some(){
+  /// # [`general::Map::enable_order_for_something`] Test
+    fn test_enable_order_for_something(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
-       n.enable_order_for_some(true, false);
-       n.insert_some(&3, Some(10));
-       n.insert_some(&5, Some(20));
-       n.insert_some(&2, Some(30));
+       n.enable_order_for_something(true, false);
+       n.insert_something(&3, Some(10));
+       n.insert_something(&5, Some(20));
+       n.insert_something(&2, Some(30));
        n.insert(&5, &"chao".to_string());
        n.insert_ref(&3, "hello".to_string());
        assert_eq!([3,5,2].to_vec(), n.get_order());
     }
   #[test]
-  /// # [`general::Map::enable_order_for_some`] Test 2
-    fn test_2_enable_order_for_some(){
+  /// # [`general::Map::enable_order_for_something`] Test 2
+    fn test_2_enable_order_for_something(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
-       n.enable_order_for_some(false, false);
-       n.insert_some(&3, Some(10));
-       n.insert_some(&5, Some(20));
-       n.insert_some(&2, Some(30));
-       n.enable_order_for_some(true, true);
+       n.enable_order_for_something(false, false);
+       n.insert_something(&3, Some(10));
+       n.insert_something(&5, Some(20));
+       n.insert_something(&2, Some(30));
+       n.enable_order_for_something(true, true);
        n.insert(&5, &"chao".to_string());
        n.insert_ref(&3, "hello".to_string());
-       n.insert_some(&3, Some(99));
+       n.insert_something(&3, Some(99));
        assert_eq!([3,5,2,3].to_vec(), n.get_order());
     }
   #[test]
-  /// # [`general::Map::enable_order_for_some`] Test 3
-    fn test_3_enable_order_for_some(){
+  /// # [`general::Map::enable_order_for_something`] Test 3
+    fn test_3_enable_order_for_something(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
-       n.enable_order_for_some(false, false);
-       n.insert_some(&3, Some(10));
-       n.insert_some(&5, Some(20));
-       n.insert_some(&2, Some(30));
-       n.enable_order_for_some(true, false);
-       n.insert_some(&5, Some(100));
+       n.enable_order_for_something(false, false);
+       n.insert_something(&3, Some(10));
+       n.insert_something(&5, Some(20));
+       n.insert_something(&2, Some(30));
+       n.enable_order_for_something(true, false);
+       n.insert_something(&5, Some(100));
        n.insert_ref(&3, "Hello".to_string());
        assert_eq!([3,2,5].to_vec(), n.get_order());
     }
@@ -910,7 +910,7 @@
        n.insert(&2, &"chao".to_string());
        n.disable_global_order();
        n.insert_ref(&5, "chao".to_string());
-       n.insert_some(&3, Some(10));
+       n.insert_something(&3, Some(10));
        assert_eq!([3,5,2].to_vec(), n.get_order());
     }
   #[test]
@@ -923,7 +923,7 @@
        n.insert(&2, &"chao".to_string());
        n.disable_order();
        n.insert(&5, &"chao".to_string());
-       n.insert_some(&3, Some(10));
+       n.insert_something(&3, Some(10));
        assert_eq!([3,5,2].to_vec(), n.get_order());
     }
   #[test]
@@ -940,16 +940,16 @@
        assert_eq!([3,5,2].to_vec(), n.get_order());
     }
   #[test]
-  /// # [`general::Map::disable_order_for_some`] Test
-    fn test_disable_order_for_some(){
+  /// # [`general::Map::disable_order_for_something`] Test
+    fn test_disable_order_for_something(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
-       n.enable_order_for_some(true, false);
-       n.insert_some(&3, Some(10));
-       n.insert_some(&5, Some(20));
-       n.insert_some(&2, Some(30));
-       n.disable_order_for_some();
-       n.insert_some(&5, Some(200));
-       n.insert_some(&3, Some(100));
+       n.enable_order_for_something(true, false);
+       n.insert_something(&3, Some(10));
+       n.insert_something(&5, Some(20));
+       n.insert_something(&2, Some(30));
+       n.disable_order_for_something();
+       n.insert_something(&5, Some(200));
+       n.insert_something(&3, Some(100));
        assert_eq!([3,5,2].to_vec(), n.get_order());
     }
   #[test]
@@ -1083,17 +1083,17 @@
     }
   #[test]
   #[ignore]
-  /// # [`general::Map::keys_some`] Test
-  /// HashMap iteration order is arbitrary (non-deterministic), so the test checks the 'keys_some' function without assuming a specific order.
+  /// # [`general::Map::keys_something`] Test
+  /// HashMap iteration order is arbitrary (non-deterministic), so the test checks the 'keys_something' function without assuming a specific order.
   /// This test can fail due to the arbitrary order of HashMap, consider using a different data structure if ordering matters.
-    fn test_keys_some(){
+    fn test_keys_something(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.enable_order(false, false);
-       n.insert_some(&3, Some(10));
-       n.insert_some(&5, Some(20));
-       n.insert_some(&2, Some(30));
+       n.insert_something(&3, Some(10));
+       n.insert_something(&5, Some(20));
+       n.insert_something(&2, Some(30));
        let mut s = Vec::new();
-       for i in n.keys_some(){
+       for i in n.keys_something(){
         s.push(*i);
        }
        assert_eq!([2,5,3].to_vec(), s);
@@ -1119,14 +1119,14 @@
        assert_eq!(None, n.get_value_ref(&5, 0));
     }
   #[test]
-  /// # [`general::Map::get_value_some`] Test
-    fn test_get_value_some(){
+  /// # [`general::Map::get_value_something`] Test
+    fn test_get_value_something(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
-       n.insert_some(&3, Some(10));
-       n.insert_some(&3, Some(20));
-       n.insert_some(&3, Some(30));
-       assert_eq!(Some(&Some(10)), n.get_value_some(&3, 0));
-       assert_eq!(None, n.get_value_some(&5, 0));
+       n.insert_something(&3, Some(10));
+       n.insert_something(&3, Some(20));
+       n.insert_something(&3, Some(30));
+       assert_eq!(Some(&Some(10)), n.get_value_something(&3, 0));
+       assert_eq!(None, n.get_value_something(&5, 0));
     }
   #[test]
   /// # [`general::Map::extract_value`] Test
@@ -1151,15 +1151,15 @@
        assert_eq!(None, n.get_value_ref(&3, 2));
     } 
   #[test]
-  /// # [`general::Map::extract_value_some`] Test
-    fn test_extract_value_some(){
+  /// # [`general::Map::extract_value_something`] Test
+    fn test_extract_value_something(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
-       n.insert_some(&3, Some(10));
-       n.insert_some(&3, Some(20));
-       n.insert_some(&3, Some(30));
-       assert_eq!(Some(Some(10)),n.extract_value_some(&3, 0));
-       assert_eq!(Some(Some(20)), n.extract_value_some(&3, 0));
-       assert_eq!(None, n.get_value_some(&3, 2));
+       n.insert_something(&3, Some(10));
+       n.insert_something(&3, Some(20));
+       n.insert_something(&3, Some(30));
+       assert_eq!(Some(Some(10)),n.extract_value_something(&3, 0));
+       assert_eq!(Some(Some(20)), n.extract_value_something(&3, 0));
+       assert_eq!(None, n.get_value_something(&3, 2));
     }
   #[test]
   #[ignore]
@@ -1197,20 +1197,20 @@
     }
   #[test]
   #[ignore]
-  /// # [`general::Map::lifo_some`] Test
-  /// HashMap iteration order is arbitrary (non-deterministic), so the test checks the lifo_some function without assuming a specific order.
+  /// # [`general::Map::lifo_something`] Test
+  /// HashMap iteration order is arbitrary (non-deterministic), so the test checks the lifo_something function without assuming a specific order.
   /// This test can fail due to the arbitrary order of HashMap, consider using a different data structure if ordering matters.
-    fn test_lifo_some(){
+    fn test_lifo_something(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
-       n.insert_some(&3, Some(10));
-       n.insert_some(&3, Some(20));
-       n.insert_some(&3, Some(30));
-       assert_eq!(Some(30),n.lifo_some(&3).unwrap());
+       n.insert_something(&3, Some(10));
+       n.insert_something(&3, Some(20));
+       n.insert_something(&3, Some(30));
+       assert_eq!(Some(30),n.lifo_something(&3).unwrap());
        let mut s = VecDeque::new();
         s.push_back(Some(10));
         s.push_back(Some(20));
-       assert_eq!(s, *n.get_ref_to_all_some(&3).unwrap());
-       assert_eq!(None, n.lifo_some(&5));
+       assert_eq!(s, *n.get_ref_to_all_something(&3).unwrap());
+       assert_eq!(None, n.lifo_something(&5));
     }
   #[test]
   /// # [`general::Map::peek`]
@@ -1233,14 +1233,14 @@
         assert_eq!(None, n.peek_ref(&5));
     }
   #[test]
-  /// # [`general::Map::peek_some`]
-     fn test_peek_some(){
+  /// # [`general::Map::peek_something`]
+     fn test_peek_something(){
         let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
-        n.insert_some(&3, Some(10));
-        n.insert_some(&3, Some(20));
-        n.insert_some(&3, Some(30));
-        assert_eq!(Some(&Some(20)), n.peek_some(&3));
-        assert_eq!(None, n.peek_some(&5));
+        n.insert_something(&3, Some(10));
+        n.insert_something(&3, Some(20));
+        n.insert_something(&3, Some(30));
+        assert_eq!(Some(&Some(20)), n.peek_something(&3));
+        assert_eq!(None, n.peek_something(&5));
     }
   #[test]
   /// # [`general::Map::clear`] Test
@@ -1251,12 +1251,12 @@
        n.insert(&3, &"chao".to_string());
        n.insert_ref(&5, "hello".to_string());
        n.insert_ref(&5, "world".to_string());
-       n.insert_some(&7, Some(10));
-       n.insert_some(&7, Some(20));
+       n.insert_something(&7, Some(10));
+       n.insert_something(&7, Some(20));
        n.clear();
        assert_eq!(None, n.get_ref_to_all(&3));
        assert_eq!(None, n.get_ref_to_all_ref(&5));
-       assert_eq!(None, n.get_ref_to_all_some(&7));
+       assert_eq!(None, n.get_ref_to_all_something(&7));
     }
   #[test]
   /// # [`general::Map::clear_hash`] Test
@@ -1267,12 +1267,12 @@
        n.insert(&3, &"chao".to_string());
        n.insert_ref(&5, "hello".to_string());
        n.insert_ref(&5, "world".to_string());
-       n.insert_some(&7, Some(10));
-       n.insert_some(&7, Some(20));
+       n.insert_something(&7, Some(10));
+       n.insert_something(&7, Some(20));
        n.clear_hash();
        assert_eq!(0, n.len());
        assert_eq!(1, n.len_ref());
-       assert_eq!(1, n.len_some());
+       assert_eq!(1, n.len_something());
     }
   #[test]
   /// # [`general::Map::clear_hash_ref`] Test
@@ -1283,28 +1283,28 @@
        n.insert(&3, &"chao".to_string());
        n.insert_ref(&5, "hello".to_string());
        n.insert_ref(&5, "world".to_string());
-       n.insert_some(&7, Some(10));
-       n.insert_some(&7, Some(20));
+       n.insert_something(&7, Some(10));
+       n.insert_something(&7, Some(20));
        n.clear_hash_ref();
        assert_eq!(1, n.len());
        assert_eq!(0, n.len_ref());
-       assert_eq!(1, n.len_some());
+       assert_eq!(1, n.len_something());
     }
   #[test]
-  /// # [`general::Map::clear_hash_some`] Test
-    fn test_clear_hash_some(){
+  /// # [`general::Map::clear_hash_something`] Test
+    fn test_clear_hash_something(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert(&3,& "hello".to_string());
        n.insert(&3,& "world".to_string());
        n.insert(&3, &"chao".to_string());
        n.insert_ref(&5, "hello".to_string());
        n.insert_ref(&5, "world".to_string());
-       n.insert_some(&7, Some(10));
-       n.insert_some(&7, Some(20));
-       n.clear_hash_some();
+       n.insert_something(&7, Some(10));
+       n.insert_something(&7, Some(20));
+       n.clear_hash_something();
        assert_eq!(1, n.len());
        assert_eq!(1, n.len_ref());
-       assert_eq!(0, n.len_some());
+       assert_eq!(0, n.len_something());
     }
   #[test]
   /// # [`general::Map::iter_mut`]
@@ -1351,13 +1351,13 @@
        assert_eq!(s2, *n.get_ref_to_all_ref(&5).unwrap());
     }
   #[test]
-  /// # [`general::Map::iter_mut_some`]
-    fn test_iter_mut_some(){
+  /// # [`general::Map::iter_mut_something`]
+    fn test_iter_mut_something(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
-       n.insert_some(&3, Some(10));
-       n.insert_some(&3, Some(20));
-       n.insert_some(&5, Some(30));
-       for (key, values) in n.iter_mut_some(){
+       n.insert_something(&3, Some(10));
+       n.insert_something(&3, Some(20));
+       n.insert_something(&5, Some(30));
+       for (key, values) in n.iter_mut_something(){
         if *key == 3{
           for value in values{
             if let Some(v) = value{
@@ -1369,10 +1369,10 @@
        let mut s = VecDeque::new();
         s.push_back(Some(110));
         s.push_back(Some(120));
-       assert_eq!(s, *n.get_ref_to_all_some(&3).unwrap());
+       assert_eq!(s, *n.get_ref_to_all_something(&3).unwrap());
        let mut s2 = VecDeque::new();
         s2.push_back(Some(30));
-       assert_eq!(s2, *n.get_ref_to_all_some(&5).unwrap());
+       assert_eq!(s2, *n.get_ref_to_all_something(&5).unwrap());
     }  
   #[test]
   #[ignore]
@@ -1422,15 +1422,15 @@
     }
   #[test]
   #[ignore]
-  /// # [`general::Map::iter_some`] Test
+  /// # [`general::Map::iter_something`] Test
   /// HashMap iteration order is arbitrary (non-deterministic), so the test checks the iterator without assuming a specific order.
   /// This test can fail due to the arbitrary order of HashMap, consider using a different data structure if ordering matters.
-    fn test_iter_some(){
+    fn test_iter_something(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
-       n.insert_some(&3, Some(10));
-       n.insert_some(&3, Some(20));
-       n.insert_some(&5, Some(30));
-       let mut iter = n.iter_some();
+       n.insert_something(&3, Some(10));
+       n.insert_something(&3, Some(20));
+       n.insert_something(&5, Some(30));
+       let mut iter = n.iter_something();
        let (key, values) = iter.next().unwrap();
        assert_eq!(&3, key);
        let mut s = VecDeque::new();
@@ -1470,17 +1470,17 @@
        assert_eq!(None, n.get_mut_value_ref(&5, 0));
     }
   #[test]
-  /// # [`general::Map::get_mut_value_some`] Test
-    fn test_get_mut_value_some(){
+  /// # [`general::Map::get_mut_value_something`] Test
+    fn test_get_mut_value_something(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
-       n.insert_some(&3, Some(10));
-       n.insert_some(&3, Some(20));
-       n.insert_some(&3, Some(30));
-       if let Some(value) = n.get_mut_value_some(&3, 1){
+       n.insert_something(&3, Some(10));
+       n.insert_something(&3, Some(20));
+       n.insert_something(&3, Some(30));
+       if let Some(value) = n.get_mut_value_something(&3, 1){
         *value = Some(999);
        }
-       assert_eq!(Some(&Some(999)), n.get_value_some(&3, 1));
-       assert_eq!(None, n.get_mut_value_some(&5, 0));
+       assert_eq!(Some(&Some(999)), n.get_value_something(&3, 1));
+       assert_eq!(None, n.get_mut_value_something(&5, 0));
     }
   #[test]
   /// # [`general::Map::remove_value`] Test
@@ -1503,14 +1503,14 @@
        assert_eq!("chao".to_string(), *n.get_value_ref(&3, 1).unwrap());
     }
   #[test]
-  /// # [`general::Map::remove_value_some`] Test
-    fn test_remove_value_from_some(){
+  /// # [`general::Map::remove_value_something`] Test
+    fn test_remove_value_from_something(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
-       n.insert_some(&3, Some(10));
-       n.insert_some(&3, Some(20));
-       n.insert_some(&3, Some(30));
-       n.remove_value_from_some(&3, 0);
-       assert_eq!(Some(20), *n.get_value_some(&3, 0).unwrap());
+       n.insert_something(&3, Some(10));
+       n.insert_something(&3, Some(20));
+       n.insert_something(&3, Some(30));
+       n.remove_value_from_something(&3, 0);
+       assert_eq!(Some(20), *n.get_value_something(&3, 0).unwrap());
     }
   #[test]
   /// # [`general::Map::reset_all`] Test
@@ -1519,17 +1519,17 @@
        n.enable_global_order(true, true);
        n.insert(&3,& "hello".to_string());
        n.insert_ref(&5, "world".to_string());
-       n.insert_some(&7, Some(10));
+       n.insert_something(&7, Some(10));
        n.reset_all();
        n.insert(&2, &"chao".to_string());
        n.insert_ref(&4, "hola".to_string());
-       n.insert_some(&6, Some(20));
+       n.insert_something(&6, Some(20));
        println!("{:?}", n.get_order());
        assert_eq!((0,0), n.order_len());
        assert_eq!(0, n.get_order_num());
        assert_eq!(1, n.len());
        assert_eq!(1, n.len_ref());
-       assert_eq!(1, n.len_some());
+       assert_eq!(1, n.len_something());
     }
   #[test]
   /// # [`general::Map::is_empty`] Test
@@ -1558,13 +1558,13 @@
        assert_eq!(1, n.len_ref());
     }
   #[test]
-  /// # [`general::Map::len_some`] Test
-    fn test_len_some(){
+  /// # [`general::Map::len_something`] Test
+    fn test_len_something(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
-       assert_eq!(0, n.len_some());
-       n.insert_some(&3, Some(10));
-       n.insert_some(&3, Some(20));
-       assert_eq!(1, n.len_some());
+       assert_eq!(0, n.len_something());
+       n.insert_something(&3, Some(10));
+       n.insert_something(&3, Some(20));
+       assert_eq!(1, n.len_something());
     }
   #[test]
   /// # [`general::Map::total_len`] Test
@@ -1573,7 +1573,7 @@
        assert_eq!(0, n.total_len());
        n.insert(&3,& "hello".to_string());
        n.insert_ref(&5, "world".to_string());
-       n.insert_some(&7, Some(10));
+       n.insert_something(&7, Some(10));
        assert_eq!(3, n.total_len());
     }
   #[test]

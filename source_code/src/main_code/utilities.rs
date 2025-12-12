@@ -474,15 +474,15 @@ where
   {
   hash: HashMap<T, VecDeque<U>>,
   hash_ref: HashMap<T, VecDeque<Rc<U>>>,
-  hash_some: HashMap<T, VecDeque<F>>,
+  hash_something: HashMap<T, VecDeque<F>>,
   order: HashMap<T, VecDeque<usize>>, 
   order_o1: HashMap<usize, T>,
   order_hash : bool,
   store_last_insert_key:bool,
   order_hash_ref: bool,
   store_last_insert_ref_key:bool,
-  order_hash_some:bool,
-  store_last_insert_some_key:bool,
+  order_hash_something:bool,
+  store_last_insert_something_key:bool,
   preserve_before: bool,
   iter: usize,
   counter: usize
@@ -498,15 +498,15 @@ where
     Self{
       hash: HashMap::new(),
       hash_ref: HashMap::new(),
-      hash_some: HashMap::new(),
+      hash_something: HashMap::new(),
       order: HashMap::new(),
       order_o1: HashMap::new(),
       order_hash : false, 
       store_last_insert_key:false,
       order_hash_ref:false,
       store_last_insert_ref_key:false,
-      store_last_insert_some_key:false,
-      order_hash_some:false,
+      store_last_insert_something_key:false,
+      order_hash_something:false,
       preserve_before:false,
       iter: 0,
       counter: 0
@@ -522,7 +522,7 @@ where
   /// # IMPORTANT ONLY IF YOU ENABLED THE INSERTION HISTORY 
   /// The order is in the same vector, so if you select put all the inserts of the key in the order and after change for just last insert for key, all elements stored will be removed and just stored the last insertion for each key,
   /// if you want to avoid this behavior enables the 'preserve_before' flag.
-  /// And the order do not distingues between insertions in hash of clones, insertions in hash of refs or insertions in hash of some.
+  /// And the order do not distingues between insertions in hash of clones, insertions in hash of refs or insertions in hash of something.
   pub fn insert(&mut self, key: &T, element: &U){
     if let Some(vec) = self.hash.get_mut(key){
       vec.push_back(element.clone());
@@ -592,7 +592,7 @@ where
   /// # IMPORTANT ONLY IF YOU ENABLED THE INSERTION HISTORY 
   /// The order is in the same vector, so if you select put all the inserts of the key in the order and after change for just last insert for key, all elements stored will be removed and just stored the last insertion for each key,
   /// if you want to avoid this behavior enables the 'preserve_before' flag.
-  /// And the order do not distingues between insertions in hash of clones, insertions in hash of refs or insertions in hash of some.
+  /// And the order do not distingues between insertions in hash of clones, insertions in hash of refs or insertions in hash of something.
   pub fn insert_ref(&mut self, key: &T, element: U){
     if let Some(vec) = self.hash_ref.get_mut(key){
       vec.push_back(Rc::new(element));
@@ -655,28 +655,28 @@ where
    }
   }
 
-  /// # `insert_some`
-  /// Inserts a new element in the HashMap of random elements, if the key exist and has some element the element to insert goes to the queue of that key. 
+  /// # `insert_something`
+  /// Inserts a new element in the HashMap of random elements, if the key exist and has something element the element to insert goes to the queue of that key. 
   /// # Arguments
   /// * `key: &T` - Key of the element.
   /// * `element: F` - Element to insert.
   /// # IMPORTANT ONLY IF YOU ENABLED THE INSERTION HISTORY
   /// The order is in the same vector, so if you select put all the inserts of the key in the order and after change for just last insert for key, all elements stored will be removed and just stored the last insert for each key,
   /// if you want to avoid this behavior enables the 'preserve_before' flag.
-  /// And the order do not distingues between insertions in hash of clones, insertions in hash of refs or insertions in hash of some.
-  pub fn insert_some(&mut self, key:&T, element:F){
-      match self.hash_some.get_mut(key){
+  /// And the order do not distingues between insertions in hash of clones, insertions in hash of refs or insertions in hash of something.
+  pub fn insert_something(&mut self, key:&T, element:F){
+      match self.hash_something.get_mut(key){
         None=>{
           let mut new_vec = VecDeque::new();
           new_vec.push_back(element);
-          self.hash_some.insert(key.clone(), new_vec);
+          self.hash_something.insert(key.clone(), new_vec);
         }
         Some(i)=>{
           i.push_back(element);
         }
       };
-      if self.order_hash_some{
-      if self.store_last_insert_some_key{
+      if self.order_hash_something{
+      if self.store_last_insert_something_key{
         if self.preserve_before{
           if let Some(vec) = self.order.get_mut(key){
             vec.push_back(self.counter);
@@ -730,7 +730,7 @@ where
 
   //---------------------------------------------
   /// # `get`
-  /// Gets the first element from some key.
+  /// Gets the first element from something key.
   /// # Arguments
   /// * `key: &T` - key to get the element.
   /// # Return    
@@ -744,7 +744,7 @@ where
   }
  
   /// # `get_ref`
-  /// Gets the first element from some key in the HashMap of references.
+  /// Gets the first element from something key in the HashMap of references.
   /// # Arguments
   /// * `key: &T` - key to get the element.
   /// # Return    
@@ -763,15 +763,15 @@ where
    }
   }
 
-  /// # `get_some`
-  /// Gets the frist element from some key in the HashMap of random elements.
+  /// # `get_something`
+  /// Gets the frist element from something key in the HashMap of random elements.
   /// # Arguments
   /// * `key: &T` - key to get the element.
   /// # Return
   /// * `None` - If the key does not exist.
   /// * `Some(&F)` - A reference to the element.
-  pub fn get_some(&self, key:&T)->Option<&F>{
-    if let Some(vec) = self.hash_some.get(key){
+  pub fn get_something(&self, key:&T)->Option<&F>{
+    if let Some(vec) = self.hash_something.get(key){
       return vec.front();
     }else{
       return None;
@@ -802,14 +802,14 @@ where
     }
   }
   
-  /// # `remove_some`
+  /// # `remove_something`
   /// Remove the first element in the HashMap of random items and replaces it with the next element in the queue.
   /// # Arguments
   /// * `key: &T` - Key to altering its queue.
-  pub fn remove_some(&mut self, key:&T){
-    if let Some(vec) = self.hash_some.get_mut(key){
+  pub fn remove_something(&mut self, key:&T){
+    if let Some(vec) = self.hash_something.get_mut(key){
       vec.pop_front();
-      if vec.len() <= 0{self.hash_some.remove(key);}
+      if vec.len() <= 0{self.hash_something.remove(key);}
     }
   
   }
@@ -836,13 +836,13 @@ where
     }
   }
 
-  /// # `remove_all_some`
+  /// # `remove_all_something`
   /// Removes a key from the HashMap of random elements even if that has more elements in its queue.
   /// # Arguments
   /// * `key: &T` - Key to remove.
-  pub fn remove_all_some(&mut self, key:&T){
-    if self.hash_some.contains_key(key){
-    self.hash_some.remove(key);
+  pub fn remove_all_something(&mut self, key:&T){
+    if self.hash_something.contains_key(key){
+    self.hash_something.remove(key);
     }
   }
   //----------------------------------------------
@@ -853,7 +853,7 @@ where
   /// # Arguments
   /// * `key:&T` - key to taking the elements in its queue and putting them into a vector.
   /// # Return 
-  /// A empty vector if this key does not exist, else a vector with the values for that key in his the queue.
+  /// A empty vector if this key does not exist, else a vector with the elements in the key queue.
   pub fn get_all(&mut self, key: &T)-> Vec<U>{
     let mut vec_ret = Vec::new();
     if let Some(i)  = self.hash.get(key){
@@ -868,11 +868,11 @@ where
   }
   
   /// # `get_all_ref`
-  /// Get all the values of that key in the HashMap of references.
+  /// Gets all the elements in the key queue (from the HashMap of references).
   /// # Arguments
-  /// * `key:&T` - key to taking the elements in its tail and putting them into a vector.
+  /// * `key:&T` - key to taking the elements in its queue and putting them into a vector.
   /// # Return 
-  /// A empty vector if the key does not exist, else a vector with the values in the queue for that key.
+  /// A empty vector if the key does not exist, else a vector with the elements in the key queue.
   pub fn get_all_ref(&mut self, key: &T)-> Vec<U>{
     let mut vec_ret = Vec::new();
     
@@ -895,7 +895,7 @@ where
   /// * `key:&T` - Key to getting its VecDeque.
   /// # Return
   /// * `None` - If the key does not exist.
-  /// * `Some(&mut VecDeque<U>)` - Mutable referencie to VecDeque vector.
+  /// * `Some(&mut VecDeque<U>)` - Mutable reference to the VecDeque.
   /// # IMPORTANT
   /// If you use this option, you need to know what is a VecDeque and his propierties, for avoid break the HashMap and the vector.
   pub fn get_mut_ref_to_all(&mut self, key: &T) -> Option<&mut VecDeque<U>>{
@@ -905,25 +905,25 @@ where
   /// # `get_mut_ref_to_all_ref`
   /// Gets a mutable reference to the VecDeque (queue) of the key.
   /// # Arguments
-  /// * `key:&T` - Key to getting its VecDeque
+  /// * `key:&T` - Key to getting its VecDeque.
   /// # Return
-  /// * `None` - if the key not exist
-  /// * `Some(&mut VecDeque<Rc<U>>) - Mutable reference to VecDeque vector, the values into the VecDeque are Rc<U>
+  /// * `None` - if the key not exist.
+  /// * `Some(&mut VecDeque<Rc<U>>) - Mutable reference to VecDeque vector, the values into the VecDeque are Rc<U>.
   /// # IMPORTANT
-  /// If you use this option, you need to know what is a VecDeque and his propierties and Rc too, for avoid break the HashMap and the vector
+  /// If you use this option, you need to know what is a VecDeque and his propierties and Rc too, for avoid break the HashMap and the vector.
   pub fn get_mut_ref_to_all_ref(&mut self, key: &T) -> Option<&mut VecDeque<Rc<U>>>{
     self.hash_ref.get_mut(key)
   }
   
-  /// # `get_mut_ref_to_all_some`
-  /// For get a mutable reference to VecDeque for that key in the HashMap of random values
+  /// # `get_mut_ref_to_all_something`
+  /// Gets a mutable reference to VecDeque (queue) of the key in the HashMap of random items
   /// # Arguments
   /// * `key: &T` - Key to get the VecDeque
   /// # Return
   /// * `None` - If the key not exist
   /// * `Some(&mut VecDeque<F>)` - Mutable Reference to VecDeque vector, the values into the VecDeque are F
-  pub fn get_mut_ref_to_all_some(&mut self, key:&T)->Option<&mut VecDeque<F>>{
-    self.hash_some.get_mut(key)
+  pub fn get_mut_ref_to_all_something(&mut self, key:&T)->Option<&mut VecDeque<F>>{
+    self.hash_something.get_mut(key)
   }
   //----------------------------------------------
 
@@ -954,7 +954,7 @@ where
     self.hash_ref.get(key)
   }
   
-  /// # `get_ref_to_all_some`
+  /// # `get_ref_to_all_something`
   /// For get a reference to VecDeque for that key in the HashMap of random values
   /// # Arguments
   /// * `key: &T` - Key to get the VecDeque
@@ -963,8 +963,8 @@ where
   /// * `Some(&VecDeque<F>)` - Reference to VecDeque vector, the values into the VecDeque are F
   /// # NOTE
   /// Not exist method for get all the values of that key in the HashMap of random values, because the values are not clonables
-  pub fn get_ref_to_all_some(&mut self, key:&T)->Option<&VecDeque<F>>{
-    self.hash_some.get(key)
+  pub fn get_ref_to_all_something(&mut self, key:&T)->Option<&VecDeque<F>>{
+    self.hash_something.get(key)
   }
   //----------------------------------------------
 
@@ -998,13 +998,13 @@ where
     }
   }
 
-  /// # `set_value_some`
+  /// # `set_value_something`
   /// Set all the queue of that key in the HashMap of random values
   /// # Arguments
   /// * `key: &T` - Key of the value to set queue if this have
   /// * `new_vec: Vec<F>` - Vec for replace the actual queue
-  pub fn set_value_some(&mut self, key:&T, new_vec:Vec<F>){
-    if let Some(vec) = self.hash_some.get_mut(key){
+  pub fn set_value_something(&mut self, key:&T, new_vec:Vec<F>){
+    if let Some(vec) = self.hash_something.get_mut(key){
       vec.clear();
       for i in new_vec{
         vec.push_back(i);
@@ -1015,7 +1015,7 @@ where
 
   //----------------------------------------------
   /// # `contains_key`
-  /// Indicate if some key exist in the HashMap of copies
+  /// Indicate if something key exist in the HashMap of copies
   /// # Arguments
   /// * `key:&T` - Key for search
   /// # Return  
@@ -1026,7 +1026,7 @@ where
   }
   
   /// # `contains_key_ref`
-  /// Indicate if some key exists in the HashMap of references
+  /// Indicate if something key exists in the HashMap of references
   /// # Arguments
   /// * `key:&T` - Key for search the queue
   /// # Return  
@@ -1036,21 +1036,21 @@ where
     self.hash_ref.contains_key(key)
   }
 
-  /// # `contains_key_some`
-  /// Indicate if some key exists in the HashMap of random values
+  /// # `contains_key_something`
+  /// Indicate if something key exists in the HashMap of random values
   /// # Arguments
   /// * `key:&T` - Key for search the queue
   /// # Return
   /// * `true` if have
   /// * `false` if not haven't
-  pub fn contains_key_some(&self, key:&T)->bool{
-    self.hash_some.contains_key(key)
+  pub fn contains_key_something(&self, key:&T)->bool{
+    self.hash_something.contains_key(key)
   }
   //---------------------------------------------
 
   //---------------------------------------------
   /// # `set_value_element`
-  /// Set a value of some elemenet in the queue of thath key, can be 0 or other, if the index is greater than the vector len not applicate the change
+  /// Set a value of something elemenet in the queue of thath key, can be 0 or other, if the index is greater than the vector len not applicate the change
   /// # Arguments 
   /// * `key: &T` - Key for change the element in his vector
   /// * `index: usize` - Index of element to change
@@ -1085,14 +1085,14 @@ where
       }
   }
   
-  /// # `set_value_element_some`
+  /// # `set_value_element_something`
   /// Set a element in the queue of that key in the HashMap of random values, can be 0 or other, if greater than the vector len not applicate the change
   /// # Arguments
   /// * `key: &T` - Key for change the element in his queue
   /// * `index: usize` - Index of element to change
   /// * `new_element: F` - Element for make the change
-  pub fn set_value_element_some(&mut self, key:&T, index:usize, new_element:F){
-    if let Some(vec) = self.hash_some.get_mut(key){
+  pub fn set_value_element_something(&mut self, key:&T, index:usize, new_element:F){
+    if let Some(vec) = self.hash_something.get_mut(key){
       if index <= vec.len()-1{
         if index == 0{
           vec.push_front(new_element);
@@ -1117,8 +1117,8 @@ where
     self.store_last_insert_key = last_insert_of_key;
     self.store_last_insert_ref_key = last_insert_of_key;
     self.preserve_before = preserve_content_before_order;
-    self.order_hash_some = true;
-    self.store_last_insert_some_key = last_insert_of_key;
+    self.order_hash_something = true;
+    self.store_last_insert_something_key = last_insert_of_key;
   }
   
   /// # `enable_order`
@@ -1145,16 +1145,16 @@ where
     self.preserve_before =  preserve_content_before_order;
   }
 
-  /// # `enable_order_for_some`
+  /// # `enable_order_for_something`
   /// Enables the global order register of the insert in keys, for the `HashMap of random values`
   /// If you want enable the register for all `HashMaps` use [`enable_global_order`] (for `HashMap of refs` and `HashMap of copies` and `HashMap of random values`)
   /// # Arguments
   /// * `last_insert_of_key: bool` - Indicate if the register just store the last insert for this key
   /// * `preserve_content_before_order` - (This flag aplicate for both, HashMap of reference and HashMap of copies adn HashMap of random values) Indicate if you want to preserve the register store before for key, and just aplicate the `las_insert_of_key` flag about moment when you change this flag
-  pub fn enable_order_for_some(&mut self, last_insert_of_key: bool, preserve_content_before_order:bool){
+  pub fn enable_order_for_something(&mut self, last_insert_of_key: bool, preserve_content_before_order:bool){
     self.preserve_before = preserve_content_before_order;
-    self.order_hash_some = true;
-    self.store_last_insert_some_key = last_insert_of_key;
+    self.order_hash_something = true;
+    self.store_last_insert_something_key = last_insert_of_key;
   }
   //----------------------------------------------
 
@@ -1164,7 +1164,7 @@ where
   pub fn disable_global_order(&mut self){
     self.order_hash = false;
     self.order_hash_ref = false;
-    self.order_hash_some = false;
+    self.order_hash_something = false;
   }
   
   /// # `disable_order`
@@ -1179,10 +1179,10 @@ where
     self.order_hash_ref = false;
   }
  
-  /// # `disable_order_for_some`
+  /// # `disable_order_for_something`
   /// Disable continue register the insert order in `HashMap of random values`, but the vector for order conserve the values when the order are be enable
-  pub fn disable_order_for_some(&mut self){
-   self.order_hash_some = false;
+  pub fn disable_order_for_something(&mut self){
+   self.order_hash_something = false;
   }
   //----------------------------------------------
 
@@ -1247,7 +1247,7 @@ where
 
   //----------------------------------------------
   /// # `get_key`
-  /// Get the keys where some value appears in a HashMap of copies
+  /// Get the keys where something value appears in a HashMap of copies
   /// # Arguments
   /// * `value_search:U` - Value to search
   /// # Return 
@@ -1265,7 +1265,7 @@ where
   }
   
   /// # `get_key_ref`
-  /// Get the keys where some value appears in a HashMap of refs
+  /// Get the keys where something value appears in a HashMap of refs
   /// # Arguments
   /// * `value_search:U` - Value to search
   /// # Return 
@@ -1300,12 +1300,12 @@ where
     self.hash_ref.keys()
   }
   
-  /// # `keys_some`
+  /// # `keys_something`
   /// Return an iterator as a normal method `keys` from `HashMaps` from HashMap of random values
   /// # Return
   /// * `Keys<'_, T, VecDeque<F>>` - Iterator for the HashMap of random values
-  pub fn keys_some(&mut self)->Keys<'_, T, VecDeque<F>>{
-    self.hash_some.keys()
+  pub fn keys_something(&mut self)->Keys<'_, T, VecDeque<F>>{
+    self.hash_something.keys()
   }
   //----------------------------------------------
 
@@ -1344,7 +1344,7 @@ where
    }
  }
   
-  /// # `get_value_some`
+  /// # `get_value_something`
   /// Get a specific value in the queue of the key in the HashMap of random values
   /// # Arguments
   /// * `key: &T` - Key from take the value
@@ -1352,8 +1352,8 @@ where
   /// # Return
   ///  * `None` if the key not exist or index are greater than of the queue of that key
   /// * `Some(&F)` References of the value
-  pub fn get_value_some(&self, key:&T, index:usize)->Option<&F>{
-    if let Some(vec)=self.hash_some.get(key){
+  pub fn get_value_something(&self, key:&T, index:usize)->Option<&F>{
+    if let Some(vec)=self.hash_something.get(key){
       if index > vec.len()-1{return None;}
        Some(&vec[index])
     }else{
@@ -1364,7 +1364,7 @@ where
 
   //----------------------------------------------
   /// # `extract_value`
-  /// Extracts some value from a key, or pop this, and therefore remove this of the queue of the key from HashMap of copies
+  /// Extracts something value from a key, or pop this, and therefore remove this of the queue of the key from HashMap of copies
   /// # Arguments
   /// * `key:&T` - Key from extract the value
   /// * `index: usize` - index to extract
@@ -1394,7 +1394,7 @@ where
  }
  
   /// # `extract_value_ref`
-  /// Extracts some value from a key, or pop this, and therefore remove this of the values of the key from HashMap of refs
+  /// Extracts something value from a key, or pop this, and therefore remove this of the values of the key from HashMap of refs
   /// # Arguments
   /// * `key:&T` - Key from extract the value
   /// * `index: usize` - index to extract
@@ -1423,31 +1423,31 @@ where
    }else {return None;}  
  }
  
-  /// # `extract_value_some`
-  /// Extracts some value from a key, or pop this, and therefore remove this of the values of the key from HashMap of random values
+  /// # `extract_value_something`
+  /// Extracts something value from a key, or pop this, and therefore remove this of the values of the key from HashMap of random values
   /// # Arguments
   /// * `key:&T` - Key from extract the value
   /// * `index: usize` - index to extract
   /// # Return
   /// * `None` If the index are greater than the queue of the key, or if the key not exists
   /// * `Some(F)` The ownership of the value
-  pub fn extract_value_some(&mut self, key:&T, index:usize) -> Option<F>{
-    if let Some(vec) = self.hash_some.get_mut(key){ 
+  pub fn extract_value_something(&mut self, key:&T, index:usize) -> Option<F>{
+    if let Some(vec) = self.hash_something.get_mut(key){ 
      if index > vec.len()-1{
        return None;
      }
      if index == 0{
        let n = vec.pop_front().unwrap();
-       if vec.len() <= 0{self.hash_some.remove(key);}
+       if vec.len() <= 0{self.hash_something.remove(key);}
       return Some(n);
      }
      else if index == vec.len()-1{
        let n = vec.pop_back().unwrap();
-       if vec.len() <= 0{self.hash_some.remove(key);}
+       if vec.len() <= 0{self.hash_something.remove(key);}
       return Some(n);
      }
      let n = vec.remove(index).unwrap();
-      if vec.len() <= 0{self.hash_some.remove(key);}
+      if vec.len() <= 0{self.hash_something.remove(key);}
       return Some(n);
     }else {return None;}  
   }
@@ -1496,20 +1496,20 @@ where
    }else {return None;}
  }
   
-  /// # `lifo_some`
+  /// # `lifo_something`
   /// Get the last element in the key and remove it
   /// # Arguments
   /// * `key:&T` - Key from extract the value
   /// # Return
   /// * `None` if the key not exists or the element not exist
   /// * `Some(F)` The ownership of the value
-  pub fn lifo_some(&mut self, key:&T)->Option<F>{
-    if let Some(last) = self.hash_some.get_mut(key){
+  pub fn lifo_something(&mut self, key:&T)->Option<F>{
+    if let Some(last) = self.hash_something.get_mut(key){
      match last.pop_back(){
       None => None,
       Some(i) => {
         if last.len() <= 0{
-          self.hash_some.remove(key);
+          self.hash_something.remove(key);
         }
         return Some(i);
       }
@@ -1548,15 +1548,15 @@ where
     }else {return None;}
  }
  
-  /// # `peek_some`
-  /// Look the next value in the queue of a key, with that replace the first value when use [`remove_some`] method
+  /// # `peek_something`
+  /// Look the next value in the queue of a key, with that replace the first value when use [`remove_something`] method
   /// # Arguments
   /// * `key: &T` - Key for search the next value
   /// # Return
   /// * `None` - If not exist the key or not exist any next value
   /// * `Some(&F)` - References to the next value in the queue of that key
-  pub fn peek_some(&self, key: &T)-> Option<&F>{
-     if let Some(next) = self.hash_some.get(key){
+  pub fn peek_something(&self, key: &T)-> Option<&F>{
+     if let Some(next) = self.hash_something.get(key){
       if next.len() > 1 {return Some(&next[1]);}
       else {return None;}
     }else {return None;}
@@ -1576,10 +1576,10 @@ where
    self.hash_ref.clear();
  }
   
-  /// # `clear_hash_some`
+  /// # `clear_hash_something`
   /// Clear all the hash of random values and keys
-  pub fn clear_hash_some(&mut self){
-      self.hash_some.clear();
+  pub fn clear_hash_something(&mut self){
+      self.hash_something.clear();
   }
   //----------------------------------------------
 
@@ -1600,14 +1600,14 @@ where
     self.hash_ref.iter_mut()
   }
 
-  /// # `iter_mut_some`
+  /// # `iter_mut_something`
   /// Return an iterator mutable for the HashMap of random values
   /// # Arguments
   /// * `key:&T` - Key for get his queue
   /// # Return
   /// * `IterMut<'_, T, VecDeque<F>>` - Iterator mutable for the HashMap of random values
-  pub fn iter_mut_some(&mut self)->IterMut<'_, T, VecDeque<F>>{
-    self.hash_some.iter_mut()
+  pub fn iter_mut_something(&mut self)->IterMut<'_, T, VecDeque<F>>{
+    self.hash_something.iter_mut()
   }
   //----------------------------------------------
 
@@ -1628,12 +1628,12 @@ where
     self.hash_ref.iter()
   }
     
-  /// # `iter_some`
+  /// # `iter_something`
   /// Return an iterator for the HashMap of random values
   /// # Return
   /// * `Iter<'_, T, VecDeque<F>>` - Iterator for the HashMap of random values
-  pub fn iter_some(&self)->Iter<'_, T, VecDeque<F>>{
-    self.hash_some.iter()
+  pub fn iter_something(&self)->Iter<'_, T, VecDeque<F>>{
+    self.hash_something.iter()
   }
   //----------------------------------------------
 
@@ -1666,7 +1666,7 @@ where
     }else {return None;}
   }
 
-  /// # `get_mut_value_some`
+  /// # `get_mut_value_something`
   /// Get a mutable reference for a specific value in the queue of the key in the HashMap of random values
   /// # Arguments
   /// * `key: &T` - Key from take the value
@@ -1674,8 +1674,8 @@ where
   /// # Return 
   /// * `None` if the key not exist or index are greater than of the queue of that key
   /// * `Some(&mut F)` Mutable References of the value
-  pub fn get_mut_value_some(&mut self, key:&T, index:usize)->Option<&mut F>{
-    if let Some(n) = self.hash_some.get_mut(key){
+  pub fn get_mut_value_something(&mut self, key:&T, index:usize)->Option<&mut F>{
+    if let Some(n) = self.hash_something.get_mut(key){
       return n.get_mut(index);
     }else {return None;}
   }
@@ -1728,13 +1728,13 @@ where
     } 
   }
 
-  /// # `remove_value_from_some`
+  /// # `remove_value_from_something`
   /// Remove a specific value in the queue of that key in the HashMap of random values, if the index is 0 remove the first element, if the index is equal to len-1 remove the last element, else remove the element in that index
   /// # Arguments
   /// * `key:&T` - Key for search the value
   /// * `index:usize` - Index of the value to remove
-  pub fn remove_value_from_some(&mut self, key:&T, index:usize){
-   if let Some(q) = self.hash_some.get_mut(key){
+  pub fn remove_value_from_something(&mut self, key:&T, index:usize){
+   if let Some(q) = self.hash_something.get_mut(key){
       if index == 0{
         q.pop_front();
       }
@@ -1756,15 +1756,15 @@ where
   pub fn reset_all(&mut self){
    self.hash_ref.clear();
    self.hash.clear();
-   self.hash_some.clear();
+   self.hash_something.clear();
    self.order.clear();
    self.order_o1.clear();
    self.order_hash =false;
    self.store_last_insert_key=false;
    self.order_hash_ref=false;
-   self.order_hash_some=false;
+   self.order_hash_something=false;
    self.store_last_insert_ref_key=false;
-   self.store_last_insert_some_key=false;
+   self.store_last_insert_something_key=false;
    self.preserve_before=false;
    self.iter= 0;
    self.counter= 0;
@@ -1775,9 +1775,9 @@ where
   /// Indicate if the struct is empty, for all the HashMaps
   /// # Return
   /// * `true` if all the HashMaps are empty
-  /// * `false` if some HashMap have some value
+  /// * `false` if something HashMap have something value
   pub fn is_empty(&self)->bool{
-      return self.hash.is_empty() && self.hash_ref.is_empty() && self.hash_some.is_empty(); 
+      return self.hash.is_empty() && self.hash_ref.is_empty() && self.hash_something.is_empty(); 
   }
   
   /// # `clear`
@@ -1785,7 +1785,7 @@ where
   pub fn clear(&mut self){
     self.hash.clear();
     self.hash_ref.clear();
-    self.hash_some.clear();
+    self.hash_something.clear();
     self.order.clear();
     self.order_o1.clear();
     self.counter = 0;
@@ -1809,12 +1809,12 @@ where
     self.hash_ref.len()
     }
 
-  /// # `len_some`
+  /// # `len_something`
   /// Get the length of the HashMap of random values
   /// # Return
   /// * `usize` - Length of the HashMap of random values
-  pub fn len_some(&self)->usize{
-    self.hash_some.len()
+  pub fn len_something(&self)->usize{
+    self.hash_something.len()
     }
   
   /// # `total_len`
@@ -1822,7 +1822,7 @@ where
   /// # Return
   /// * `usize` - Total length of all the HashMaps
   pub fn total_len(&self)->usize{
-    self.hash.len() + self.hash_ref.len() + self.hash_some.len()
+    self.hash.len() + self.hash_ref.len() + self.hash_something.len()
     }
   
   /// # `order_len`
@@ -1855,7 +1855,7 @@ where
         use Map::self;
         if self.iter <= 0{
           self.iter+=1;
-          Some( (Rc::hash,  Rc::hash_ref, Rc::hash_some,  Rc::order, Rc::order_o1))
+          Some( (Rc::hash,  Rc::hash_ref, Rc::hash_something,  Rc::order, Rc::order_o1))
         }
         else {
           self.iter = 0;
