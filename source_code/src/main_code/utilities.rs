@@ -1,4 +1,4 @@
-/// # Mod `general`
+/// # Module `general`
 /// Provides general utility functions used in the source code of the PTHome application.
 /// Includes functions to manage lines, strings, data structures and vectors.
 pub mod general{
@@ -7,19 +7,22 @@ pub mod general{
     use std::io::Write;
     /// # `remove_empty_lines`
     /// Removes empty lines from the content.
+    /// 
     /// # Arguments
     /// * `content: &str` - The content from which empty lines will be removed.
+    /// 
     /// # Example
     /// ```
-    /// {
+    /// 
     /// use PTHome::main_code::utilities::general;
     ///  let content = "This is a test.\n\nThis is another test.\n\n\nEnd of test.";
     ///  let result = general::remove_empty_lines(content);
     ///  let expected = "This is a test.\nThis is another test.\nEnd of test.\n";
     ///  assert_eq!(result, expected);
-    /// }
+    /// 
     /// ```
-    /// # Return
+    /// 
+    /// # Returns
     /// A copy of the content without empty lines.
    pub fn remove_empty_lines(content: &str) -> String{
     println!("REMOVING VOID LINES");
@@ -38,17 +41,17 @@ pub mod general{
      return new_content;
    }
  //------------------------------------------------------------------------------------------
-    /// # `num_lines`
-    /// A struct to hold the configuration for the `NumLines` instance and his metods.
+    /// # `NumLines`
+    /// A struct to hold the configuration for the `NumLines` instance and its methods.
      pub struct NumLines<'a> {
           content: &'a str,
           delimiter: &'a str,
     }
     
-    /// # `impl num_lines`
-    /// This implementation provides methods to handle line numbers in a file.
+    /// # `impl NumLines`
+    /// This implementation provides methods to handle line numbers in a string.
     /// Includes functions to add and remove line numbers, skip line numbers, and get the current line number.
-    /// Setters an getters:
+    /// Setters and getters:
     /// * [`crate::main_code::utilities::general::NumLines::get_content`]
     /// * [`crate::main_code::utilities::general::NumLines::get_delimiter`]
     /// * [`crate::main_code::utilities::general::NumLines::set_content`]
@@ -56,21 +59,26 @@ pub mod general{
     impl<'a> NumLines<'a>{
     /// # `new`
     /// Creates a new instance of `NumLines`.
+    /// 
     /// # Arguments
     /// * `content: &'a str` - The string to be processed.
     /// * `delimiter: &'a str` - The delimiter to be used for line numbering.
+    /// 
     /// # Example
     /// ```rust
-    /// {
+    /// 
     /// use PTHome::main_code::utilities::general;
     ///  let instance = general::NumLines::new("example\n   \nsdf", " - ");
     ///  assert_eq!(instance.get_content(), "example\n   \nsdf");
-    /// }
+    /// 
     /// ```
-    /// # Return
-    /// Returns a new instance of `NumLines` with the specified input and delimiter.
+    /// 
+    /// # Returns
+    /// A new instance of `NumLines` with the specified input and delimiter.
+    /// 
     /// # IMPORTANT
     /// If don't want use a delimiter just use an empty string `""`.
+    /// 
     /// **NOTE:** The default delimiter is an space `' '`.
     pub fn new(content: &'a str, delimiter: &'a str) -> Self{
       Self {
@@ -80,19 +88,21 @@ pub mod general{
     }
  //---------------------------------------------------------------------
        /// # `numerate_lines`
-       /// Numerates the lines of `content` and returns a String with the `content` numerated.
+       /// Numerates the lines of the `content` and returns a String with the `content` numerated.
+       /// 
        /// # Example
        /// ```rust
-       /// {
+       /// 
        /// use PTHome::main_code::utilities::general;
        /// let mut instance = general::NumLines::new("example.txt", " - ");
        /// let numerate = instance.numerate_lines();
        /// //Upload content just as here
        /// instance.set_content(&numerate);
        /// assert_eq!(instance.get_content(), "1 - example.txt\n");
-       /// }
+       /// 
        /// ```
-       /// # Return
+       /// 
+       /// # Returns
        /// A string with the `content` numerated.
        pub fn numerate_lines(&self) -> String{
         println!("NUMERATING LINES FROM CONTENT");
@@ -117,10 +127,11 @@ pub mod general{
     }
  //---------------------------------------------------------------------
         /// # `remove_num_lines`
-        /// Removes line numbers from `content`. It is recommended to use this only if you used the method `numerate_lines` and update the `content`.
+        /// Removes line numbers from the `content`. It is recommended to use this only if you used the method `numerate_lines` and update the `content`.
+        /// 
         /// # Example
         /// ```rust
-        /// {
+        /// 
         /// use PTHome::main_code::utilities::general;
         ///  let mut instance = general::NumLines::new("example.txt", " - ");
         ///  let mut rmv_num = instance.numerate_lines();
@@ -128,11 +139,12 @@ pub mod general{
         ///  instance.set_content(&rmv_num);
         ///  let removed = instance.remove_num_lines();
         ///  assert_eq!(removed, "example.txt\n");
-        /// }
+        /// 
         /// ```
-        /// # Return
-        /// * A string with the `content` cleaned of number of line.
-        /// * The same content if the `content` haven't any delimiter.
+        /// 
+        /// # Returns
+        /// * A string with the `content` cleaned of line numbers.
+        /// * The same content if the `content` hasn't any delimiter.
         pub fn remove_num_lines(&self) -> String{
             println!("REMOVING LINE NUMBERS FROM CONTENT");
             let mut new_content = String::new();
@@ -162,20 +174,23 @@ pub mod general{
  //---------------------------------------------------------------------
         /// # `skip_num_line`
         /// Skips the line number in the string. It is recommended to use this only if you used the method `numerate_lines`.
+        /// 
         /// # Arguments
         /// * `line: &str` - The line from which the line number will be skipped.
+        /// 
         /// # Example
         /// ```rust
-        /// {
+        /// 
         /// use PTHome::main_code::utilities::general;
         /// let ins = general::NumLines::new("example.txt", " - ");
         /// let all_after_num_line = ins.skip_num_line("1 - This is a test line.");
         /// assert_eq!(all_after_num_line, "This is a test line.");
-        /// }
+        /// 
         /// ```
-        /// # Return
-        /// * Return a `String` without the line number.
-        /// * Return the same line if the delimiter is not found.
+        /// 
+        /// # Returns
+        /// * A `String` without the line number.
+        /// * The same line if the delimiter is not found.
         pub fn skip_num_line(&self, line:&str) -> String{
             let mut new_content = String::new();
             if self.delimiter.is_empty(){
@@ -196,21 +211,24 @@ pub mod general{
  //---------------------------------------------------------------------
         /// # `get_num_line`
         /// Gets the current line number from a string.
+        /// 
         /// # Arguments
         /// * `line: &str` - The line from which the current line number will be extracted.
         /// 
         /// # Example
         /// ```rust
-        /// {
+        /// 
         /// use PTHome::main_code::utilities::general;
         /// let ins = general::NumLines::new("example.txt", " - ");
         /// let current_line = ins.get_num_line("1 - This is a test line.");
         /// assert_eq!(current_line, 1);
-        /// }
+        /// 
         /// ```
-        /// # Return
-        /// * Returns the current line number as a `i32`.
+        /// 
+        /// # Returns
+        /// * The current line number as a `i32`.
         /// * If the delimiter is not found returns -1.
+        /// 
         /// # Errors
         /// * If the line number cannot be convert, the function will returns panic with an error message.
         pub fn get_num_line(&self, line:&str) -> i32{
@@ -232,32 +250,36 @@ pub mod general{
  //---------------------------------------------------------------------   
        /// # `get_content`
        /// Gets the content.
-       /// # Return
-       /// Returns the content as a `String`.
+       /// 
+       /// # Returns
+       /// The content as a `String`.
        pub fn get_content(&self) -> String{
             self.content.to_string()
         }
  //---------------------------------------------------------------------
        /// # `get_delimiter`
        /// Gets the delimiter used for line numbering.
-       /// # Return
-       /// Returns the delimiter as a `String`.
+       /// 
+       /// # Returns
+       /// The delimiter as a `String`.
        pub fn get_delimiter(&self) -> String{
             self.delimiter.to_string()
         }
  //---------------------------------------------------------------------
        /// # `set_content`
        /// Sets the content stored.
+       /// 
        /// # Arguments
        /// * `new_value: &'a str` - The new content.
+       /// 
        /// # Example
        /// ```rust
-       /// {
+       /// 
        /// use PTHome::main_code::utilities::general;
        /// let mut ins = general::NumLines::new("example.txt", " - ");
        /// ins.set_content("new_example.txt");
        /// assert_eq!(ins.get_content(), "new_example.txt");
-       /// }
+       /// 
        /// ```
        pub fn set_content(&mut self, new_value:&'a str){
             self.content = new_value;
@@ -265,16 +287,18 @@ pub mod general{
  //---------------------------------------------------------------------
        /// # `set_delimiter`
        /// Sets the delimiter.
+       /// 
        /// ## Arguments 
        /// * `delimiter: &'a str` - The new delimiter.
+       /// 
        /// # Example  
        /// ```rust
-       /// {
+       /// 
        /// use PTHome::main_code::utilities::general;
        /// let mut ins = general::NumLines::new("example.txt", " - ");
        /// ins.set_delimiter(" | ");
        /// assert_eq!(ins.get_delimiter(), " | ");
-       /// }
+       /// 
        /// ```
        pub fn set_delimiter(&mut self, new_value:&'a str){
             self.delimiter = new_value;
@@ -284,22 +308,26 @@ pub mod general{
  //------------------------------------------------------------------------------------------
     /// # `all_appears_index`
     /// Finds all the appearances of a substring in a string and returns their indexes.
+    /// 
     /// # Arguments
     /// * `input_str: &str` - Where search the substring.
     /// * `search_str: &str` - The substring to search for.
+    /// 
     /// # Example
     /// ```rust 
-    /// { 
+    /// 
     /// use PTHome::main_code::utilities::general;
     /// let input_str = "This is a test string. This is another test string.";
     /// let search_str = "test";
     /// let indexes = general::all_appears_index(input_str, search_str);
     /// assert_eq!(indexes, vec![10, 39]);
-    /// }
+    /// 
     /// ```
-    /// # Return
-    /// * Returns a vector of `usize` containing the indexes of all occurrences of the substring in the string.
+    /// 
+    /// # Returns
+    /// * A vector of `usize` containing the indexes of all occurrences of the substring in the string.
     /// * If the substring or the string is empty, it returns an empty vector.
+    /// 
     /// # Errors
     /// If the input string or the search string was empty, the function will returns an empty vector.
   pub fn all_appears_index(input_str:&str, search_str: &str) -> Vec<usize>{
@@ -326,22 +354,25 @@ pub mod general{
  //------------------------------------------------------------------------------------------
   /// # `sub_vec`
   /// Returns a sub-vector from a given vector starting at a specified index and taking a specified number of elements.
+  /// 
   /// # Arguments
   /// * `vec: &Vec<T>` - The vector from which to extract the sub-vector.
   /// * `num_elements: usize` - The number of elements to take from the vector.
   /// * `start_index: usize` - The index at which to start taking elements from the vector.
+  /// 
   /// # Example
   /// ```rust
-  /// {
+  /// 
   /// use PTHome::main_code::utilities::general;
   /// let vec = vec![1, 2, 3, 4, 5];
   /// let sub_vec = general::sub_vec(&vec, 3, 1);
   /// assert_eq!(sub_vec, vec![2, 3, 4]); 
-  /// }
+  /// 
   /// ```
-  /// The result is a sub-vector containing the specified number of elements starting from the specified index.
-  /// # Return
-  /// Returns a new vector containing the specified number of elements starting from the specified index.
+  /// 
+  /// # Returns
+  /// A new vector containing the specified number of elements starting from the specified index.
+  /// 
   /// # Errors
   /// If the vector is empty or the number of elements to take is zero, the function will panic with an error message.
   pub fn sub_vec<T: Clone>(vec: &Vec<T>, num_elements: usize, start_index: usize) -> Vec<T>{
@@ -364,21 +395,25 @@ pub mod general{
   }
  //-----------------------------------------------------------------------------------------------
   /// # `str_of_n_str`
-  /// Create a string of n length from other string.
+  /// Creates a string of n length from other string.
+  /// 
   /// # Arguments
   /// * `str_use:&str` - String which will be used for make the new string.
   /// * `len_new_str:usize` - The length of the new string.
+  /// 
   /// # Return
   /// A string with n length, all his content are the `str_use`.
+  /// 
   /// # Example 
   /// ```rust
-  /// {
+  /// 
   /// use PTHome::main_code::utilities::general;
   /// let str = general::str_of_n_str("S", 5);
   /// assert_eq!(str, "SSSSS");
-  /// }
-  /// ``` 
-  /// # Return 
+  /// 
+  /// ```
+  ///  
+  /// # Returns 
   /// A string with n length, where all its content is made from the `str_use`.
   pub fn str_of_n_str(str_use: &str, len_new_str: usize) -> String{
      let mut new = String::new();
@@ -391,26 +426,26 @@ pub mod general{
   }
  //-----------------------------------------------------------------------------------------------
    /// # `replace_index`
-   /// Replace a character with his index in a string.
+   /// Replaces a character in a string.
+   /// 
    /// # Arguments
-   /// * `str_in:&str` - String to remove the character.
+   /// * `str_in:&str` - String which will be replaced the character.
    /// * `repalce:&str` - String for replace.
    /// * `index:usize` -Index to replace.
-   /// # Return
-   /// The input string if `str_in` or `replace` is empty.
-   /// A String with the index replaced.
+   /// 
    /// # Example 
    /// ```rust
-   /// {
+   /// 
    /// use PTHome::main_code::utilities::general;
    /// let main_str = "Hello. This is my show?";
    /// let mut str = general::replace_index(main_str, "!", main_str.find("?").unwrap());
    /// str = general::replace_index(&str, "the hour of the ", str.find("my").unwrap()); // 'y' is part of "my"; when we replace 'm', the 'y' remains.
    /// assert_eq!(str, "Hello. This is the hour of the y show!");
-   /// }
-   /// ``` 
-   /// # Return 
-   /// * The input string if `str_in` or `replace` is empty, or index is greather than the lenght from the input string.
+   /// 
+   /// ```
+   ///  
+   /// # Returns
+   /// * The input string if `str_in` or `replace` is empty, or index is greather than the size of the input string.
    /// * A String with the index replaced.
   pub fn replace_index(str_in: &str, replace: &str, index: usize)-> String{
     if str_in.is_empty(){
@@ -433,12 +468,25 @@ pub mod general{
   }
  //-------------------------------------------------------------------------------------------------
   //// # `ordered_combination`
-  /// Create a ordered combination of two vectors of strings where each element from the first vector are merge with each element from the second vector.
+  /// Creates an ordered combination of two vectors, where each element of the first vector merges with each element of the second vector.
+  /// 
   /// # Arguments
   /// * `vecs: (&Vec<String>, &Vec<String>)` - Tuple with two vectors of strings.
   /// - `Vec<String>` - First vector for the combination.
   /// - `Vec<String>` - Second vector for the combination.
-  /// # Return
+  /// 
+  /// # Example
+  /// ```rust
+  /// 
+  /// use PTHome::main_code::utilities::general;
+  /// let vec1 = vec!["A".to_string(), "B".to_string()];
+  /// let vec2 = vec!["1".to_string(), "2".to_string()];
+  /// let combined = general::ordered_combination((&vec1, &vec2));
+  /// assert_eq!(vec!["A1".to_string(), "A2".to_string(), "B1".to_string(), "B2".to_string()],combined);
+  /// 
+  /// ```
+  /// 
+  /// # Returns
   /// A vector of strings with the ordered combination made from the two input vectors.
   pub fn ordered_combination(vecs:(&Vec<String>, &Vec<String>))->Vec<String>{
     let mut sub_vec:Vec<String> = Vec::new();
@@ -461,9 +509,10 @@ use std::collections::VecDeque;
 use std::collections::hash_map::{Keys, IterMut, Iter};
 use std::rc::Rc;
 /// # `Map<T, U, F>`
-/// Map supports multiples values for a key, with the similar temporary complexity from the HashMaps (O(1) aproximately).
-/// # Note  
-/// Here we call `queue` a vector which stored values for a key, enabling support multiples values for the same key. 
+/// The Map supports multiples values for a same key, with the similar temporary complexity of the HashMaps (O(1) aprox).
+/// 
+/// ## Note  
+/// We call `queue` a vector which stored values for a key, enabling support multiples values for the same key. 
 /// The values will be extracted in FIFO order (properties from a `queue`).
  #[derive(Debug)]
  #[derive(Clone)]
@@ -493,7 +542,7 @@ where
   U: Clone + PartialEq
  {
   /// # `new`
-  /// Create a new instance of the Map struct.
+  /// Creates a new instance of the Map struct.
   pub fn new() -> Self{
     Self{
       hash: HashMap::new(),
@@ -515,14 +564,27 @@ where
   
   //--------------------------------------------
   /// # `insert`
-  /// Inserts a new element in the HashMap of copies, if the key exists the element to be inserted goes to the end of the queue. 
+  /// Inserts a new element into the HashMap of copies, if the key exists the element to be inserted goes to the end of the queue. 
+  /// 
   /// # Arguments
-  /// * `key: &T` - Key of the Value.
+  /// * `key: &T` - Key into which the element will be insert.
   /// * `element: &U` - Element to insert.
+  /// 
+  /// # Example 
+  /// ```rust
+  /// 
+  /// use PTHome::main_code::utilities::general;
+  /// let mut map:general::Map<String, String, i32> = general::Map::new();
+  /// map.insert(&"key1".to_string(), &"value1".to_string());
+  /// map.insert(&"key1".to_string(), &"value2".to_string());
+  /// assert_eq!(map.get(&"key1".to_string()), Some(&"value1".to_string()));
+  /// 
+  /// ```
+  /// 
   /// # IMPORTANT ONLY IF YOU ENABLED THE INSERTION HISTORY 
   /// The order is in the same vector, so if you select put all the inserts of the key in the order and after change for just last insert for key, all elements stored will be removed and just stored the last insertion for each key,
   /// if you want to avoid this behavior enables the 'preserve_before' flag.
-  /// And the order do not distingues between insertions in hash of clones, insertions in hash of refs or insertions in hash of something.
+  /// The order does not distinguish between insertions in hash of clones, insertions in hash of refs or insertions in hash of something, all that matters is the key.
   pub fn insert(&mut self, key: &T, element: &U){
     if let Some(vec) = self.hash.get_mut(key){
       vec.push_back(element.clone());
@@ -585,14 +647,27 @@ where
   }
 
   /// # `insert_ref`
-  /// Inserts a new element in the HashMap of references, if the key exists the element to be inserted goes to the end of the queue. 
+  /// Inserts a new element into the HashMap of references, if the key exists the element to be inserted goes to the end of the queue. 
+  /// 
   /// # Arguments
-  /// * `key: &T` - Key of the element.
+  /// * `key: &T` - Key into which the element will be insert.
   /// * `element: &U` - Element to insert.
+  /// 
+  /// # Example
+  /// ```rust
+  /// 
+  /// use PTHome::main_code::utilities::general;
+  /// let mut map:general::Map<String, String, i32> = general::Map::new();
+  /// map.insert_ref(&"key1".to_string(), "value1".to_string());
+  /// map.insert_ref(&"key1".to_string(), "value2".to_string());
+  /// assert_eq!(map.get_ref(&"key1".to_string()), Some(&"value1".to_string()));
+  /// 
+  /// ```
+  /// 
   /// # IMPORTANT ONLY IF YOU ENABLED THE INSERTION HISTORY 
   /// The order is in the same vector, so if you select put all the inserts of the key in the order and after change for just last insert for key, all elements stored will be removed and just stored the last insertion for each key,
   /// if you want to avoid this behavior enables the 'preserve_before' flag.
-  /// And the order do not distingues between insertions in hash of clones, insertions in hash of refs or insertions in hash of something.
+  /// The order does not distinguish between insertions in hash of clones, insertions in hash of refs or insertions in hash of something, all that matters is the key.
   pub fn insert_ref(&mut self, key: &T, element: U){
     if let Some(vec) = self.hash_ref.get_mut(key){
       vec.push_back(Rc::new(element));
@@ -656,14 +731,27 @@ where
   }
 
   /// # `insert_something`
-  /// Inserts a new element in the HashMap of random elements, if the key exist and has something element the element to insert goes to the queue of that key. 
+  /// Inserts a new element into the HashMap of some types of elements, if the key exists the element to be inserted goes to the end of the queue. 
+  /// 
   /// # Arguments
-  /// * `key: &T` - Key of the element.
+  /// * `key: &T` - Key to which the element will be insert.
   /// * `element: F` - Element to insert.
+  /// 
+  /// # Example
+  /// ```rust
+  /// 
+  /// use PTHome::main_code::utilities::general;
+  /// let mut map:general::Map<String, String, i32> = general::Map::new();
+  /// map.insert_something(&"key1".to_string(), 10);
+  /// map.insert_something(&"key1".to_string(), 20);
+  /// assert_eq!(map.get_something(&"key1".to_string()), Some(&10));
+  /// 
+  /// ```
+  /// 
   /// # IMPORTANT ONLY IF YOU ENABLED THE INSERTION HISTORY
   /// The order is in the same vector, so if you select put all the inserts of the key in the order and after change for just last insert for key, all elements stored will be removed and just stored the last insert for each key,
   /// if you want to avoid this behavior enables the 'preserve_before' flag.
-  /// And the order do not distingues between insertions in hash of clones, insertions in hash of refs or insertions in hash of something.
+  /// The order does not distinguish between insertions in hash of clones, insertions in hash of refs or insertions in hash of something, all that matters is the key.
   pub fn insert_something(&mut self, key:&T, element:F){
       match self.hash_something.get_mut(key){
         None=>{
@@ -730,10 +818,23 @@ where
 
   //---------------------------------------------
   /// # `get`
-  /// Gets the first element from something key.
+  /// Gets the first element from the queue of some key.
+  /// 
   /// # Arguments
   /// * `key: &T` - key to get the element.
-  /// # Return    
+  /// 
+  /// # Example
+  /// ```rust
+  /// 
+  /// use PTHome::main_code::utilities::general;
+  /// let mut map:general::Map<String, String, i32> = general::Map::new();
+  /// map.insert(&"key1".to_string(), &"value1".to_string());
+  /// map.insert(&"key1".to_string(), &"value2".to_string());
+  /// assert_eq!(map.get(&"key1".to_string()), Some(&"value1".to_string()));
+  /// 
+  /// ```
+  /// 
+  /// # Returns    
   /// * `None` - If the key does not exist.
   /// * `&U` - A reference to the element.
   pub fn get(&self, key: &T)-> Option<&U>{
@@ -744,10 +845,22 @@ where
   }
  
   /// # `get_ref`
-  /// Gets the first element from something key in the HashMap of references.
+  /// Gets the first element from the queue of some key in the HashMap of references.
+  /// 
   /// # Arguments
   /// * `key: &T` - key to get the element.
-  /// # Return    
+  /// 
+  /// # Example
+  /// ```rust
+  /// use PTHome::main_code::utilities::general;
+  /// let mut map:general::Map<String, String, i32> = general::Map::new();
+  /// map.insert_ref(&"key1".to_string(), "value1".to_string());
+  /// map.insert_ref(&"key1".to_string(), "value2".to_string());
+  /// assert_eq!(map.get_ref(&"key1".to_string()), Some(&"value1".to_string()));
+  /// 
+  /// ```
+  /// 
+  /// # Returns
   /// * `None` - If the key does not exist.
   /// * `Some(&U)` - A reference to the element.
   pub fn get_ref(&self, key: &T)-> Option<&U>{
@@ -764,10 +877,23 @@ where
   }
 
   /// # `get_something`
-  /// Gets the frist element from something key in the HashMap of random elements.
+  /// Gets the frist element from the queue of some key in the HashMap of some types of elements.
+  /// 
   /// # Arguments
   /// * `key: &T` - key to get the element.
-  /// # Return
+  /// 
+  /// # Example
+  /// ```rust
+  /// 
+  /// use PTHome::main_code::utilities::general;
+  /// let mut map:general::Map<String, String, i32> = general::Map::new();
+  /// map.insert_something(&"key1".to_string(), 10);
+  /// map.insert_something(&"key1".to_string(), 20);
+  /// assert_eq!(map.get_something(&"key1".to_string()), Some(&10)); 
+  /// 
+  /// ```
+  /// 
+  /// # Returns
   /// * `None` - If the key does not exist.
   /// * `Some(&F)` - A reference to the element.
   pub fn get_something(&self, key:&T)->Option<&F>{
@@ -782,8 +908,21 @@ where
   //----------------------------------------------
   /// # `remove` 
   /// Removes the first element in the HashMap and replaces it with the next element in the queue.
+  /// 
+  /// # Example
+  /// ```rust
+  /// 
+  /// use PTHome::main_code::utilities::general;
+  /// let mut map:general::Map<String, String, i32> = general::Map::new();
+  /// map.insert(&"key1".to_string(), &"value1".to_string());
+  /// map.insert(&"key1".to_string(), &"value2".to_string());
+  /// map.remove(&"key1".to_string());
+  /// assert_eq!(map.get(&"key1".to_string()), Some(&"value2".to_string()));
+  /// 
+  /// ```
+  /// 
   /// # Arguments  
-  /// * `key: &T` - Key to altering its queue.
+  /// * `key: &T` - Key to editing its queue.
   pub fn remove(&mut self, key: &T){
     if let Some(replace) = self.hash.get_mut(key){ 
        if replace.len() > 0{replace.pop_front();}
@@ -793,8 +932,21 @@ where
   
   /// # `remove_ref` 
   /// Removes the first element in the HashMap of references and replaces it with the next element in the queue.
+  /// 
+  /// # Example 
+  /// ```rust
+  /// 
+  /// use PTHome::main_code::utilities::general;
+  /// let mut map:general::Map<String, String, i32> = general::Map::new();
+  /// map.insert_ref(&"key1".to_string(), "value1".to_string());
+  /// map.insert_ref(&"key1".to_string(), "value2".to_string());
+  /// map.remove_ref(&"key1".to_string());
+  /// assert_eq!(map.get_ref(&"key1".to_string()), Some(&"value2".to_string()));
+  /// 
+  /// ```
+  /// 
   /// # Arguments  
-  /// * `key: &T` - Key to altering its queue.
+  /// * `key: &T` - Key to editing its queue.
   pub fn remove_ref(&mut self, key: &T){
       if let Some(replace) = self.hash_ref.get_mut(key){ 
        if replace.len() > 0{replace.pop_front();}
@@ -803,9 +955,21 @@ where
   }
   
   /// # `remove_something`
-  /// Remove the first element in the HashMap of random items and replaces it with the next element in the queue.
+  /// Removes the first element in the HashMap of some types of elements and replaces it with the next element in the queue.
+  /// 
+  /// ```rust
+  /// 
+  /// use PTHome::main_code::utilities::general;
+  /// let mut map:general::Map<String, String, i32> = general::Map::new(); 
+  /// map.insert_something(&"key1".to_string(), 10);
+  /// map.insert_something(&"key1".to_string(), 20);
+  /// map.remove_something(&"key1".to_string());
+  /// assert_eq!(map.get_something(&"key1".to_string()), Some(&20));
+  /// 
+  /// ```
+  /// 
   /// # Arguments
-  /// * `key: &T` - Key to altering its queue.
+  /// * `key: &T` - Key to editing its queue.
   pub fn remove_something(&mut self, key:&T){
     if let Some(vec) = self.hash_something.get_mut(key){
       vec.pop_front();
@@ -818,6 +982,19 @@ where
   //----------------------------------------------
   /// # `remove_all`
   /// Removes a key from the HashMap of copies even if that has more elements in its queue.
+  /// 
+  /// # Example
+  /// ```rust
+  /// 
+  /// use PTHome::main_code::utilities::general;
+  /// let mut map:general::Map<String, String, i32> = general::Map::new();
+  /// map.insert(&"key1".to_string(), &"value1".to_string());
+  /// map.insert(&"key1".to_string(), &"value2".to_string());
+  /// map.remove_all(&"key1".to_string());
+  /// assert_eq!(map.get(&"key1".to_string()), None);
+  /// 
+  /// ```
+  /// 
   /// # Arguments   
   /// * `key: &T` - Key to remove.
   pub fn remove_all(&mut self, key: &T){
@@ -828,6 +1005,19 @@ where
   
   /// # `remove_all_ref`
   /// Removes a key from the HashMap of references even if that has more elements in its queue.
+  /// 
+  /// # Example 
+  /// ```rust
+  /// 
+  /// use PTHome::main_code::utilities::general;
+  /// let mut map:general::Map<String, String, i32> = general::Map::new();
+  /// map.insert_ref(&"key1".to_string(), "value1".to_string());
+  /// map.insert_ref(&"key1".to_string(), "value2".to_string());
+  /// map.remove_all_ref(&"key1".to_string());
+  /// assert_eq!(map.get_ref(&"key1".to_string()), None);
+  /// 
+  /// ```
+  /// 
   /// # Arguments   
   /// * `key: &T` - Key to remove.
   pub fn remove_all_ref(&mut self, key: &T){
@@ -837,7 +1027,20 @@ where
   }
 
   /// # `remove_all_something`
-  /// Removes a key from the HashMap of random elements even if that has more elements in its queue.
+  /// Removes a key from the HashMap of some types of elements even if that has more elements in its queue.
+  /// 
+  /// # Example
+  /// ```rust
+  /// 
+  /// use PTHome::main_code::utilities::general;
+  /// let mut map:general::Map<String, String, i32> = general::Map::new();
+  /// map.insert_something(&"key1".to_string(), 10);
+  /// map.insert_something(&"key1".to_string(), 20);
+  /// map.remove_all_something(&"key1".to_string());
+  /// assert_eq!(map.get_something(&"key1".to_string()), None);
+  /// 
+  /// ```
+  /// 
   /// # Arguments
   /// * `key: &T` - Key to remove.
   pub fn remove_all_something(&mut self, key:&T){
@@ -850,9 +1053,23 @@ where
   //----------------------------------------------
   /// # `get_all`
   /// Gets all the elements in the key queue.
+  /// 
+  /// # Example
+  /// ```rust
+  /// 
+  /// use PTHome::main_code::utilities::general;
+  /// let mut map:general::Map<String, String, i32> = general::Map::new();
+  /// map.insert(&"key1".to_string(), &"value1".to_string());
+  /// map.insert(&"key1".to_string(), &"value2".to_string());
+  /// let vec = map.get_all(&"key1".to_string());
+  /// assert_eq!(vec, vec!["value1".to_string(), "value2".to_string()]);
+  /// 
+  /// ```
+  /// 
   /// # Arguments
   /// * `key:&T` - key to taking the elements in its queue and putting them into a vector.
-  /// # Return 
+  /// 
+  /// # Returns
   /// A empty vector if this key does not exist, else a vector with the elements in the key queue.
   pub fn get_all(&mut self, key: &T)-> Vec<U>{
     let mut vec_ret = Vec::new();
@@ -869,9 +1086,23 @@ where
   
   /// # `get_all_ref`
   /// Gets all the elements in the key queue (from the HashMap of references).
+  /// 
   /// # Arguments
   /// * `key:&T` - key to taking the elements in its queue and putting them into a vector.
-  /// # Return 
+  /// 
+  /// # Example
+  /// ```rust
+  /// 
+  /// use PTHome::main_code::utilities::general;
+  /// let mut map:general::Map<String, String, i32> = general::Map::new();
+  /// map.insert_ref(&"key1".to_string(), "value1".to_string());
+  /// map.insert_ref(&"key1".to_string(), "value2".to_string());
+  /// let vec = map.get_all_ref(&"key1".to_string());
+  /// aassert_eq!(vec, vec!["value1".to_string(), "value2".to_string()]);
+  /// 
+  /// ```
+  /// 
+  /// # Returns 
   /// A empty vector if the key does not exist, else a vector with the elements in the key queue.
   pub fn get_all_ref(&mut self, key: &T)-> Vec<U>{
     let mut vec_ret = Vec::new();
@@ -891,11 +1122,26 @@ where
   //----------------------------------------------
   /// # `get_mut_ref_to_all`
   /// Gets a mutable reference to the VecDeque (queue) of the key.
+  /// 
+  /// # Arguments
+  /// ```rust
+  /// use std::collections::VecDeque;
+  /// use PTHome::main_code::utilities::general;
+  /// let mut map:general::Map<String, String, i32> = general::Map::new();
+  /// map.insert(&"key1".to_string(), &"value1".to_string());
+  /// map.insert(&"key1".to_string(), &"value2".to_string());
+  /// let vec_deque = map.get_mut_ref_to_all(&"key1".to_string());
+  /// assert_eq!(vec_deque, Some(&mut VecDeque::from(vec!["value1".to_string(), "value2".to_string()])));
+  /// 
+  /// ```
+  /// 
   /// # Arguments
   /// * `key:&T` - Key to getting its VecDeque.
-  /// # Return
+  /// 
+  /// # Returns
   /// * `None` - If the key does not exist.
   /// * `Some(&mut VecDeque<U>)` - Mutable reference to the VecDeque.
+  /// 
   /// # IMPORTANT
   /// If you use this option, you need to know what is a VecDeque and his propierties, for avoid break the HashMap and the vector.
   pub fn get_mut_ref_to_all(&mut self, key: &T) -> Option<&mut VecDeque<U>>{
@@ -904,11 +1150,28 @@ where
   
   /// # `get_mut_ref_to_all_ref`
   /// Gets a mutable reference to the VecDeque (queue) of the key.
+  /// 
   /// # Arguments
   /// * `key:&T` - Key to getting its VecDeque.
-  /// # Return
+  /// 
+  /// # Example 
+  /// ```rust
+  /// 
+  /// use std::rc::Rc;
+  /// use std::collections::VecDeque;
+  /// use PTHome::main_code::utilities::general;
+  /// let mut map:general::Map<String, String, i32> = general::Map::new();
+  /// map.insert_ref(&"key1".to_string(), "value1".to_string());
+  /// map.insert_ref(&"key1".to_string(), "value2".to_string());
+  /// let vec_deque = map.get_mut_ref_to_all_ref(&"key1".to_string());
+  /// assert_eq!(vec_deque, Some(&mut VecDeque::from(vec![Rc::new("value1".to_string()), Rc::new("value2".to_string())])));
+  /// 
+  /// ```
+  /// 
+  /// # Returns
   /// * `None` - if the key not exist.
-  /// * `Some(&mut VecDeque<Rc<U>>) - Mutable reference to VecDeque vector, the values into the VecDeque are Rc<U>.
+  /// * `Some(&mut VecDeque<Rc<U>>) - Mutable reference to VecDeque vector (the values into the VecDeque are Rc<U>).
+  /// 
   /// # IMPORTANT
   /// If you use this option, you need to know what is a VecDeque and his propierties and Rc too, for avoid break the HashMap and the vector.
   pub fn get_mut_ref_to_all_ref(&mut self, key: &T) -> Option<&mut VecDeque<Rc<U>>>{
@@ -916,12 +1179,33 @@ where
   }
   
   /// # `get_mut_ref_to_all_something`
-  /// Gets a mutable reference to VecDeque (queue) of the key in the HashMap of random items
+  /// Gets a mutable reference to VecDeque (queue) of the key in the HashMap of random items.
+  /// 
   /// # Arguments
-  /// * `key: &T` - Key to get the VecDeque
-  /// # Return
-  /// * `None` - If the key not exist
-  /// * `Some(&mut VecDeque<F>)` - Mutable Reference to VecDeque vector, the values into the VecDeque are F
+  /// * `key: &T` - Key to get the VecDeque.
+  /// 
+  /// # Example 
+  /// ```rust
+  /// 
+  /// use std::collections::VecDeque;
+  /// use PTHome::main_code::utilities::general;
+  /// let mut map:general::Map<String, String, i32> = general::Map::new();
+  /// map.insert_something(&"key1".to_string(), 10);
+  /// map.insert_something(&"key1".to_string(), 20);
+  /// let vec_deque = map.get_mut_ref_to_all_something(&"key1".to_string());
+  /// assert_eq!(vec_deque, Some(&mut VecDeque::from(vec![10, 20])));
+  /// 
+  /// ```
+  /// 
+  /// # Returns
+  /// * `None` - If the key not exist.
+  /// * `Some(&mut VecDeque<F>)` - Mutable reference to VecDeque vector (the values in the VecDeque are F).
+  /// 
+  /// # IMPORTANT
+  /// If you use this option, you need to know what is a VecDeque and his propierties, for avoid break the HashMap and the vector.
+  /// 
+  /// ## NOTE
+  /// Does not exist a method for get all the key values for the HashMap of some types of elements, because they might not be clonnable.
   pub fn get_mut_ref_to_all_something(&mut self, key:&T)->Option<&mut VecDeque<F>>{
     self.hash_something.get_mut(key)
   }
@@ -929,40 +1213,99 @@ where
 
   //----------------------------------------------
   /// # `get_ref_to_all`
-  /// For get a reference to VecDeque for this key
+  /// Gets a reference to the VecDeque for the key.
+  /// 
   /// # Arguments
-  /// * `key: &T` - Key to get the VecDeque
-  /// # Return
-  /// * `None` - If the key not exist
-  /// * `Some(&VecDeque<U>)` - Reference to VecDeque vector
+  /// * `key: &T` - Key to get the VecDeque.
+  /// 
+  /// # Example
+  /// ```rust
+  /// 
+  /// use std::collections::VecDeque;
+  /// use PTHome::main_code::utilities::general;
+  /// let mut map:general::Map<String, String, i32> = general::Map::new();
+  /// map.insert(&"key1".to_string(), &"value1".to_string());
+  /// map.insert(&"key1".to_string(), &"value2".to_string());
+  /// let vec_deque = map.get_ref_to_all(&"key1".to_string());
+  /// assert_eq!(vec_deque, Some(&VecDeque::from(vec!["value1".to_string(), "value2".to_string()])));
+  /// 
+  /// ```
+  /// 
+  /// # Returns
+  /// * `None` - If the key not exist.
+  /// * `Some(&VecDeque<U>)` - A reference to the VecDeque vector.
+  /// 
   /// # IMPORTANT
   /// If you use this option, you need to know what is a VecDeque and his propierties.
+  /// 
+  /// ## NOTE
+  /// Not exist a method for get all the key values for the HashMap of some types of elements, because they might not be clonnable.
   pub fn get_ref_to_all(&self, key:&T)->Option<&VecDeque<U>>{
     self.hash.get(key)
   }
   
   /// # `get_ref_to_all_ref`
-  /// For get a reference to VecDeque for that key
+  /// Gets a reference to VecDeque for that key.
+  /// 
   /// # Arguments
-  /// * `key: &T` - Key to get the VecDeque
-  /// # Return
-  /// * `None` - If the key not exist
-  /// * `Some(&VecDeque<Rc<U>>)` - Reference to VecDeque vector, the values into the VecDeque are Rc<U>
+  /// * `key: &T` - Key to get the VecDeque.
+  /// 
+  /// # Example
+  /// ```rust
+  /// 
+  /// use std::rc::Rc;
+  /// use std::collections::VecDeque;
+  /// use PTHome::main_code::utilities::general;
+  /// 
+  /// let mut map:general::Map<String, String, i32> = general::Map::new();
+  /// map.insert_ref(&"key1".to_string(), "value1".to_string());
+  /// map.insert_ref(&"key1".to_string(), "value2".to_string());
+  /// let vec_deque = map.get_ref_to_all_ref(&"key1".to_string());
+  /// assert_eq!(vec_deque, Some(&VecDeque::from(vec![Rc::new("value1".to_string()), Rc::new("value2".to_string())])));
+  /// 
+  /// ```
+  /// 
+  /// # Returns
+  /// * `None` - If the key not exist.
+  /// * `Some(&VecDeque<Rc<U>>)` - A reference to the VecDeque vector (the values in the VecDeque are Rc<U>).
+  /// 
   /// # IMPORTANT
-  /// If you use this option, you need to know what is a VecDeque and his propierties and Rc too
+  /// If you use this option, you need to know what is a VecDeque and his propierties and Rc too.
+  /// 
+  /// ## NOTE
+  /// Not exist a method for get all the key values for the HashMap of some types of elements, because they might not be clonnable.
   pub fn get_ref_to_all_ref(&self, key: &T) -> Option<&VecDeque<Rc<U>>>{
     self.hash_ref.get(key)
   }
   
   /// # `get_ref_to_all_something`
-  /// For get a reference to VecDeque for that key in the HashMap of random values
+  /// Gets a reference to VecDeque for that key in the HashMap of random values.
+  /// 
   /// # Arguments
-  /// * `key: &T` - Key to get the VecDeque
-  /// # Return 
-  /// * `None` - If the key not exist
-  /// * `Some(&VecDeque<F>)` - Reference to VecDeque vector, the values into the VecDeque are F
-  /// # NOTE
-  /// Not exist method for get all the values of that key in the HashMap of random values, because the values are not clonables
+  /// * `key: &T` - Key to get the VecDeque.
+  ///
+  /// # Example
+  /// ```rust
+  /// 
+  /// use std::collections::VecDeque;
+  /// use PTHome::main_code::utilities::general;
+  /// let mut map:general::Map<String, String, i32> = general::Map::new();
+  /// map.insert_something(&"key1".to_string(), 10);
+  /// map.insert_something(&"key1".to_string(), 20);
+  /// let vec_deque = map.get_ref_to_all_something(&"key1".to_string());
+  /// assert_eq!(vec_deque, Some(&VecDeque::from(vec![10, 20])));
+  /// 
+  /// ```
+  /// 
+  /// # Returns 
+  /// * `None` - If the key not exist.
+  /// * `Some(&VecDeque<F>)` - A reference to the VecDeque vector (the values in the VecDeque are F).
+  /// 
+  /// # IMPORTANT
+  /// If you use this option, you need to know what is a VecDeque and his propierties.
+  /// 
+  /// ## NOTE
+  /// Not exist a method for get all the key values for the HashMap of some types of elements, because they might not be clonnable.
   pub fn get_ref_to_all_something(&mut self, key:&T)->Option<&VecDeque<F>>{
     self.hash_something.get(key)
   }
@@ -970,10 +1313,23 @@ where
 
   //----------------------------------------------
   /// # `set_value`
-  /// Set all the queue of a key
+  /// Sets all the queue of the key.
+  /// 
   /// # Arguments
-  /// * `key: &T` - Key of the valu to set queue if this have
-  /// * `new_vec: Vec<U>` - Vec for replace the actual queue for that key
+  /// * `key: &T` - Key for setting its queue.
+  /// * `new_vec: Vec<U>` - Vec for replace the queue.
+  /// 
+  /// # Example
+  /// ```rust
+  /// 
+  /// use PTHome::main_code::utilities::general;
+  /// let mut map:general::Map<String, String, i32> = general::Map::new();
+  /// map.insert(&"key1".to_string(), &"value1".to_string());
+  /// map.insert(&"key1".to_string(), &"value2".to_string());
+  /// map.set_value(&"key1".to_string(), &vec!["new_value1".to_string(), "new_value2".to_string()]);
+  /// assert_eq!(map.get_all(&"key1".to_string()), vec!["new_value1".to_string(), "new_value2".to_string()]);
+  /// 
+  /// ```
   pub fn set_value(&mut self, key: &T, new_vec: &Vec<U>){
     if let Some(vec) = self.hash.get_mut(key){
       vec.clear();
@@ -984,10 +1340,23 @@ where
   }
   
   /// # `set_value_ref`
-  /// Set all the queue of that key
+  /// Sets all the queue of the key in the HashMap of references.
+  /// 
   /// # Arguments
-  /// * `key: &T` - Key of the valu to set queue if this have
-  /// * `new_vec: Vec<U>` - Vec for replace the actual queue
+  /// * `key: &T` - Key for setting its queue.
+  /// * `new_vec: Vec<U>` - Vec for replace the queue.
+  /// 
+  /// # Example
+  /// ```rust
+  /// 
+  /// use PTHome::main_code::utilities::general;
+  /// let mut map:general::Map<String, String, i32> = general::Map::new();
+  /// map.insert_ref(&"key1".to_string(), "value1".to_string());
+  /// map.insert_ref(&"key1".to_string(), "value2".to_string());
+  /// map.set_value_ref(&"key1".to_string(), vec!["new_value1".to_string(), "new_value2".to_string()]);
+  /// assert_eq!(map.get_all_ref(&"key1".to_string()), vec!["new_value1".to_string(), "new_value2".to_string()]);
+  /// 
+  /// ```
   pub fn set_value_ref(&mut self, key: &T, new_vec: Vec<U>){
     if let Some(vec) = self.hash_ref.get_mut(key){
       vec.clear();
@@ -999,10 +1368,24 @@ where
   }
 
   /// # `set_value_something`
-  /// Set all the queue of that key in the HashMap of random values
+  /// Sets all the queue of the key in the HashMap of some types of elements.
+  /// 
   /// # Arguments
-  /// * `key: &T` - Key of the value to set queue if this have
-  /// * `new_vec: Vec<F>` - Vec for replace the actual queue
+  /// * `key: &T` - Key for setting its queue.
+  /// * `new_vec: Vec<F>` - Vec for replace the queue.
+  /// 
+  /// # Example
+  /// ```rust
+  /// 
+  /// use std::collections::VecDeque;
+  /// use PTHome::main_code::utilities::general;
+  /// let mut map:general::Map<String, String, i32> = general::Map::new();
+  /// map.insert_something(&"key1".to_string(), 10);
+  /// map.insert_something(&"key1".to_string(), 20);
+  /// map.set_value_something(&"key1".to_string(), vec![30, 40]);
+  /// assert_eq!(map.get_ref_to_all_something(&"key1".to_string()), Some(&VecDeque::from(vec![30, 40])));
+  /// 
+  /// ```
   pub fn set_value_something(&mut self, key:&T, new_vec:Vec<F>){
     if let Some(vec) = self.hash_something.get_mut(key){
       vec.clear();
@@ -1015,34 +1398,70 @@ where
 
   //----------------------------------------------
   /// # `contains_key`
-  /// Indicate if something key exist in the HashMap of copies
+  /// Indicates if the key exists in the HashMap of copies.
+  /// 
   /// # Arguments
-  /// * `key:&T` - Key for search
-  /// # Return  
-  /// * `true` if have
-  /// * `false` if not haven't
+  /// * `key:&T` - Key to search.
+  /// 
+  /// # Example
+  /// ```rust
+  /// 
+  /// use PTHome::main_code::utilities::general;
+  /// let mut map:general::Map<String, String, i32> = general::Map::new();
+  /// map.insert(&"key1".to_string(), &"value1".to_string());
+  /// assert_eq!(map.contains_key(&"key1".to_string()), true);
+  /// 
+  /// ```
+  /// 
+  /// # Returns 
+  /// * `true` if exists.
+  /// * `false` if does not exist.
   pub fn contains_key(&self, key: &T)-> bool{
     self.hash.contains_key(key)
   }
   
   /// # `contains_key_ref`
-  /// Indicate if something key exists in the HashMap of references
+  /// Indicates if the key exists in the HashMap of references.
+  /// 
   /// # Arguments
-  /// * `key:&T` - Key for search the queue
-  /// # Return  
-  /// * `true` if have
-  /// * `false` if not haven't
+  /// * `key:&T` - Key to search.
+  /// 
+  /// # Example
+  /// ```rust
+  /// 
+  /// use PTHome::main_code::utilities::general;
+  /// let mut map:general::Map<String, String, i32> = general::Map::new();
+  /// map.insert_ref(&"key1".to_string(), "value1".to_string());
+  /// assert_eq!(map.contains_key_ref(&"key1".to_string()), true);
+  /// 
+  /// ```
+  /// 
+  /// # Returns
+  /// * `true` if exists.
+  /// * `false` if does not exist.
   pub fn contains_key_ref(&self, key: &T)-> bool{
     self.hash_ref.contains_key(key)
   }
 
   /// # `contains_key_something`
-  /// Indicate if something key exists in the HashMap of random values
+  /// Indicate if something key exists in the HashMap of random values.
+  /// 
   /// # Arguments
-  /// * `key:&T` - Key for search the queue
-  /// # Return
-  /// * `true` if have
-  /// * `false` if not haven't
+  /// * `key:&T` - Key to search.
+  /// 
+  /// # example
+  /// ```rust
+  /// 
+  /// use PTHome::main_code::utilities::general;
+  /// let mut map:general::Map<String, String, i32> = general::Map::new();
+  /// map.insert_something(&"key1".to_string(), 10);
+  /// assert_eq!(map.contains_key_something(&"key1".to_string()), true);
+  /// 
+  /// ```
+  /// 
+  /// # Returns
+  /// * `true` if exists.
+  /// * `false` if does not exist.
   pub fn contains_key_something(&self, key:&T)->bool{
     self.hash_something.contains_key(key)
   }
@@ -1050,11 +1469,24 @@ where
 
   //---------------------------------------------
   /// # `set_value_element`
-  /// Set a value of something elemenet in the queue of thath key, can be 0 or other, if the index is greater than the vector len not applicate the change
+  /// Sets the value to some elemenet in the queue of the key (can be 0 or other), if the index is greater than the vector length the change will not be made.
+  /// 
   /// # Arguments 
-  /// * `key: &T` - Key for change the element in his vector
-  /// * `index: usize` - Index of element to change
-  /// * `new_element` - Element for make the change
+  /// * `key: &T` - Key for change the element in its queue.
+  /// * `index: usize` - Index of element to change.
+  /// * `new_element` - Element for make the change.
+  /// 
+  /// # Example
+  /// ```rust
+  /// 
+  /// use PTHome::main_code::utilities::general;
+  /// let mut map:general::Map<String, String, i32> = general::Map::new();
+  /// map.insert(&"key1".to_string(), &"value1".to_string());
+  /// map.insert(&"key1".to_string(), &"value2".to_string());
+  /// map.set_value_element(&"key1".to_string(), 1, &"new_value".to_string());
+  /// assert_eq!(map.get_all(&"key1".to_string()), vec!["value1".to_string(), "new_value".to_string()]);
+  /// 
+  /// ```
   pub fn set_value_element(&mut self, key: &T, index: usize, new_element: &U) {
     if let Some(vec) = self.hash.get_mut(key) {
         if index <= vec.len()-1 {
@@ -1068,11 +1500,24 @@ where
   }
   
   /// # `set_value_element_ref`
-  /// Set a element in the queue of that key, can be 0 or other, if greater than the vector len not applicate the change
+  /// Sets the value to some elemenet in the queue of the key (can be 0 or other), if the index is greater than the vector length the change will not be made.
+  /// 
   /// # Arguments 
-  /// * `key: &T` - Key for change the element in his queue
-  /// * `index: usize` - Index of element to change
-  /// * `new_element` - Element for make the change
+  /// * `key: &T` - Key for change the element in its queue.
+  /// * `index: usize` - Index of element to change.
+  /// * `new_element` - Element for make the change.
+  /// 
+  /// # Example
+  /// ```rust
+  /// 
+  /// use PTHome::main_code::utilities::general;
+  /// let mut map:general::Map<String, String, i32> = general::Map::new();
+  /// map.insert_ref(&"key1".to_string(), "value1".to_string());
+  /// map.insert_ref(&"key1".to_string(), "value2".to_string());
+  /// map.set_value_element_ref(&"key1".to_string(), 1, "new_value".to_string());
+  /// assert_eq!(map.get_all_ref(&"key1".to_string()), vec!["value1".to_string(), "new_value".to_string()]);
+  /// 
+  /// ```
   pub fn set_value_element_ref(&mut self, key: &T, index: usize, new_element: U) {
     if let Some(vec) = self.hash_ref.get_mut(key) {
         if index <= vec.len()-1 {
@@ -1086,11 +1531,25 @@ where
   }
   
   /// # `set_value_element_something`
-  /// Set a element in the queue of that key in the HashMap of random values, can be 0 or other, if greater than the vector len not applicate the change
+  /// Sets the value to some elemenet in the queue of the key (can be 0 or other), if the index is greater than the vector length the change will not be made.
+  /// 
   /// # Arguments
-  /// * `key: &T` - Key for change the element in his queue
-  /// * `index: usize` - Index of element to change
-  /// * `new_element: F` - Element for make the change
+  /// * `key: &T` - Key for change the element in its queue.
+  /// * `index: usize` - Index of element to change.
+  /// * `new_element: F` - Element for make the change.
+  /// 
+  /// # Example
+  /// ```rust
+  /// 
+  /// use std::collections::VecDeque;
+  /// use PTHome::main_code::utilities::general;
+  /// let mut map:general::Map<String, String, i32> = general::Map::new();
+  /// map.insert_something(&"key1".to_string(), 10);
+  /// map.insert_something(&"key1".to_string(), 20);
+  /// map.set_value_element_something(&"key1".to_string(), 1, 30);
+  /// assert_eq!(map.get_ref_to_all_something(&"key1".to_string()), Some(&VecDeque::from(vec![10, 30])));
+  /// 
+  /// ```
   pub fn set_value_element_something(&mut self, key:&T, index:usize, new_element:F){
     if let Some(vec) = self.hash_something.get_mut(key){
       if index <= vec.len()-1{
@@ -1106,11 +1565,12 @@ where
 
  //----------------------------------------------
   /// # `enable_global_order`
-  /// Enables the global order register of the insert in keys, for the `HashMap of refs` and `HashMap of copies`
-  /// If you want enable the register for a single `HashMap` use [`enable_order_for_ref`] (for `HashMap of refs`) or [`enable_order`] (for `HashMap of copies`)
+  /// Enables the global order register of the insert in keys, for the `HashMap of refs`, `HashMap of some types of elements` and `HashMap of copies`.
+  /// If you want to enable the register for a single `HashMap` use `enable_order_for_ref` (for `HashMap of refs`), `enable_order_for_something` (for `HashMap of some types of elements`) or `enable_order` (for `HashMap of copies`).
+  /// 
   /// # Arguments
-  /// * `last_insert_of_key: bool` - Indicate if the register just store the last insert for key
-  /// * `preserve_content_before_order` - Indicate if you want to preserve the register store before for key, and just aplicate the `las_insert_of_key` flag about moment when you change this flag
+  /// * `last_insert_of_key: bool` - Indicate if the register just store the last insert for key.
+  /// * `preserve_content_before_order` - Indicate if you want to preserve the register store before for key, and just aplicate the `las_insert_of_key` flag about moment when you change this flag.
   pub fn enable_global_order(&mut self, last_insert_of_key: bool, preserve_content_before_order: bool){
     self.order_hash = true;
     self.order_hash_ref = true;

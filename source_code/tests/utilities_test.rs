@@ -184,7 +184,7 @@
    /// # map_tests
    /// Tests for the general::Map struct and its methods
    /// ## IMPORTANT
-   /// Some tests use HashMap internally. Because HashMap iteration order is arbitrary
+   /// Some tests use HashMap. Because HashMap iteration order is arbitrary
    /// (non-deterministic), those tests may fail if they assume a particular order, so
    /// they are ignored by default.
   mod map_tests{
