@@ -1099,67 +1099,67 @@
        assert_eq!([2,5,3].to_vec(), s);
     }
   #[test]
-  /// # [`general::Map::get_value`] Test
-    fn test_get_value(){
+  /// # [`general::Map::get_element`] Test
+    fn test_get_element(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert(&3,& "hello".to_string());
        n.insert(&3,& "world".to_string());
        n.insert(&3, &"chao".to_string());
-       assert_eq!(Some(&"hello".to_string()), n.get_value(&3, 0));
-       assert_eq!(None, n.get_value(&5, 0));
+       assert_eq!(Some(&"hello".to_string()), n.get_element(&3, 0));
+       assert_eq!(None, n.get_element(&5, 0));
     }
   #[test]
-  /// # [`general::Map::get_value_ref`] Test
-    fn test_get_value_ref(){
+  /// # [`general::Map::get_element_ref`] Test
+    fn test_get_element_ref(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert_ref(&3, "hello".to_string());
        n.insert_ref(&3, "world".to_string());
        n.insert_ref(&3, "chao".to_string());
-       assert_eq!(Some(&"hello".to_string()), n.get_value_ref(&3, 0));
-       assert_eq!(None, n.get_value_ref(&5, 0));
+       assert_eq!(Some(&"hello".to_string()), n.get_element_ref(&3, 0));
+       assert_eq!(None, n.get_element_ref(&5, 0));
     }
   #[test]
-  /// # [`general::Map::get_value_something`] Test
-    fn test_get_value_something(){
+  /// # [`general::Map::get_element_something`] Test
+    fn test_get_element_something(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert_something(&3, Some(10));
        n.insert_something(&3, Some(20));
        n.insert_something(&3, Some(30));
-       assert_eq!(Some(&Some(10)), n.get_value_something(&3, 0));
-       assert_eq!(None, n.get_value_something(&5, 0));
+       assert_eq!(Some(&Some(10)), n.get_element_something(&3, 0));
+       assert_eq!(None, n.get_element_something(&5, 0));
     }
   #[test]
-  /// # [`general::Map::extract_value`] Test
-    fn test_extract_value(){
+  /// # [`general::Map::extract_element`] Test
+    fn test_extract_element(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert(&3,& "hello".to_string());
        n.insert(&3,& "world".to_string());
        n.insert(&3, &"chao".to_string());
-       assert_eq!(Some("hello".to_string()),n.extract_value(&3, 0));
-       assert_eq!(Some("world".to_string()), n.extract_value(&3, 0));
-       assert_eq!(None, n.get_value(&3, 2));
+       assert_eq!(Some("hello".to_string()),n.extract_element(&3, 0));
+       assert_eq!(Some("world".to_string()), n.extract_element(&3, 0));
+       assert_eq!(None, n.get_element(&3, 2));
     }
   #[test]
-  /// # [`general::Map::extract_value_ref`] Test
-    fn test_extract_value_ref(){
+  /// # [`general::Map::extract_element_ref`] Test
+    fn test_extract_element_ref(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert_ref(&3, "hello".to_string());
        n.insert_ref(&3, "world".to_string());
        n.insert_ref(&3, "chao".to_string());
-       assert_eq!("hello".to_string(),*(n.extract_value_ref(&3, 0).unwrap()));
-       assert_eq!("world".to_string(), *(n.extract_value_ref(&3, 0).unwrap()));
-       assert_eq!(None, n.get_value_ref(&3, 2));
+       assert_eq!("hello".to_string(),*(n.extract_element_ref(&3, 0).unwrap()));
+       assert_eq!("world".to_string(), *(n.extract_element_ref(&3, 0).unwrap()));
+       assert_eq!(None, n.get_element_ref(&3, 2));
     } 
   #[test]
-  /// # [`general::Map::extract_value_something`] Test
-    fn test_extract_value_something(){
+  /// # [`general::Map::extract_element_something`] Test
+    fn test_extract_element_something(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert_something(&3, Some(10));
        n.insert_something(&3, Some(20));
        n.insert_something(&3, Some(30));
-       assert_eq!(Some(Some(10)),n.extract_value_something(&3, 0));
-       assert_eq!(Some(Some(20)), n.extract_value_something(&3, 0));
-       assert_eq!(None, n.get_value_something(&3, 2));
+       assert_eq!(Some(Some(10)),n.extract_element_something(&3, 0));
+       assert_eq!(Some(Some(20)), n.extract_element_something(&3, 0));
+       assert_eq!(None, n.get_element_something(&3, 2));
     }
   #[test]
   #[ignore]
@@ -1444,73 +1444,73 @@
        assert_eq!(s2, *values2);
     }
   #[test]
-  /// # [`general::Map::get_mut_value`] Test
-    fn test_get_mut_value(){
+  /// # [`general::Map::get_mut_element`] Test
+    fn test_get_mut_element(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert(&3,& "hello".to_string());
        n.insert(&3,& "world".to_string());
        n.insert(&3, &"chao".to_string());
-       if let Some(value) = n.get_mut_value(&3, 1){
+       if let Some(value) = n.get_mut_element(&3, 1){
         *value = "modified".to_string();
        }
-       assert_eq!(Some(&"modified".to_string()), n.get_value(&3, 1));
-       assert_eq!(None, n.get_mut_value(&5, 0));
+       assert_eq!(Some(&"modified".to_string()), n.get_element(&3, 1));
+       assert_eq!(None, n.get_mut_element(&5, 0));
     }
   #[test]
-  /// # [`general::Map::get_mut_value_ref`] Test
-    fn test_get_mut_value_ref(){
+  /// # [`general::Map::get_mut_element_ref`] Test
+    fn test_get_mut_element_ref(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert_ref(&3, "hello".to_string());
        n.insert_ref(&3, "world".to_string());
        n.insert_ref(&3, "chao".to_string());
-       if let Some(value) = n.get_mut_value_ref(&3, 1){
+       if let Some(value) = n.get_mut_element_ref(&3, 1){
         *value = Rc::new("modified".to_string());
        }
-       assert_eq!(Some(&"modified".to_string()), n.get_value_ref(&3, 1));
-       assert_eq!(None, n.get_mut_value_ref(&5, 0));
+       assert_eq!(Some(&"modified".to_string()), n.get_element_ref(&3, 1));
+       assert_eq!(None, n.get_mut_element_ref(&5, 0));
     }
   #[test]
-  /// # [`general::Map::get_mut_value_something`] Test
-    fn test_get_mut_value_something(){
+  /// # [`general::Map::get_mut_element_something`] Test
+    fn test_get_mut_element_something(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert_something(&3, Some(10));
        n.insert_something(&3, Some(20));
        n.insert_something(&3, Some(30));
-       if let Some(value) = n.get_mut_value_something(&3, 1){
+       if let Some(value) = n.get_mut_element_something(&3, 1){
         *value = Some(999);
        }
-       assert_eq!(Some(&Some(999)), n.get_value_something(&3, 1));
-       assert_eq!(None, n.get_mut_value_something(&5, 0));
+       assert_eq!(Some(&Some(999)), n.get_element_something(&3, 1));
+       assert_eq!(None, n.get_mut_element_something(&5, 0));
     }
   #[test]
-  /// # [`general::Map::remove_value`] Test
-    fn test_remove_value(){
+  /// # [`general::Map::remove_element`] Test
+    fn test_remove_element(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert(&3,& "hello".to_string());
        n.insert(&3,& "world".to_string());
        n.insert(&3, &"chao".to_string());
-       n.remove_value(&3, 2);
-       assert_eq!(None, n.get_value(&3, 2));
+       n.remove_element(&3, 2);
+       assert_eq!(None, n.get_element(&3, 2));
     }
   #[test]
-  /// # [`general::Map::remove_value_ref`] Test
-    fn test_remove_value_from_ref(){
+  /// # [`general::Map::remove_element_ref`] Test
+    fn test_remove_element_from_ref(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert_ref(&3, "hello".to_string());
        n.insert_ref(&3, "world".to_string());
        n.insert_ref(&3, "chao".to_string());
-       n.remove_value_from_ref(&3, 1);
-       assert_eq!("chao".to_string(), *n.get_value_ref(&3, 1).unwrap());
+       n.remove_element_from_ref(&3, 1);
+       assert_eq!("chao".to_string(), *n.get_element_ref(&3, 1).unwrap());
     }
   #[test]
-  /// # [`general::Map::remove_value_something`] Test
-    fn test_remove_value_from_something(){
+  /// # [`general::Map::remove_element_something`] Test
+    fn test_remove_element_from_something(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert_something(&3, Some(10));
        n.insert_something(&3, Some(20));
        n.insert_something(&3, Some(30));
-       n.remove_value_from_something(&3, 0);
-       assert_eq!(Some(20), *n.get_value_something(&3, 0).unwrap());
+       n.remove_element_from_something(&3, 0);
+       assert_eq!(Some(20), *n.get_element_something(&3, 0).unwrap());
     }
   #[test]
   /// # [`general::Map::reset_all`] Test
