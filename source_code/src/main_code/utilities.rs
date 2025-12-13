@@ -79,7 +79,8 @@ pub mod general{
     /// # IMPORTANT
     /// If don't want use a delimiter just use an empty string `""`.
     /// 
-    /// **NOTE:** The default delimiter is an space `' '`.
+    /// ## Notes 
+    /// - The default delimiter is an space `' '`.
     pub fn new(content: &'a str, delimiter: &'a str) -> Self{
       Self {
         content:content,
@@ -1204,8 +1205,8 @@ where
   /// # IMPORTANT
   /// If you use this option, you need to know what is a VecDeque and his propierties, for avoid break the HashMap and the vector.
   /// 
-  /// ## NOTE
-  /// Does not exist a method for get all the key values for the HashMap of some types of elements, because they might not be clonnable.
+  /// ## Notes
+  /// - Does not exist a method for get all the key values for the HashMap of some types of elements, because they might not be clonnable.
   pub fn get_mut_ref_to_all_something(&mut self, key:&T)->Option<&mut VecDeque<F>>{
     self.hash_something.get_mut(key)
   }
@@ -1238,8 +1239,8 @@ where
   /// # IMPORTANT
   /// If you use this option, you need to know what is a VecDeque and his propierties.
   /// 
-  /// ## NOTE
-  /// Not exist a method for get all the key values for the HashMap of some types of elements, because they might not be clonnable.
+  /// ## Notes
+  /// - Does not exist a method for get all the key values for the HashMap of some types of elements, because they might not be clonnable.
   pub fn get_ref_to_all(&self, key:&T)->Option<&VecDeque<U>>{
     self.hash.get(key)
   }
@@ -1272,8 +1273,8 @@ where
   /// # IMPORTANT
   /// If you use this option, you need to know what is a VecDeque and his propierties and Rc too.
   /// 
-  /// ## NOTE
-  /// Not exist a method for get all the key values for the HashMap of some types of elements, because they might not be clonnable.
+  /// ## Notes
+  /// - Does not exist a method for get all the key values for the HashMap of some types of elements, because they might not be clonnable.
   pub fn get_ref_to_all_ref(&self, key: &T) -> Option<&VecDeque<Rc<U>>>{
     self.hash_ref.get(key)
   }
@@ -1304,8 +1305,8 @@ where
   /// # IMPORTANT
   /// If you use this option, you need to know what is a VecDeque and his propierties.
   /// 
-  /// ## NOTE
-  /// Not exist a method for get all the key values for the HashMap of some types of elements, because they might not be clonnable.
+  /// ## Notes
+  /// - Does not exist a method for get all the key values for the HashMap of some types of elements, because they might not be clonnable.
   pub fn get_ref_to_all_something(&mut self, key:&T)->Option<&VecDeque<F>>{
     self.hash_something.get(key)
   }
@@ -3089,8 +3090,8 @@ where
 }
 //------------------------------------------------------------------
 
-/// # Mod `remove_comments` from `utilities.rs`
-/// This module provides functions to remove comments from files.   
+/// # Module `remove_comments`
+/// Provides functions to remove comments from a string.   
 pub mod remove_comments{
   #![allow(unused)]
     use std::f32::consts::E;

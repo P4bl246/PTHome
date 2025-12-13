@@ -1,12 +1,12 @@
 
 #[cfg(test)]
-///# general_tests
+///# Module `general_tests`
 /// Tests for the general utility functions and NumLines struct.
   mod general_tests{
     use PTHome::main_code::utilities::general::*;
       #[test]
-       /// # [`remove_empty_lines`] Test
-       ///The result expected have a '\n' at the end because within the function in each iteration push the content of the line and add '\n' on the end 
+       /// # `remove_empty_lines` Test.
+       ///The result expected has a '\n' at the end because within the function in each iteration push the content of the line and add '\n' on the end. 
         fn test_remove_empty_lines(){
           let str= &"This is my test\n            \n The test is made for ensure the function \n \n remove_empyt_lines".to_string();
           let expected ="This is my test\n The test is made for ensure the function \n remove_empyt_lines\n".to_string();
@@ -14,14 +14,14 @@
         }
 
       #[test]
-      /// # [`NumLines::numerate_lines`] Test
+      /// # `NumLines::numerate_lines` Test
        fn test_numerate_lines(){
         let new_instance = NumLines::new("This is the content''\n to numerate'\n this is the line three'\n", "");
         assert_eq!("1 This is the content''\n2  to numerate'\n3  this is the line three'\n".to_string(), new_instance.numerate_lines());
       }
 
       #[test]
-      /// # [`NumLines::remove_num_lines`] Test
+      /// # `NumLines::remove_num_lines` Test
        fn test_remove_num_lines(){
         let mut new_instance = NumLines::new("This is the content''\n to numerate'\n this is the line three'\n", "-");
         let numerated = new_instance.numerate_lines();
@@ -30,17 +30,17 @@
         assert_eq!(expected, new_instance.remove_num_lines());
       }
       #[test]
-      /// # [`NumLines::remove_num_lines`] Test 2
-      /// Here we test the function with a string not numerated before and without de delimiter
+      /// # `NumLines::remove_num_lines` Test 2
+      /// Here we test the function with a string not numerated before and without de delimiter.
       fn test_2_remove_num_lines(){
         let  new_instance = NumLines::new("This is the content''\n to numerate'\n this is the line three'\n", "-");
-        //Not set the content
+  
         let expected = "This is the content''\n to numerate'\n this is the line three'\n".to_string();
         assert_eq!(expected, new_instance.remove_num_lines());
       }
       #[test]
-      /// # [`NumLines::remove_num_lines`] Test 3
-      /// Here we test the function with a delimiter just like space (' '), so the function remove all after and the first delmiter appear found for each line
+      /// # `NumLines::remove_num_lines` Test 3
+      /// Here we test the function with a delimiter just like space (' '), so the function remove all after and the first delmiter appear found for each line.
         fn test_3_remove_num_lines(){
         let  new_instance = NumLines::new("This is the content''\n to numerate'\n this is the line three'\n", "");
         //Not set the content
@@ -49,7 +49,7 @@
       }
 
       #[test]
-      /// # [`NumLines::skip_num_line`] Test
+      /// # `NumLines::skip_num_line` Test
        fn test_skip_num_line(){
         let  new_instance = NumLines::new("This is the content''\n to numerate'\n this is the line three'\n", "");
         let numerated = new_instance.numerate_lines();
@@ -61,8 +61,8 @@
         assert_eq!("This is the content''\n to numerate'\n this is the line three'\n".to_string(),num_line_skiped);
       }
       #[test]
-      /// # [`NumLines::skip_num_line`] Test 2
-      /// Here we test the function with a string without end delimiter use
+      /// # `NumLines::skip_num_line` Test 2
+      /// Tests the function with a string without end delimiter use.
        fn test_2_skip_num_line(){
         let new_instance = NumLines::new("This is the content''\n to numerate'\n this is the line three'\n", "-");
       
@@ -75,7 +75,7 @@
       }
 
       #[test]
-      /// # [`NumLines::get_num_line`] Test
+      /// # `NumLines::get_num_line` Test
        fn test_get_num_line(){
         let new_instance = NumLines::new("This is the content''\n to numerate'\n this is the line three'\n", "-");
          let numerated = new_instance.numerate_lines();
@@ -86,9 +86,9 @@
         assert_eq!([1, 2, 3].to_vec(),num_line);
       }
       #[test]
-      /// # [`NumLines::get_num_line`] Test  2
-      /// test the function without the content numerated before
-      /// expected -1 at the end of the vector, because not found in the string a delimiter expected '-'
+      /// # `NumLines::get_num_line` Test 2
+      /// Tests the function without the content numerated.
+      /// Expected -1 at the end of the vector, because not found in the string the expected delimiter  '-'.
        fn test_2_get_num_line(){
         let new_instance = NumLines::new("1-This is the content''\n2- to numerate'\n3 this is the line three'\n", "-");
         let mut num_line:Vec<i32> = Vec::new();
@@ -99,29 +99,29 @@
       }
       #[test]
       #[should_panic]
-      /// # [`NumLines::get_num_line`] Test  3
-      /// test the function without the content numerated before
-      /// expected panic because can convert 'This' to i32
+      /// # `NumLines::get_num_line` Test 3
+      /// Tests the function without the content numerated.
+      /// Expected panic because can convert 'This' to i32.
        fn test_3_get_num_line(){
         let new_instance = NumLines::new("This is the content''", "");
         assert_eq!(1,new_instance.get_num_line("This is the content''"));
       }
 
       #[test]
-      /// # [`NumLines::get_content`] Test
+      /// # `NumLines::get_content` Test
      fn test_get_content(){
         let new_instance = NumLines::new("1-This is the content''", "");
         assert_eq!("1-This is the content''".to_string(), new_instance.get_content());
       }
 
       #[test]
-      /// # [`NumLines::get_delimiter`] Test
+      /// # `NumLines::get_delimiter` Test
        fn test_get_delimiter(){
         let new_instance = NumLines::new("1-This is the content''", "");
         assert_eq!("".to_string(), new_instance.get_delimiter());
       }
       #[test]
-      /// # [`NumLines::set_content`] Test
+      /// # `NumLines::set_content` Test
        fn test_set_content(){
         let mut new_instance = NumLines::new("1-This is the content''", "");
         new_instance.set_content("Set To This");
@@ -129,7 +129,7 @@
       }
       
       #[test]
-      /// # [`NumLines::set_delimiter`] Test
+      /// # `NumLines::set_delimiter` Test
        fn test_set_delimiter(){
         let mut new_instance = NumLines::new("1-This is the content''", "");
         new_instance.set_delimiter("-");
@@ -137,40 +137,40 @@
       }
 
       #[test]
-      /// # [`all_appears_index`] Test
+      /// # `all_appears_index` Test
      fn test_all_appears_index(){
         let vec:Vec<usize> = vec![5, 7, 10];
         assert_eq!(vec, all_appears_index("This - -  -" , "-"));
       }
 
       #[test]
-      /// # [`str_of_n_str`] Test
+      /// # `str_of_n_str` Test
        fn test_str_of_n_str(){
         assert_eq!("------".to_string(),str_of_n_str("-", 6));
       }
 
       #[test]
-      /// # [`sub_vec`] Test
+      /// # `sub_vec` Test
        fn test_sub_vec(){
         assert_eq!([6, 8].to_vec(), sub_vec(&[-1, 5, 6, 8].to_vec(), 3, 2));
       }
       
       #[test]
-      /// # [`replace_index`] Test
+      /// # `replace_index` Test
        fn test_replace_index(){
         let str = "Edit This? 'hi'";
         let index = str.find("?").unwrap();
         assert_eq!("Edit This/Hello 'hi'".to_string(), replace_index(str, "/Hello", index));
       }
       #[test]
-      /// # [`replace_index`] Test 2
-      /// test when the index is greather than the str.len()-1
+      /// # `replace_index` Test 2
+      /// Tests when the index is greater than the str length-1.
        fn test_2_replace_index(){
         let str = "Edit This? 'hi'";
         assert_eq!("Edit This? 'hi'".to_string(), replace_index(str, "/Hello", str.len()));
       }
       #[test]
-      /// # [`ordered_combination`] Test
+      /// # `ordered_combination` Test
        fn test_ordered_combinations(){
         let vec = (&vec!["a".to_string(), "b".to_string(), "c".to_string()], &vec!["a".to_string(), "b".to_string(), "c".to_string()]);
         let combs = ordered_combination(vec);
@@ -181,19 +181,21 @@
   }
 
    #[cfg(test)]
-   /// # map_tests
-   /// Tests for the general::Map struct and its methods
+   /// # Module `map_tests`
+   /// Tests for the `general::Map` struct and its methods.
+   /// 
    /// ## IMPORTANT
-   /// Some tests use HashMap. Because HashMap iteration order is arbitrary
-   /// (non-deterministic), those tests may fail if they assume a particular order, so
-   /// they are ignored by default.
+   /// Some tests use HashMap. 
+   /// Because HashMap iteration order is arbitrary
+   /// (non-deterministic), those tests might fail if they assume a particular order,
+   /// so they are ignored by default.
   mod map_tests{
     use PTHome::main_code::utilities::general;
     use std::collections::VecDeque;
     use std::rc::Rc;
     use std::collections::HashMap;
    #[test]
-   /// # [general::Map::insert] Test
+   /// # `general::Map::insert` Test
    fn test_insert(){
      let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
      n.insert(&3,& "hello".to_string());
@@ -203,7 +205,7 @@
    }
 
     #[test]
-    /// # [general::Map::insert_ref] Test
+    /// # `general::Map::insert_ref` Test
    fn test_insert_ref(){
     let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
      n.insert_ref(&3, "hello".to_string());
@@ -212,7 +214,7 @@
      assert_eq!(["hello".to_string(), "world".to_string(), "chao".to_string()].to_vec(), n.get_all_ref(&3));
    }
     #[test]
-    /// # [`general::Map::insert_something`] Test
+    /// # `general::Map::insert_something` Test
     fn test_insert_something(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert_something(&3, Some(10));
@@ -225,7 +227,7 @@
        assert_eq!(s, *n.get_ref_to_all_something(&3).unwrap());
     }
        #[test]
-    /// # [`general::Map::get`] Test
+    /// # `general::Map::get` Test
     fn test_get(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert(&3,& "hello".to_string());
@@ -234,8 +236,8 @@
        assert_eq!("hello".to_string(), n.get(&3).unwrap().clone());
     }
     #[test]
-    /// # [`general::Map::get`] Test 2
-    /// Here we test the function when the key not exist
+    /// # `general::Map::get` Test 2
+    /// Here we test the method when the key does not exist.
     fn test_2_get(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert(&3,& "hello".to_string());
@@ -244,8 +246,8 @@
        assert_eq!(None, n.get(&5));
     }
     #[test]
-    /// # [`general::Map::get`] Test 3
-    /// Here we test the funciton when the vecdeque for the key is empty
+    /// # `general::Map::get` Test 3
+    /// Here we test the method when the vecdeque of the key is empty.
     fn test_3_get(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert(&3,& "hello".to_string());
@@ -258,7 +260,7 @@
        assert_eq!(true, n.contains_key(&3));
     }
     #[test]
-    /// # [`general::Map::get_ref`] Test
+    /// # `general::Map::get_ref` Test
     fn test_get_ref(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert_ref(&3, "hello".to_string());
@@ -267,8 +269,8 @@
        assert_eq!("hello".to_string(), n.get_ref(&3).unwrap().clone());
     }
     #[test]
-    /// # [`general::Map::get_ref`] Test 2
-    /// Here we test the function when the key not exist
+    /// # `general::Map::get_ref` Test 2
+    /// Here we test the method when the key does not exist.
     fn test_2_get_ref(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert_ref(&3, "hello".to_string());
@@ -277,8 +279,8 @@
        assert_eq!(None, n.get_ref(&5));
     }
     #[test]
-    /// # [`general::Map::get_ref`] Test 3
-    /// Here we test the funciton when the vecdeque for the key is empty
+    /// # `general::Map::get_ref` Test 3
+    /// Here we test the funciton when the vecdeque of the key is empty.
     fn test_3_get_ref(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert_ref(&3, "hello".to_string());
@@ -292,7 +294,7 @@
     }
 
     #[test]
-    /// # [`general::Map::get_something`] Test
+    /// # `general::Map::get_something` Test
     fn test_get_something(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert_something(&3, Some(10));
@@ -301,8 +303,8 @@
        assert_eq!(Some(10), n.get_something(&3).unwrap().clone());
     }
     #[test]
-    /// # [`general::Map::get_something`] Test 2
-    /// Here we test the function when the key not exist
+    /// # `general::Map::get_something` Test 2
+    /// Here we test the method when the key does not exist.
     fn test_2_get_something(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert_something(&3, Some(10));
@@ -311,8 +313,8 @@
        assert_eq!(None, n.get_something(&5));
     }
     #[test]
-    /// # [`general::Map::get_something`] Test 3
-    /// Here we test the funciton when the vecdeque for the key is empty
+    /// # `general::Map::get_something` Test 3
+    /// Here we test the method when the vecdeque of the key is empty.
     fn test_3_get_something(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert_something(&3, Some(10));
@@ -325,7 +327,7 @@
        assert_eq!(true, n.contains_key_something(&3));
     }
     #[test]
-    /// # [`general::Map::remove`] Test
+    /// # `general::Map::remove` Test
     fn test_remove(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert(&3,& "hello".to_string());
@@ -335,8 +337,8 @@
        assert_eq!("world".to_string(), n.get(&3).unwrap().clone());
     }
     #[test]
-    /// # [`general::Map::remove`] Test 2
-    /// Here we test the function when the key not exist
+    /// # `general::Map::remove` Test 2
+    /// Here we test the method when the key does not exist.
     fn test_2_remove(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert(&3,& "hello".to_string());
@@ -346,8 +348,8 @@
        assert_eq!("hello".to_string(), n.get(&3).unwrap().clone());
     }
     #[test]
-    /// # [`general::Map::remove`] Test 3
-    /// Here we test the funciton when the key has just 1 element
+    /// # `general::Map::remove` Test 3
+    /// Here we test the method when the key has just 1 element.
     fn test_3_remove(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert(&3,& "hello".to_string());
@@ -355,7 +357,7 @@
        assert_eq!(None, n.get(&3));
     }
     #[test]
-    /// # [`general::Map::remove_ref`] Test
+    /// # `general::Map::remove_ref` Test
     fn test_remove_ref(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert_ref(&3, "hello".to_string());
@@ -365,8 +367,8 @@
        assert_eq!("world".to_string(), n.get_ref(&3).unwrap().clone());
     }
     #[test]
-    /// # [`general::Map::remove_ref`] Test 2
-    /// Here we test the function when the key not exist
+    /// # `general::Map::remove_ref` Test 2
+    /// Here we test the method when the key does not exist.
     fn test_2_remove_ref(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert_ref(&3, "hello".to_string());
@@ -376,8 +378,8 @@
        assert_eq!("hello".to_string(), n.get_ref(&3).unwrap().clone());
     }
     #[test]
-    /// # [`general::Map::remove_ref`] Test 3
-    /// Here we test the funciton when the key has just 1 element
+    /// # `general::Map::remove_ref` Test 3
+    /// Here we test the method when the key has just 1 element.
     fn test_3_remove_ref(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert_ref(&3, "hello".to_string());
@@ -385,7 +387,7 @@
        assert_eq!(None, n.get_ref(&3));
     }
     #[test]
-    /// # [`general::Map::remove_something`] Test
+    /// # `general::Map::remove_something` Test
     fn test_remove_something(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert_something(&3, Some(10));
@@ -395,8 +397,8 @@
        assert_eq!(Some(20), n.get_something(&3).unwrap().clone());
     }
     #[test]
-    /// # [`general::Map::remove_something`] Test 2
-    /// Here we test the function when the key not exist
+    /// # `general::Map::remove_something` Test 2
+    /// Here we test the method when the key does not exist.
     fn test_2_remove_something(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert_something(&3, Some(10));
@@ -406,8 +408,8 @@
        assert_eq!(Some(10), n.get_something(&3).unwrap().clone());
     }
     #[test]
-    /// # [`general::Map::remove_something`] Test 3
-    /// Here we test the funciton when the key has just 1 element
+    /// # `general::Map::remove_something` Test 3
+    /// Here we test the method when the key has just 1 element.
     fn test_3_remove_something(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert_something(&3, Some(10));
@@ -415,7 +417,7 @@
        assert_eq!(None, n.get_something(&3));
     }
     #[test]
-    /// # [`general::Map::remove_all`] Test
+    /// # `general::Map::remove_all` Test
     fn test_remove_all(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert(&3,& "hello".to_string());
@@ -425,8 +427,8 @@
        assert_eq!(None, n.get(&3));
     }
     #[test]
-    /// # [`general::Map::remove_all`] Test 2
-    /// Here we test the function when the key not exist
+    /// # `general::Map::remove_all` Test 2
+    /// Here we test the method when the key does not exist.
     fn test_2_remove_all(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert(&3,& "hello".to_string());
@@ -436,7 +438,7 @@
        assert_eq!("hello".to_string(), n.get(&3).unwrap().clone());
     }
     #[test]
-    /// # [`general::Map::remove_all_ref`] Test
+    /// # `general::Map::remove_all_ref` Test
     fn test_remove_all_ref(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert_ref(&3, "hello".to_string());
@@ -446,8 +448,8 @@
        assert_eq!(None, n.get_ref(&3));
     }
     #[test]
-    /// # [`general::Map::remove_all_ref`] Test 2
-    /// Here we test the function when the key not exist
+    /// # `general::Map::remove_all_ref` Test 2
+    /// Here we test the method when the key does not exist.
     fn test_2_remove_all_ref(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert_ref(&3, "hello".to_string());
@@ -457,7 +459,7 @@
        assert_eq!("hello".to_string(), n.get_ref(&3).unwrap().clone());
     }
     #[test]
-    /// # [`general::Map::remove_all_something`] Test
+    /// # `general::Map::remove_all_something` Test
     fn test_remove_all_something(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert_something(&3, Some(10));
@@ -467,8 +469,8 @@
        assert_eq!(None, n.get_something(&3));
     }
     #[test]
-    /// # [`general::Map::remove_all_something`] Test 2
-    /// Here we test the function when the key not exist
+    /// # `general::Map::remove_all_something` Test 2
+    /// Here we test the method when the key does not exist.
     fn test_2_remove_all_something(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert_something(&3, Some(10));
@@ -478,7 +480,7 @@
        assert_eq!(Some(10), n.get_something(&3).unwrap().clone());
     }
     #[test]
-    /// # [`general::Map::get_all`] Test
+    /// # `general::Map::get_all` Test
     fn test_get_all(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert(&3,& "hello".to_string());
@@ -487,8 +489,8 @@
        assert_eq!(["hello".to_string(), "world".to_string(), "chao".to_string()].to_vec(), n.get_all(&3));
     }
     #[test]
-    /// # [`general::Map::get_all`] Test 2
-    /// Here we test the function when the key not exist
+    /// # `general::Map::get_all` Test 2
+    /// Here we test the method when the key does not exist.
     fn test_2_get_all(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert(&3,& "hello".to_string());
@@ -497,8 +499,8 @@
        assert_eq!(Vec::<String>::new(), n.get_all(&5));
     }
     #[test]
-    /// # [`general::Map::get_all`] Test 3
-    /// Here we test the funciton when the vecdeque for the key is empty
+    /// # `general::Map::get_all` Test 3
+    /// Here we test the method when the vecdeque of the key is empty.
     fn test_3_get_all(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert(&3,& "hello".to_string());
@@ -511,7 +513,7 @@
        assert_eq!(false, n.contains_key(&3));
     }
     #[test]
-    /// # [`general::Map::get_all_ref`] Test
+    /// # `general::Map::get_all_ref` Test
     fn test_get_all_ref(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert_ref(&3, "hello".to_string());
@@ -520,8 +522,8 @@
        assert_eq!(["hello".to_string(), "world".to_string(), "chao".to_string()].to_vec(), n.get_all_ref(&3));
     }
     #[test]
-    /// # [`general::Map::get_all_ref`] Test 2
-    /// Here we test the function when the key not exist
+    /// # `general::Map::get_all_ref` Test 2
+    /// Here we test the method when the key does not exist.
     fn test_2_get_all_ref(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert_ref(&3, "hello".to_string());
@@ -530,8 +532,8 @@
        assert_eq!(Vec::<String>::new(), n.get_all(&5));
     }
     #[test]
-    /// # [`general::Map::get_all_ref`] Test 3
-    /// Here we test the funciton when the vecdeque for the key is empty
+    /// # `general::Map::get_all_ref` Test 3
+    /// Here we test the method when the vecdeque of the key is empty.
     fn test_3_get_all_ref(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert_ref(&3, "hello".to_string());
@@ -544,7 +546,7 @@
        assert_eq!(false, n.contains_key_ref(&3));
     }
     #[test]
-    /// # [`general::Map::get_mut_ref_to_all`] Test
+    /// # `general::Map::get_mut_ref_to_all` Test
     fn test_get_mut_ref_to_all(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert(&3, &"hello".to_string());
@@ -561,7 +563,7 @@
        assert_eq!(None, n.get_mut_ref_to_all(&5));
     }
     #[test]
-    /// # [`general::Map::get_mut_ref_to_all_ref`] Test
+    /// # `general::Map::get_mut_ref_to_all_ref` Test
     fn test_get_mut_ref_to_all_ref(){
       
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
@@ -579,7 +581,7 @@
        assert_eq!(None, n.get_mut_ref_to_all_ref(&5));
     }
     #[test]
-    /// # [`general::Map::get_mut_ref_to_all_something`] Test
+    /// # `general::Map::get_mut_ref_to_all_something` Test
     fn test_get_mut_ref_to_all_something(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert_something(&3, Some(10));
@@ -596,7 +598,7 @@
         assert_eq!(None, n.get_mut_ref_to_all_something(&5));
     }
     #[test]
-    /// # [`general::Map::get_ref_to_all`] Test
+    /// # `general::Map::get_ref_to_all` Test
     fn test_get_ref_to_all(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert(&3,& "hello".to_string());
@@ -610,7 +612,7 @@
        assert_eq!(None, n.get_ref_to_all(&5));
     }
     #[test]
-    /// # [`general::Map::get_ref_to_all_ref`] Test
+    /// # `general::Map::get_ref_to_all_ref` Test
     fn test_get_ref_to_all_ref(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert_ref(&3, "hello".to_string());
@@ -624,7 +626,7 @@
        assert_eq!(None, n.get_ref_to_all_ref(&5));
     }
     #[test]
-    /// # [`general::Map::get_ref_to_all_something`] Test
+    /// # `general::Map::get_ref_to_all_something` Test
     fn test_get_ref_to_all_something(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert_something(&3, Some(10));
@@ -638,7 +640,7 @@
        assert_eq!(None, n.get_ref_to_all_something(&5));
     }
     #[test]
-    /// # [`general::Map::set_value`] Test
+    /// # `general::Map::set_value` Test
     fn test_set_value(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert(&3,& "hello".to_string());
@@ -650,7 +652,7 @@
        assert_eq!(s, *n.get_ref_to_all(&3).unwrap());
   }
   #[test]
-  /// # [`general::Map::set_value_ref`] Test
+  /// # `general::Map::set_value_ref` Test
     fn test_set_value_ref(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert_ref(&3, "hello".to_string());
@@ -662,7 +664,7 @@
        assert_eq!(s, *n.get_ref_to_all_ref(&3).unwrap());
    }
   #[test]
-  /// # [`general::Map::set_value_something`] Test
+  /// # `general::Map::set_value_something` Test
     fn test_set_value_something(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert_something(&3, Some(10));
@@ -674,7 +676,7 @@
        assert_eq!(s, *n.get_ref_to_all_something(&3).unwrap());
    }
   #[test]
-  /// # [`general::Map::contains_key`] Test
+  /// # `general::Map::contains_key` Test
     fn test_contains_key(){
       let mut n:general::Map<usize, usize, Option<i32>> = general::Map::new();
        n.insert(&3,&10);
@@ -684,7 +686,7 @@
        assert_eq!(false, n.contains_key(&5));
     }
   #[test]
-  /// # [`general::Map::contains_key_ref`] Test
+  /// # `general::Map::contains_key_ref` Test
     fn test_contains_key_ref(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert_ref(&3, "hello".to_string());
@@ -695,7 +697,7 @@
 
     }
   #[test]
-  /// # [`general::Map::contains_key_something`] Test
+  /// # `general::Map::contains_key_something` Test
     fn test_contains_key_something(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert_something(&3, Some(10));
@@ -705,7 +707,7 @@
        assert_eq!(false, n.contains_key_something(&5));
     }
   #[test]
-  /// # [`general::Map::set_value_element`] Test
+  /// # `general::Map::set_value_element` Test
     fn test_set_value_element(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert(&3,& "hello".to_string());
@@ -719,7 +721,7 @@
        assert_eq!(s, *n.get_ref_to_all(&3).unwrap());
     }
   #[test]
-  /// # [`general::Map::set_value_element_ref`] Test
+  /// # `general::Map::set_value_element_ref` Test
     fn test_set_value_element_ref(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert_ref(&3, "hello".to_string());
@@ -733,7 +735,7 @@
        assert_eq!(s, *n.get_ref_to_all_ref(&3).unwrap());
     }
   #[test]
-  /// # [`general::Map::set_value_element_something`] Test
+  /// # `general::Map::set_value_element_something` Test
     fn test_set_value_element_something(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert_something(&3, Some(10));
@@ -747,7 +749,7 @@
        assert_eq!(s, *n.get_ref_to_all_something(&3).unwrap());
     }
   #[test]
-  /// # [`general::Map::enable_global_order`] Test
+  /// # `general::Map::enable_global_order` Test
     fn test_enable_global_order(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
       n.enable_global_order(false, false);
@@ -759,7 +761,7 @@
        assert_eq!([3,5,2,2,2].to_vec(), n.get_order());
     }
   #[test]
-  /// # [`general::Map::enable_global_order`] Test 2
+  /// # `general::Map::enable_global_order` Test 2
     fn test_2_enable_global_order(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.enable_global_order(true, false);
@@ -771,7 +773,7 @@
        assert_eq!([2,5,3].to_vec(), n.get_order());   
     }
   #[test]
-  /// # [`general::Map::enable_global_order`] Test 3
+  /// # `general::Map::enable_global_order` Test 3
     fn test_3_enable_global_order(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.enable_global_order(false, false);
@@ -784,7 +786,7 @@
        assert_eq!([2,5,3].to_vec(), n.get_order());
     }
   #[test]
-  /// # [`general::Map::enable_order`] Test
+  /// # `general::Map::enable_order` Test
     fn test_enable_order(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.enable_order(true, false);
@@ -796,7 +798,7 @@
        assert_eq!([3,5,2].to_vec(), n.get_order());
     }
   #[test]
-  /// # [`general::Map::enable_order`] Test 2
+  /// # `general::Map::enable_order` Test 2
     fn test_2_enable_order(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.enable_order(false, false);
@@ -810,7 +812,7 @@
        assert_eq!([3,5,2,3].to_vec(), n.get_order());
     }
   #[test]
-  /// # [`general::Map::enable_order`] Test 3
+  /// # `general::Map::enable_order` Test 3
     fn test_3_enable_order(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.enable_order(false, false);
@@ -823,7 +825,7 @@
        assert_eq!([3,2,5].to_vec(), n.get_order());
     }
   #[test]
-  /// # [`general::Map::enable_order_for_ref`] Test
+  /// # `general::Map::enable_order_for_ref` Test
     fn test_enable_order_for_ref(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.enable_order_for_ref(true, false);
@@ -835,7 +837,7 @@
        assert_eq!([3,5,2].to_vec(), n.get_order());
     }
   #[test]
-  /// # [`general::Map::enable_order_for_ref`] Test 2
+  /// # `general::Map::enable_order_for_ref` Test 2
     fn test_2_enable_order_for_ref(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.enable_order_for_ref(false, false);
@@ -849,7 +851,7 @@
        assert_eq!([3,5,2,3].to_vec(), n.get_order());
     }
   #[test]
-  /// # [`general::Map::enable_order_for_ref`] Test 3
+  /// # `general::Map::enable_order_for_ref` Test 3
     fn test_3_enable_order_for_ref(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.enable_order_for_ref(false, false);
@@ -862,7 +864,7 @@
        assert_eq!([3,2,5].to_vec(), n.get_order());
     }
   #[test]
-  /// # [`general::Map::enable_order_for_something`] Test
+  /// # `general::Map::enable_order_for_something` Test
     fn test_enable_order_for_something(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.enable_order_for_something(true, false);
@@ -874,7 +876,7 @@
        assert_eq!([3,5,2].to_vec(), n.get_order());
     }
   #[test]
-  /// # [`general::Map::enable_order_for_something`] Test 2
+  /// # `general::Map::enable_order_for_something` Test 2
     fn test_2_enable_order_for_something(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.enable_order_for_something(false, false);
@@ -888,7 +890,7 @@
        assert_eq!([3,5,2,3].to_vec(), n.get_order());
     }
   #[test]
-  /// # [`general::Map::enable_order_for_something`] Test 3
+  /// # `general::Map::enable_order_for_something` Test 3
     fn test_3_enable_order_for_something(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.enable_order_for_something(false, false);
@@ -901,7 +903,7 @@
        assert_eq!([3,2,5].to_vec(), n.get_order());
     }
   #[test]
-  /// # [`general::Map::disable_global_order`] Test
+  /// # `general::Map::disable_global_order` Test
     fn test_disable_global_order(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.enable_global_order(true, false);
@@ -914,7 +916,7 @@
        assert_eq!([3,5,2].to_vec(), n.get_order());
     }
   #[test]
-  /// # [`general::Map::disable_order`] Test
+  /// # `general::Map::disable_order` Test
     fn test_disable_order(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.enable_order(true, false);
@@ -927,7 +929,7 @@
        assert_eq!([3,5,2].to_vec(), n.get_order());
     }
   #[test]
-  /// # [`general::Map::disable_order_for_ref`] Test
+  /// # `general::Map::disable_order_for_ref` Test
     fn test_disable_order_for_ref(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.enable_order_for_ref(true, false);
@@ -940,7 +942,7 @@
        assert_eq!([3,5,2].to_vec(), n.get_order());
     }
   #[test]
-  /// # [`general::Map::disable_order_for_something`] Test
+  /// # `general::Map::disable_order_for_something` Test
     fn test_disable_order_for_something(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.enable_order_for_something(true, false);
@@ -953,7 +955,7 @@
        assert_eq!([3,5,2].to_vec(), n.get_order());
     }
   #[test]
-  /// # [`general::Map::get_order`] Test
+  /// # `general::Map::get_order` Test
     fn test_get_order(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.enable_order(false, false);
@@ -963,7 +965,7 @@
        assert_eq!([3,5,2].to_vec(), n.get_order());
     }
   #[test]
-  /// # [`general::Map::get_order_ref`] Test
+  /// # `general::Map::get_order_ref` Test
     fn test_get_order_ref(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.enable_order_for_ref(false, false);
@@ -987,7 +989,7 @@
        assert_eq!((&s0, &s1), n.get_order_ref());
     }
   #[test]
-  /// # [`general::Map::get_order_mut_ref`] Test
+  /// # `general::Map::get_order_mut_ref` Test
     fn test_get_order_mut_ref(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.enable_order(false, false);
@@ -1000,7 +1002,7 @@
        assert_eq!([5,5,2].to_vec(), n.get_order());
     }
   #[test]
-  /// # [`general::Map::remover_order`] Test
+  /// # `general::Map::remover_order` Test
     fn test_remover_order(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.enable_order(false, false);
@@ -1012,7 +1014,7 @@
        assert_eq!(s, n.get_order());
     }
   #[test]
-  /// # [`general::Map::get_order_num`] Test
+  /// # `general::Map::get_order_num` Test
     fn test_get_order_num(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.enable_order(false, false);
@@ -1023,9 +1025,9 @@
     }
   #[test]
   #[ignore]
-  /// # [`general::Map::get_key`] Test
+  /// # `general::Map::get_key` Test
   /// HashMap iteration order is arbitrary (non-deterministic), so the test checks the 'get_key' function without assuming a specific order.
-  /// This test can fail due to the arbitrary order of HashMap, consider using a different data structure if ordering matters.
+  /// This test might fail due to the arbitrary order of HashMap, consider using a different data structure if ordering matters.
     fn test_get_key(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.enable_order(false, false);
@@ -1036,9 +1038,9 @@
     }
   #[test]
   #[ignore]
-  /// # [`general::Map::get_key_ref`] Test
+  /// # `general::Map::get_key_ref` Test
   /// HashMap iteration order is arbitrary (non-deterministic), so the test checks the 'get_key_ref' function without assuming a specific order.
-  /// This test can fail due to the arbitrary order of HashMap, consider using a different data structure if ordering matters.
+  /// This test might fail due to the arbitrary order of HashMap, consider using a different data structure if ordering matters.
     fn test_get_key_ref(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.enable_order(false, false);
@@ -1049,9 +1051,9 @@
     }
   #[test]
   #[ignore]
-  /// # [`general::Map::keys`] Test
+  /// # `general::Map::keys`] Test
   /// HashMap iteration order is arbitrary (non-deterministic), so the test checks the 'keys' function without assuming a specific order.
-  /// This test can fail due to the arbitrary order of HashMap, consider using a different data structure if ordering matters.
+  /// This test might fail due to the arbitrary order of HashMap, consider using a different data structure if ordering matters.
     fn test_keys(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.enable_order(false, false);
@@ -1066,9 +1068,9 @@
     }
   #[test]
   #[ignore]
-  /// # [`general::Map::keys_ref`] Test
+  /// # `general::Map::keys_ref` Test
   /// HashMap iteration order is arbitrary (non-deterministic), so the test checks the 'keys_ref' function without assuming a specific order.
-  /// This test can fail due to the arbitrary order of HashMap, consider using a different data structure if ordering matters.
+  /// This test might fail due to the arbitrary order of HashMap, consider using a different data structure if ordering matters.
     fn test_keys_ref(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.enable_order(false, false);
@@ -1083,9 +1085,9 @@
     }
   #[test]
   #[ignore]
-  /// # [`general::Map::keys_something`] Test
+  /// # `general::Map::keys_something` Test
   /// HashMap iteration order is arbitrary (non-deterministic), so the test checks the 'keys_something' function without assuming a specific order.
-  /// This test can fail due to the arbitrary order of HashMap, consider using a different data structure if ordering matters.
+  /// This test might fail due to the arbitrary order of HashMap, consider using a different data structure if ordering matters.
     fn test_keys_something(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.enable_order(false, false);
@@ -1099,7 +1101,7 @@
        assert_eq!([2,5,3].to_vec(), s);
     }
   #[test]
-  /// # [`general::Map::get_element`] Test
+  /// # `general::Map::get_element` Test
     fn test_get_element(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert(&3,& "hello".to_string());
@@ -1109,7 +1111,7 @@
        assert_eq!(None, n.get_element(&5, 0));
     }
   #[test]
-  /// # [`general::Map::get_element_ref`] Test
+  /// # `general::Map::get_element_ref` Test
     fn test_get_element_ref(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert_ref(&3, "hello".to_string());
@@ -1119,7 +1121,7 @@
        assert_eq!(None, n.get_element_ref(&5, 0));
     }
   #[test]
-  /// # [`general::Map::get_element_something`] Test
+  /// # `general::Map::get_element_something` Test
     fn test_get_element_something(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert_something(&3, Some(10));
@@ -1129,7 +1131,7 @@
        assert_eq!(None, n.get_element_something(&5, 0));
     }
   #[test]
-  /// # [`general::Map::extract_element`] Test
+  /// # `general::Map::extract_element` Test
     fn test_extract_element(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert(&3,& "hello".to_string());
@@ -1140,7 +1142,7 @@
        assert_eq!(None, n.get_element(&3, 2));
     }
   #[test]
-  /// # [`general::Map::extract_element_ref`] Test
+  /// # `general::Map::extract_element_ref` Test
     fn test_extract_element_ref(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert_ref(&3, "hello".to_string());
@@ -1151,7 +1153,7 @@
        assert_eq!(None, n.get_element_ref(&3, 2));
     } 
   #[test]
-  /// # [`general::Map::extract_element_something`] Test
+  /// # `general::Map::extract_element_something` Test
     fn test_extract_element_something(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert_something(&3, Some(10));
@@ -1163,9 +1165,9 @@
     }
   #[test]
   #[ignore]
-  /// # [`general::Map::lifo`] Test
+  /// # `general::Map::lifo` Test
   /// HashMap iteration order is arbitrary (non-deterministic), so the test checks the lifo function without assuming a specific order.
-  /// This test can fail due to the arbitrary order of HashMap, consider using a different data structure if ordering matters.
+  /// This test might fail due to the arbitrary order of HashMap, consider using a different data structure if ordering matters.
     fn test_lifo(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert(&3,& "hello".to_string());
@@ -1180,9 +1182,9 @@
     }
   #[test]
   #[ignore]
-  /// # [`general::Map::lifo_ref`] Test
+  /// # `general::Map::lifo_ref` Test
   ///HashMap iteration order is arbitrary (non-deterministic), so the test checks the lifo_ref function without assuming a specific order.
-  /// This test can fail due to the arbitrary order of HashMap, consider using a different data structure if ordering matters.
+  /// This test might fail due to the arbitrary order of HashMap, consider using a different data structure if ordering matters.
     fn test_lifo_ref(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert_ref(&3, "hello".to_string());
@@ -1197,9 +1199,9 @@
     }
   #[test]
   #[ignore]
-  /// # [`general::Map::lifo_something`] Test
+  /// # `general::Map::lifo_something` Test
   /// HashMap iteration order is arbitrary (non-deterministic), so the test checks the lifo_something function without assuming a specific order.
-  /// This test can fail due to the arbitrary order of HashMap, consider using a different data structure if ordering matters.
+  /// This test might fail due to the arbitrary order of HashMap, consider using a different data structure if ordering matters.
     fn test_lifo_something(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert_something(&3, Some(10));
@@ -1213,7 +1215,7 @@
        assert_eq!(None, n.lifo_something(&5));
     }
   #[test]
-  /// # [`general::Map::peek`]
+  /// # `general::Map::peek` Test
      fn test_peek(){
         let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
         n.insert(&3,& "hello".to_string());
@@ -1223,7 +1225,7 @@
         assert_eq!(None, n.peek(&5));
     }
   #[test]
-  /// # [`general::Map::peek_ref`]
+  /// # `general::Map::peek_ref` Test
      fn test_peek_ref(){
         let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
         n.insert_ref(&3, "hello".to_string());
@@ -1233,7 +1235,7 @@
         assert_eq!(None, n.peek_ref(&5));
     }
   #[test]
-  /// # [`general::Map::peek_something`]
+  /// # `general::Map::peek_something` Test
      fn test_peek_something(){
         let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
         n.insert_something(&3, Some(10));
@@ -1243,7 +1245,7 @@
         assert_eq!(None, n.peek_something(&5));
     }
   #[test]
-  /// # [`general::Map::clear`] Test
+  /// # `general::Map::clear` Test
     fn test_clear(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert(&3,& "hello".to_string());
@@ -1259,7 +1261,7 @@
        assert_eq!(None, n.get_ref_to_all_something(&7));
     }
   #[test]
-  /// # [`general::Map::clear_hash`] Test
+  /// # `general::Map::clear_hash` Test
     fn test_clear_hash(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert(&3,& "hello".to_string());
@@ -1275,7 +1277,7 @@
        assert_eq!(1, n.len_something());
     }
   #[test]
-  /// # [`general::Map::clear_hash_ref`] Test
+  /// # `general::Map::clear_hash_ref` Test
     fn test_clear_hash_ref(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert(&3,& "hello".to_string());
@@ -1291,7 +1293,7 @@
        assert_eq!(1, n.len_something());
     }
   #[test]
-  /// # [`general::Map::clear_hash_something`] Test
+  /// # `general::Map::clear_hash_something` Test
     fn test_clear_hash_something(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert(&3,& "hello".to_string());
@@ -1307,7 +1309,7 @@
        assert_eq!(0, n.len_something());
     }
   #[test]
-  /// # [`general::Map::iter_mut`]
+  /// # `general::Map::iter_mut` Test
     fn test_iter_mut(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert(&3,& "hello".to_string());
@@ -1329,7 +1331,7 @@
        assert_eq!(s2, *n.get_ref_to_all(&5).unwrap());
     }
   #[test]
-  /// # [`general::Map::iter_mut_ref`]
+  /// # `general::Map::iter_mut_ref` Test
     fn test_iter_mut_ref(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert_ref(&3, "hello".to_string());
@@ -1351,7 +1353,7 @@
        assert_eq!(s2, *n.get_ref_to_all_ref(&5).unwrap());
     }
   #[test]
-  /// # [`general::Map::iter_mut_something`]
+  /// # `general::Map::iter_mut_something` Test
     fn test_iter_mut_something(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert_something(&3, Some(10));
@@ -1376,9 +1378,10 @@
     }  
   #[test]
   #[ignore]
-  /// # [`general::Map::iter`] Test
-  /// In this test the order is descending because that is the order in the HashMap, because HashMap iteration order is arbitrary (non-deterministic), so the test checks the iterator without assuming a specific order.
-  /// This test can fail due to the arbitrary order of HashMap, consider using a different data structure if ordering matters.
+  /// # `general::Map::iter` Test
+  /// Tests the order is descending because that is the order in the HashMap, because HashMap iteration order is arbitrary (non-deterministic),
+  /// so the test checks the iterator without assuming a specific order.
+  /// This test might fail due to the arbitrary order of HashMap, consider using a different data structure if ordering matters.
     fn test_iter(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert(&3,& "hello".to_string());
@@ -1399,7 +1402,7 @@
     }
   #[test]
   #[ignore]
-  /// # [`general::Map::iter_ref`] Test
+  /// # `general::Map::iter_ref` Test
   /// HashMap iteration order is arbitrary (non-deterministic), so the test checks the iterator without assuming a specific order.
   /// This test can fail due to the arbitrary order of HashMap, consider using a different data structure if ordering matters.
     fn test_iter_ref(){
@@ -1422,9 +1425,9 @@
     }
   #[test]
   #[ignore]
-  /// # [`general::Map::iter_something`] Test
+  /// # `general::Map::iter_something` Test
   /// HashMap iteration order is arbitrary (non-deterministic), so the test checks the iterator without assuming a specific order.
-  /// This test can fail due to the arbitrary order of HashMap, consider using a different data structure if ordering matters.
+  /// This test might fail due to the arbitrary order of HashMap, consider using a different data structure if ordering matters.
     fn test_iter_something(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert_something(&3, Some(10));
@@ -1444,7 +1447,7 @@
        assert_eq!(s2, *values2);
     }
   #[test]
-  /// # [`general::Map::get_mut_element`] Test
+  /// # `general::Map::get_mut_element` Test
     fn test_get_mut_element(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert(&3,& "hello".to_string());
@@ -1457,7 +1460,7 @@
        assert_eq!(None, n.get_mut_element(&5, 0));
     }
   #[test]
-  /// # [`general::Map::get_mut_element_ref`] Test
+  /// # `general::Map::get_mut_element_ref` Test
     fn test_get_mut_element_ref(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert_ref(&3, "hello".to_string());
@@ -1470,7 +1473,7 @@
        assert_eq!(None, n.get_mut_element_ref(&5, 0));
     }
   #[test]
-  /// # [`general::Map::get_mut_element_something`] Test
+  /// # `general::Map::get_mut_element_something` Test
     fn test_get_mut_element_something(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert_something(&3, Some(10));
@@ -1483,7 +1486,7 @@
        assert_eq!(None, n.get_mut_element_something(&5, 0));
     }
   #[test]
-  /// # [`general::Map::remove_element`] Test
+  /// # `general::Map::remove_element` Test
     fn test_remove_element(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert(&3,& "hello".to_string());
@@ -1493,7 +1496,7 @@
        assert_eq!(None, n.get_element(&3, 2));
     }
   #[test]
-  /// # [`general::Map::remove_element_ref`] Test
+  /// # `general::Map::remove_element_ref` Test
     fn test_remove_element_from_ref(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert_ref(&3, "hello".to_string());
@@ -1503,7 +1506,7 @@
        assert_eq!("chao".to_string(), *n.get_element_ref(&3, 1).unwrap());
     }
   #[test]
-  /// # [`general::Map::remove_element_something`] Test
+  /// # `general::Map::remove_element_something` Test
     fn test_remove_element_from_something(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.insert_something(&3, Some(10));
@@ -1513,7 +1516,7 @@
        assert_eq!(Some(20), *n.get_element_something(&3, 0).unwrap());
     }
   #[test]
-  /// # [`general::Map::reset_all`] Test
+  /// # `general::Map::reset_all` Test
     fn test_reset_all(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.enable_global_order(true, true);
@@ -1532,7 +1535,7 @@
        assert_eq!(1, n.len_something());
     }
   #[test]
-  /// # [`general::Map::is_empty`] Test
+  /// # `general::Map::is_empty` Test
     fn test_is_empty(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        assert!(n.is_empty());
@@ -1540,7 +1543,7 @@
        assert!(!n.is_empty());
     }
   #[test]
-  /// # [`general::Map::len`] Test
+  /// # `general::Map::len` Test
     fn test_len(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        assert_eq!(0, n.len());
@@ -1549,7 +1552,7 @@
        assert_eq!(1, n.len());
     }
   #[test]
-  /// # [`general::Map::len_ref`] Test
+  /// # `general::Map::len_ref` Test
     fn test_len_ref(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        assert_eq!(0, n.len_ref());
@@ -1558,7 +1561,7 @@
        assert_eq!(1, n.len_ref());
     }
   #[test]
-  /// # [`general::Map::len_something`] Test
+  /// # `general::Map::len_something` Test
     fn test_len_something(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        assert_eq!(0, n.len_something());
@@ -1567,7 +1570,7 @@
        assert_eq!(1, n.len_something());
     }
   #[test]
-  /// # [`general::Map::total_len`] Test
+  /// # `general::Map::total_len` Test
     fn test_total_len(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        assert_eq!(0, n.total_len());
@@ -1577,7 +1580,7 @@
        assert_eq!(3, n.total_len());
     }
   #[test]
-  /// # [`general::Map::order_len`] Test
+  /// # `general::Map::order_len` Test
     fn test_order_len(){
       let mut n:general::Map<usize, String, Option<i32>> = general::Map::new();
        n.enable_order(false, false);
