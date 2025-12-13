@@ -1565,12 +1565,29 @@ where
 
  //----------------------------------------------
   /// # `enable_global_order`
-  /// Enables the global order register of the insert in keys, for the `HashMap of refs`, `HashMap of some types of elements` and `HashMap of copies`.
-  /// If you want to enable the register for a single `HashMap` use `enable_order_for_ref` (for `HashMap of refs`), `enable_order_for_something` (for `HashMap of some types of elements`) or `enable_order` (for `HashMap of copies`).
+  /// Enables the global order register for insertions in keys across the `HashMap of refs`, 
+  /// `HashMap of some types of elements`, and `HashMap of copies`.
   /// 
-  /// # Arguments
-  /// * `last_insert_of_key: bool` - Indicate if the register just store the last insert for key.
-  /// * `preserve_content_before_order` - Indicate if you want to preserve the register store before for key, and just aplicate the `las_insert_of_key` flag about moment when you change this flag.
+  /// To enable the register for a single `HashMap`, use `enable_order_for_ref` (for `HashMap of refs`), 
+  /// `enable_order_for_something` (for `HashMap of some types of elements`), or `enable_order` (for `HashMap of copies`).
+  /// 
+  /// # Arguments 
+  /// * `last_insert_of_key: bool` - If `true`, the register stores only the last insertion for each key.
+  /// * `preserve_content_before_order: bool` - If `true`, preserves existing registers for each key and applies 
+  ///   the `last_insert_of_key` flag only to future insertions (previous insertion history is saved).
+  /// 
+  /// # Example
+  /// ```rust
+  /// 
+  /// use PTHome::main_code::utilities::general;
+  /// let mut map:general::Map<String, String, i32> = general::Map::new();
+  /// map.enable_global_order(false, false);
+  /// map.insert(&"key1".to_string(), &"value1".to_string());
+  /// map.insert_ref(&"key1".to_string(), "value2".to_string());
+  /// map.insert_something(&"key1".to_string(), 10);
+  /// assert_eq!(map.get_order(), vec!["key1".to_string(), "key1".to_string(), "key1".to_string()]);
+  /// 
+  /// ```
   pub fn enable_global_order(&mut self, last_insert_of_key: bool, preserve_content_before_order: bool){
     self.order_hash = true;
     self.order_hash_ref = true;
@@ -1582,11 +1599,26 @@ where
   }
   
   /// # `enable_order`
-  /// Enables the global order register of the insert in keys, for the `HashMap of copies`
-  /// If you want enable the register for all `HashMaps` use [`enable_global_order`] (for `HashMap of refs` and `HashMap of copies` and `HashMap of random values`) 
+  /// Enables the global order register for insertion in keys accross the `HashMap of copies`.
+  /// To enable the register for all the `HashMaps` use `enable_global_order` (for `HashMap of refs`, `HashMap of copies` and ` HashMap of some types of elements`). 
+  /// 
   /// # Arguments
-  /// * `last_insert_of_key: bool` - Indicate if the register just store the last insert for this key
-  /// * `preserve_content_before_order` - (This flag aplicate for all, HashMap of reference and HashMap of copies and HashMap of random values) Indicate if you want to preserve the register store before for key, and just aplicate the `las_insert_of_key` flag about moment when you change this flag
+  /// * `last_insert_of_key: bool` - If `true`, the register stores only the last insertion for each key.
+  /// * `preserve_content_before_order` - If `true`, preserves existing registers for each key and applies 
+  ///   the `last_insert_of_key` flag only to future insertions (previous insertion history is saved).
+  ///   (This flags will be aplicate for all the HashMaps (HashMap of references and HashMap of copies and HashMap of some types of elements)).
+  /// 
+  /// # Example
+  /// ```rust
+  /// 
+  /// use PTHome::main_code::utilities::general;
+  /// let mut map:general::Map<String, String, i32> = general::Map::new();
+  /// map.enable_order(false, false);
+  /// map.insert(&"key1".to_string(), &"value1".to_string());
+  /// map.insert(&"key1".to_string(), &"value2".to_string());
+  /// assert_eq!(map.get_order(), vec!["key1".to_string(), "key1".to_string()]);
+  /// 
+  /// ```
   pub fn enable_order(&mut self, last_insert_of_key: bool,  preserve_content_before_order:bool){
     self.order_hash = true;
     self.store_last_insert_key = last_insert_of_key;
@@ -1594,11 +1626,26 @@ where
   }
   
   /// # `enable_order_for_ref`
-  /// Enables the global order register of the insert in keys, for the `HashMap of refs`
-  /// If you want enable the register for all `HashMaps` use [`enable_global_order`] (for `HashMap of refs` and `HashMap of copies` and `HashMap of random values`) 
+  /// Enables the global order register of the insert in keys, for the `HashMap of refs`.
+  /// To enable the register for all the `HashMaps` use `enable_global_order` (for `HashMap of refs` and `HashMap of copies` and `HashMap of some types of elements`). 
+  /// 
   /// # Arguments
-  /// * `last_insert_of_key: bool` - Indicate if the register just store the last insert for this key
-  /// * `preserve_content_before_order` - (This flag aplicate for all, HashMap of reference and HashMap of copies adn HashMap of random values) Indicate if you want to preserve the register store before for key, and just aplicate the `las_insert_of_key` flag about moment when you change this flag
+  /// * `last_insert_of_key: bool` - If `true`, the register stores only the last insertion for each key.
+  /// * `preserve_content_before_order` - If `true`, preserves existing registers for each key and applies 
+  ///   the `last_insert_of_key` flag only to future insertions (previous insertion history is saved).
+  ///   (This flags will be aplicate for all the HashMaps (HashMap of references and HashMap of copies and HashMap of some types of elements))
+  /// 
+  /// # Example
+  /// ```rust
+  /// 
+  /// use PTHome::main_code::utilities::general;
+  /// let mut map:general::Map<String, String, i32> = general::Map::new();
+  /// map.enable_order_for_ref(false, false);
+  /// map.insert_ref(&"key1".to_string(), "value1".to_string());
+  /// map.insert_ref(&"key1".to_string(), "value2".to_string());
+  /// assert_eq!(map.get_order(), vec!["key1".to_string(), "key1".to_string()]);
+  /// 
+  /// ```
   pub fn enable_order_for_ref(&mut self, last_insert_of_key: bool, preserve_content_before_order: bool){
     self.order_hash_ref = true;
     self.store_last_insert_ref_key = last_insert_of_key;
@@ -1606,11 +1653,26 @@ where
   }
 
   /// # `enable_order_for_something`
-  /// Enables the global order register of the insert in keys, for the `HashMap of random values`
-  /// If you want enable the register for all `HashMaps` use [`enable_global_order`] (for `HashMap of refs` and `HashMap of copies` and `HashMap of random values`)
+  /// Enables the global order register of the insert in keys, for the `of some types of elements`
+  /// To enable the register for all the `HashMaps` use `enable_global_order` (for `HashMap of refs` and `HashMap of copies` and `HashMap of some types of elements`).
+  /// 
   /// # Arguments
   /// * `last_insert_of_key: bool` - Indicate if the register just store the last insert for this key
-  /// * `preserve_content_before_order` - (This flag aplicate for both, HashMap of reference and HashMap of copies adn HashMap of random values) Indicate if you want to preserve the register store before for key, and just aplicate the `las_insert_of_key` flag about moment when you change this flag
+  /// * `preserve_content_before_order` - If `true`, preserves existing registers for each key and applies 
+  ///   the `last_insert_of_key` flag only to future insertions (previous insertion history is saved).
+  ///   (This flags will be aplicate for all the HashMaps (HashMap of references and HashMap of copies and HashMap of some types of elements))
+  /// 
+  /// # Example 
+  /// ```rust
+  /// 
+  /// use PTHome::main_code::utilities::general;
+  /// let mut map:general::Map<String, String, i32> = general::Map::new();
+  /// map.enable_order_for_something(false, false);
+  /// map.insert_something(&"key1".to_string(), 10);
+  /// map.insert_something(&"key1".to_string(), 20);
+  /// assert_eq!(map.get_order(), vec!["key1".to_string(), "key1".to_string()]);
+  /// 
+  /// ```
   pub fn enable_order_for_something(&mut self, last_insert_of_key: bool, preserve_content_before_order:bool){
     self.preserve_before = preserve_content_before_order;
     self.order_hash_something = true;
