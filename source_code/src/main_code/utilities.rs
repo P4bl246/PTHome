@@ -3048,7 +3048,7 @@ where
   /// assert_eq!(map.order_len(), (3, 3));
   /// 
   /// ```
-  /// HashMap that stores keys with their insertion numbers 
+  /// 
   /// # Returns
   /// * `(usize, usize)` - A tuple with the lengths of both HashMaps.
   /// * `usize` - Length of the HashMap that stores keys with their insertion numbers .
