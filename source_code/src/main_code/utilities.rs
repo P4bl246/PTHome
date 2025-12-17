@@ -3967,7 +3967,7 @@ pub mod remove_comments{
                     block_open = true;
                      
                      }
-                     if !between && !no_remove && (start_pos+delimiter_start.len()< end_pos){line_copy.replace_range(start_pos+delimiter_start.len()..end_pos, &str_of_n_str(" ", line_copy[start_pos+delimiter_start.len()..end_pos].len()));}
+                     if !between && !no_remove && (start_pos+delimiter_start.len()< end_pos){line_copy.replace_range(start_pos..end_pos, &str_of_n_str(" ", line_copy[start_pos..end_pos].len()));}
                   }
                     // Remove the start delimiter from the line copy, for not process this again, and avoid problems
         
