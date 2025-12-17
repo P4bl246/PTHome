@@ -3109,41 +3109,42 @@ pub mod remove_comments{
     ///   - A vector of characters that should be ignored the content between this when removing comments.(can be empty)
     ///   - A vector of strings that should be ignored the content between this when removing comments.(can be empty)
     /// * `scape_characters:&Vec<char>` - A vector of chars for define the scape characters for ignore end delimiters (can be empty)  
-    /// * `manage_close: bool` - Ensure the close of the ignore_content_between tuple 
+    /// * `manage_close: bool` - Check the close of the ignore_content_between tuple 
     /// # Return
     /// Returns an `Option<String>`:
     /// * `Some(String)` - If the simple comments were successfully removed, returns `Some(new_content)`.
     /// * `None` - If there is an error, returns `None` with an error message.
     /// # Example
     /// ```rust 
-
-    /// mod main_code;
-    /// fn main (){
-    /// use std::fs::{self, remove_dir_all};
-    /// use crate::main_code::utilities::remove_comments;
-    /// let input_file = "example.txt";
-    /// let content = fs::read_to_string(input_file).expect(&format!("Failed to read the file '{}'", input_file));
-    /// let vec_char:Vec<char> = Vec::new();
-    /// let vec_str:Vec<String> = Vec::new();
-    /// let scape = [].to_vec()
-    /// let tuple = (&vec_char, &vec_str):
-    /// let new_content = remove_comments::remove_simple_comments(content, "//", tuple, &scape, false);
-    /// }
+    /// 
+    /// use PTHome::main_code::utilities::remove_comments;
+    /// let content = "let x = 10; /*H*/ // This is a comment /*Hello*/\nlet y = 20; // Another comment \"Hello\"";
+    /// let delimiter = "//";
+    /// let ignore_content_between = ( &vec!['"', '\''], &vec!["/*", "*/"] );
+    /// let scape_characters = vec!['\\'];
+    /// let manage_close = true;
+    /// let result = remove_comments::simple_comments(content, delimiter, ignore_content_between, &scape_characters, manage_close);
+    /// assert_eq!(result, Some("let x = 10; /*H*/ \nlet y = 20; \n".to_string()));
+    /// 
     /// ```
     /// # Errors
-    /// If content or delimiter is empty go to panic
+    /// If content or delimiter is empty go to panic.
     /// ## Notes
-    /// - The function will remove everything after the first occurrence of the comment delimiter in each line.
+    /// - The function will remove everything after the first occurrence of the comment delimiter in each line even if that content is inside ignore delimiters.
+    /// - The function sometimes can add a void line in the processed content.
     
      pub fn simple_comments(content: &str, delimiter: &str, ignore_content_between: (&Vec<char>, &Vec<&str>), scape_characters:&Vec<char>,manage_close: bool)-> Option<String>{
        use crate::main_code::utilities::general;
         println!("REMOVING SIMPLE COMMENTS FROM CONTENT: {}", content);
+        // Check the input delimiters.
+        // They cannot has space 'cause this is a reserved character used in the processing of the content to ignore. 
         if delimiter.is_empty() || delimiter.contains(" "){
             panic!("Error: The delimiter cannot be an empty string or contains a space (' ').");
         }
         if content.is_empty(){
           panic!("Error: The content cannot be an empty string.");
         }
+        // The comprobation of the delimiters (scape characters, delimiters for ignore content and the simple comment delimiter).
         if !first_comprobation(ignore_content_between.0, ignore_content_between.1, scape_characters, &[delimiter].to_vec()){
           return None;
         }
@@ -3773,7 +3774,7 @@ pub mod remove_comments{
           }
           //Else, check if the line contains some start ignore delimiter for process
           if !in_ignore{
-            some_start_ignore.clear();
+           if  some_start_ignore.is_empty(){
             let mut j = 0;
             if !ignore_content_between.0.is_empty(){
              while j <= ignore_content_between.0.len()-1{
@@ -3791,6 +3792,7 @@ pub mod remove_comments{
               sub_vec.clear();
               j+=2;
                } 
+              }
              }
             if !some_start_ignore.is_empty(){
               for element in &some_start_ignore{
@@ -3927,7 +3929,7 @@ pub mod remove_comments{
                     no_remove = false;
                   }
                 }
-                  if start_pos > end_pos+delimiter_end.len() && !multi_line{
+                  if start_pos > end_pos+delimiter_end.len() {
                     between = true;
                   //get the string after end comment delimiter
                   let string_after = line_copy[end_pos+delimiter_end.len()..].to_string();
@@ -3969,7 +3971,7 @@ pub mod remove_comments{
                   }
                     // Remove the start delimiter from the line copy, for not process this again, and avoid problems
         
-                    if !no_remove {line_copy.replace_range(..start_pos+delimiter_start.len(), &str_of_n_str(" ", line_copy[..start_pos+delimiter_start.len()].len()));}
+                    if !no_remove && !multi_line{line_copy.replace_range(..start_pos+delimiter_start.len(), &str_of_n_str(" ", line_copy[..start_pos+delimiter_start.len()].len()));}
                 }
                 
               }
@@ -4713,10 +4715,10 @@ pub mod remove_comments{
       /// test using scape characters and ignore content characters
       fn test_2_simple_comments(){
         let str = "Not remove this 'this is a string// \\'' //remove this\nother // abcdefghijklm";
-        let scape:Vec<char> = vec!['\\']; //without scape characters
+        let scape:Vec<char> = vec!['\\']; 
        let vec_str:Vec<&str> = vec!["'", "'"];
        let vec_char:Vec<char> = vec![];
-       let ignore = (&vec_char, &vec_str); //tuple with empty vectors
+       let ignore = (&vec_char, &vec_str); 
        assert_eq!("Not remove this 'this is a string// \\'' \nother \n".to_string(), super::simple_comments(str, "//", ignore, &scape, true).unwrap());
       }
 
@@ -4725,10 +4727,10 @@ pub mod remove_comments{
       /// test where the ignore delimiter is not closed, expect an error
       fn test_3_simple_comments(){
         let str = "Not remove this 'this is a string// \\' //remove this\nother // abcdefghijklm";
-        let scape:Vec<char> = vec!['\\']; //without scape characters
+        let scape:Vec<char> = vec!['\\']; 
        let vec_str:Vec<&str> = vec!["'", "'"];
        let vec_char:Vec<char> = vec![];
-       let ignore = (&vec_char, &vec_str); //tuple with empty vectors
+       let ignore = (&vec_char, &vec_str);
        assert_eq!(None, super::simple_comments(str, "//", ignore, &scape, true));
       }
 
@@ -4737,10 +4739,10 @@ pub mod remove_comments{
       /// test where the ignore delimiter is not closed, but not manage this error
       fn test_4_simple_comments(){
         let str = "Not remove this 'this is a string// \\' //remove this\nother // abcdefghijklm";
-        let scape:Vec<char> = vec!['\\']; //without scape characters
+        let scape:Vec<char> = vec!['\\']; 
        let vec_str:Vec<&str> = vec!["'", "'"];
        let vec_char:Vec<char> = vec![];
-       let ignore = (&vec_char, &vec_str); //tuple with empty vectors
+       let ignore = (&vec_char, &vec_str); 
        assert_eq!("Not remove this 'this is a string// \\' //remove this\nother // abcdefghijklm\n", super::simple_comments(str, "//", ignore, &scape, false).unwrap());
       }
 
@@ -4749,10 +4751,10 @@ pub mod remove_comments{
       /// test where the ignore delimiters aren't correctly structured
       fn test_5_simple_comments(){
         let str = "Not remove this 'this is a string// \\' //remove this\nother // abcdefghijklm";
-        let scape:Vec<char> = vec!['\\']; //without scape characters
+        let scape:Vec<char> = vec!['\\']; 
        let vec_str:Vec<&str> = vec!["'"];
        let vec_char:Vec<char> = vec![];
-       let ignore = (&vec_char, &vec_str); //tuple with empty vectors
+       let ignore = (&vec_char, &vec_str); 
        assert_eq!(None, super::simple_comments(str, "//", ignore, &scape, false));
       }
 
@@ -4761,10 +4763,10 @@ pub mod remove_comments{
       /// test where the delimiter ignore contains space trigger an error
       fn test_6_simple_comments(){
         let str = "Not remove this 'this is a string// \\' //remove this\nother // abcdefghijklm";
-        let scape:Vec<char> = vec!['\\']; //without scape characters
+        let scape:Vec<char> = vec!['\\']; 
        let vec_str:Vec<&str> = vec!["' ", "'"];
        let vec_char:Vec<char> = vec![];
-       let ignore = (&vec_char, &vec_str); //tuple with empty vectors
+       let ignore = (&vec_char, &vec_str); 
        assert_eq!(None, super::simple_comments(str, "//", ignore, &scape, true));
       }
 
@@ -4774,10 +4776,10 @@ pub mod remove_comments{
       /// test where the delimiter contains space trigger an error
       fn test_7_simple_comments(){
         let str = "Not remove this 'this is a string// \\' //remove this\nother // abcdefghijklm";
-        let scape:Vec<char> = vec!['\\']; //without scape characters
+        let scape:Vec<char> = vec!['\\'];
        let vec_str:Vec<&str> = vec!["'", "'"];
        let vec_char:Vec<char> = vec![];
-       let ignore = (&vec_char, &vec_str); //tuple with empty vectors
+       let ignore = (&vec_char, &vec_str); 
        assert_eq!(None, super::simple_comments(str, "// ", ignore, &scape, true));
       }
 
@@ -4786,10 +4788,10 @@ pub mod remove_comments{
       /// test where the scape character contains space trigger an error
       fn test_8_simple_comments(){
         let str = "Not remove this 'this is a string// \\' //remove this\nother // abcdefghijklm";
-        let scape:Vec<char> = vec!['\\', ' ']; //without scape characters
+        let scape:Vec<char> = vec!['\\', ' '];
        let vec_str:Vec<&str> = vec!["'", "'"];
        let vec_char:Vec<char> = vec![];
-       let ignore = (&vec_char, &vec_str); //tuple with empty vectors
+       let ignore = (&vec_char, &vec_str);
        assert_eq!(None, super::simple_comments(str, "//", ignore, &scape, true));
       }
 
@@ -4797,7 +4799,7 @@ pub mod remove_comments{
       /// # [`super::content_between`] Test
       fn test_content_between(){
         let str = "Not remove this 'this is a string// \\'' //remove this";
-        let scape:Vec<char> = vec!['\\']; //without scape characters
+        let scape:Vec<char> = vec!['\\'];
        let vec_str:Vec<&str> = vec!["'", "'"];
        let vec_char:Vec<char> = vec![];
        assert_eq!(("".to_string(), false, "Not remove this 'this is a string// \\'' ".to_string()), super::content_between(&vec_char, &vec_str, &scape, "//", str));
@@ -4808,7 +4810,7 @@ pub mod remove_comments{
       /// test where the ignore delimiter is not closed
       fn test_2_content_between(){
         let str = "Not remove this 'this is a string// \\' //remove this";
-        let scape:Vec<char> = vec!['\\']; //without scape characters
+        let scape:Vec<char> = vec!['\\'];
        let vec_str:Vec<&str> = vec!["'", "'"];
        let vec_char:Vec<char> = vec![];
        assert_eq!(("'".to_string(), true, "Not remove this 'this is a string// \\' //remove this".to_string()), super::content_between(&vec_char, &vec_str, &scape, "//", str));
@@ -4820,7 +4822,7 @@ pub mod remove_comments{
       /// test where occurs an error, because the delimiter contains, or delimiter, o scape characters conatins the space character ' ' or str are empty
       fn test_3_content_between(){
         let str = "Not remove this 'this is a string// \\' //remove this";
-        let scape:Vec<char> = vec!['\\']; //without scape characters
+        let scape:Vec<char> = vec!['\\'];
        let vec_str:Vec<&str> = vec!["'", "' "];
        let vec_char:Vec<char> = vec![];
        assert_eq!(("'".to_string(), true, "Not remove this 'this is a string// \\' //remove this".to_string()), super::content_between(&vec_char, &vec_str, &scape, "", str));
@@ -4829,10 +4831,63 @@ pub mod remove_comments{
       #[test]
       /// # [`super::block_comments`] Test 
       fn test_block_comments(){
-
+        let str = "Code before /* This is a block comment \n that spans multiple lines */ Code after";
+        let scape:Vec<char> = vec!['\\'];
+        let vec_str:Vec<&str> = vec!["'", "'"];
+        let vec_char:Vec<char> = vec![];
+        let ignore = (&vec_char, &vec_str);
+        assert_eq!("Code before  Code after\n".to_string(), super::block_comments(str, "/*", "*/", ignore, &scape, ModeBlock::Single,ManageClose::Both).unwrap());
       }
 
+      #[test]
+      /// # [`super::block_comments`] Test 2
+      /// test where the block comment is not closed (expect an error)
+      fn test_2_block_comments(){
+        let str = "Code before /* This is a block comment \n that spans multiple lines Code after";
+        let scape:Vec<char> = vec!['\\'];
+        let vec_str:Vec<&str> = vec!["'", "'"];
+        let vec_char:Vec<char> = vec![];
+        let ignore = (&vec_char, &vec_str);
+        assert_eq!(Err(2), super::block_comments(str, "/*", "*/", ignore, &scape, ModeBlock::Single,ManageClose::Both));
+      }
 
+      #[test]
+      /// # [`super::block_comments`] Test 3
+      /// test where the ignore delimiter is not closed (expect an error)
+      fn test_3_block_comments(){
+        let str = "Code before /* This is a block comment \n that spans*/ 'multiple lines */ Code after";
+        let scape:Vec<char> = vec!['\\'];
+        let vec_str:Vec<&str> = vec!["'", "'"];
+        let vec_char:Vec<char> = vec![];
+        let ignore = (&vec_char, &vec_str);
+        assert_eq!(Err(1), super::block_comments(str, "/*", "*/", ignore, &scape, ModeBlock::Single,ManageClose::Both));
+      }
+
+      #[test]
+      /// # [`super::block_comments`] Test 4
+      /// test where both the block comment and the ignore delimiter are not closed (expect an error)
+      /// In this case, the function should prioritize reporting the block comment error
+      fn test_4_block_comments(){
+        let str = "Code before /* This is a block comment \n that spans 'multiple lines */ Code after";
+        let scape:Vec<char> = vec!['\\'];
+        let vec_str:Vec<&str> = vec!["'", "'"];
+        let vec_char:Vec<char> = vec![];
+        let ignore = (&vec_char, &vec_str);
+        assert_eq!(Err(2), super::block_comments(str, "/*", "*/", ignore, &scape, ModeBlock::Single,ManageClose::Both));
+      }
+
+      #[test]
+      /// # [`super::block_comments`] Test 5
+      /// test where both the block comment and the ignore delimiter are not closed (expect an error)
+      /// In this case, the function should prioritize reporting the ignore delimiter error
+      fn test_5_block_comments(){
+        let str = "Code before /* This is a block comment \n that spans*/ 'multiple lines /*Code after";
+        let scape:Vec<char> = vec!['\\'];
+        let vec_str:Vec<&str> = vec!["'", "'"];
+        let vec_char:Vec<char> = vec![];
+        let ignore = (&vec_char, &vec_str);
+        assert_eq!(Err(1), super::block_comments(str, "/*", "*/", ignore, &scape, ModeBlock::Single,ManageClose::Both));
+      }
 
 
   }
