@@ -3862,6 +3862,24 @@ pub mod remove_comments{
                 // If the start delimiter is found, check if the end delimiter is also present in the line
                 // We don't make some verify of the end are between string, because the first element or starg ignore delimiter content are before the end delimiter, therefore, this start delimiter are into the block comment so we ignore it for this reason
                 if let Some(mut end_pos) = line_copy.find(delimiter_end){
+                    if contains{
+                      let verify_ignore = content_between(ignore_content_between.0, ignore_content_between.1, scape_characters, delimiter_end, &line_copy);
+                      in_ignore = verify_ignore.1;//upload in_ignore
+                      delimiter_ignore = verify_ignore.0; //upload delimiter_ignore
+                      if verify_ignore.2.len() != line_copy.len(){
+                        end_pos = verify_ignore.2.len();//upload end_pos
+                        line_copy.replace_range(..end_pos, &str_of_n_str(" ", end_pos));
+                      }
+                      //else leave for the loop
+                      else{
+                        if in_ignore {
+                          line_num = counter;
+                          line_content = line.to_string();
+                        }
+                        multi_line = true;
+                        continue 'next;   
+                      }
+                    }
                     // For preserved code between comments, but no inside of any of them, in other words, code between start and end block comments delimiters.
                     // The comp its this, becuase the code between comments, is in the start and end of comment, like this '/*thi*/between/*other*/', like we look here, the start delimiter have a greater index than end delimiter
                     //and the content "between" starts after the end delimiter, so we can push en_pos+delimiter_end.len(), and need been not multi-line, because the while loop and all this flux into the for-loop trate with a single line, 
@@ -3923,13 +3941,14 @@ pub mod remove_comments{
                    //If not found some start comment delimiter
                    if start_pos == line_copy.len()+1{
                     no_remove = true;
+
                     start_pos = 0;
                    }
                    else{
                     no_remove = false;
                   }
                 }
-                  if start_pos > end_pos+delimiter_end.len() {
+                  if start_pos > end_pos+delimiter_end.len()-1 {
                     between = true;
                   //get the string after end comment delimiter
                   let string_after = line_copy[end_pos+delimiter_end.len()..].to_string();
@@ -3967,11 +3986,11 @@ pub mod remove_comments{
                     block_open = true;
                      
                      }
-                     if !between && !no_remove && (start_pos+delimiter_start.len()< end_pos){line_copy.replace_range(start_pos..end_pos, &str_of_n_str(" ", line_copy[start_pos..end_pos].len()));}
+                     if !between && !no_remove && (start_pos+delimiter_start.len()-1< end_pos){line_copy.replace_range(start_pos..end_pos, &str_of_n_str(" ", line_copy[start_pos..end_pos].len())); no_remove = true;}
                   }
                     // Remove the start delimiter from the line copy, for not process this again, and avoid problems
         
-                    if !no_remove && !multi_line{line_copy.replace_range(..start_pos+delimiter_start.len(), &str_of_n_str(" ", line_copy[..start_pos+delimiter_start.len()].len()));}
+                    if !no_remove{line_copy.replace_range(..start_pos+delimiter_start.len(), &str_of_n_str(" ", line_copy[..start_pos+delimiter_start.len()].len()));}
                 }
                 
               }
@@ -4888,6 +4907,44 @@ pub mod remove_comments{
         let ignore = (&vec_char, &vec_str);
         assert_eq!(Err(1), super::block_comments(str, "/*", "*/", ignore, &scape, ModeBlock::Single,ManageClose::Both));
       }
+
+      #[test]
+      /// # [`super::block_comments`] Test 6
+      /// test where the block comment is nested but mode is single
+      fn test_7_block_comments(){
+        let str = "Code before /* This is a block comment /* nested comment */ still in comment */ Code after";
+        let scape:Vec<char> = vec!['\\'];
+        let vec_str:Vec<&str> = vec!["'", "'"];
+        let vec_char:Vec<char> = vec![];
+        let ignore = (&vec_char, &vec_str);
+        assert_eq!("Code before  still in comment */ Code after\n".to_string(), super::block_comments(str, "/*", "*/", ignore, &scape, ModeBlock::Single,ManageClose::Both).unwrap());
+      }
+
+      #[test]
+      /// # [`super::block_comments`] Test 7
+      /// test where is been alocated content between comments
+      fn test_8_block_comments(){
+        let str = "Code before /* This is a block comment ''/* not a comment */ still in comment */ /*Code after*/\nOther *//*comment*/ continue /*\n '*/l' closed*//*\n*/l";
+        let scape:Vec<char> = vec!['\\'];
+        let vec_str:Vec<&str> = vec!["'", "'"];
+        let vec_char:Vec<char> = vec![];
+        let ignore = (&vec_char, &vec_str);
+        assert_eq!("Code before  still in comment */ \nOther */ continue l\n".to_string(), super::block_comments(str, "/*", "*/", ignore, &scape, ModeBlock::Single,ManageClose::Both).unwrap());
+      }
+
+      #[test]
+      /// # [`super::block_comments`] Test 7
+      /// test where the block comment is nested
+      fn test_6_block_comments(){
+        let str = "Code before /* This is a block comment /* nested comment */ still in comment */ Code after";
+        let scape:Vec<char> = vec!['\\'];
+        let vec_str:Vec<&str> = vec!["'", "'"];
+        let vec_char:Vec<char> = vec![];
+        let ignore = (&vec_char, &vec_str);
+        assert_eq!("Code before  Code after\n".to_string(), super::block_comments(str, "/*", "*/", ignore, &scape, ModeBlock::Nested,ManageClose::Both).unwrap());
+      }
+    
+      
 
 
   }
