@@ -3729,6 +3729,26 @@ pub mod remove_comments{
          let mut delimiter_expected = String::new(); // To store the delimiter ignore expected if in_ignore is true
          let mut start_ignore_demtrs:Vec<String> = Vec::new(); // To store all the start ignore delimiters
          if !ignore_content_between.0.is_empty() || !ignore_content_between.1.is_empty(){ignore_delimiter = true;}
+         if  start_ignore_demtrs.is_empty() && ignore_delimiter{
+            let mut j = 0;
+            if !ignore_content_between.0.is_empty(){
+             while j <= ignore_content_between.0.len()-1{
+              let mut sub_vec = general::sub_vec(&ignore_content_between.0, 2, j);
+              start_ignore_demtrs.push(sub_vec[0].to_string());
+              sub_vec.clear();
+              j+=2;
+              }
+             }
+             j= 0;
+             if !ignore_content_between.1.is_empty(){
+             while j <= ignore_content_between.1.len()-1{
+              let mut sub_vec = general::sub_vec(&ignore_content_between.1, 2, j);
+              start_ignore_demtrs.push(sub_vec[0].to_string());
+              sub_vec.clear();
+              j+=2;
+               } 
+              }
+             }
          // Iterate through each line in the content
          // This is a single mode, so we don't need to handle nested comments
          'next: for line in content.lines() {
@@ -3753,26 +3773,6 @@ pub mod remove_comments{
           }
           if !in_ignore{
           //Else, check if the line contains some start ignore delimiter for process
-           if  start_ignore_demtrs.is_empty(){
-            let mut j = 0;
-            if !ignore_content_between.0.is_empty(){
-             while j <= ignore_content_between.0.len()-1{
-              let mut sub_vec = general::sub_vec(&ignore_content_between.0, 2, j);
-              start_ignore_demtrs.push(sub_vec[0].to_string());
-              sub_vec.clear();
-              j+=2;
-              }
-             }
-             j= 0;
-             if !ignore_content_between.1.is_empty(){
-             while j <= ignore_content_between.1.len()-1{
-              let mut sub_vec = general::sub_vec(&ignore_content_between.1, 2, j);
-              start_ignore_demtrs.push(sub_vec[0].to_string());
-              sub_vec.clear();
-              j+=2;
-               } 
-              }
-             }
 
             while line_copy.contains(delimiter_start) || block_open{
               if !start_ignore_demtrs.is_empty(){
@@ -3844,6 +3844,7 @@ pub mod remove_comments{
             if end_pos != line.len()+1{new_content.push_str(&line[end_pos+delimiter_end.len()..]); new_content.push_str("\n");}
             else{new_content.push_str(&line); new_content.push_str("\n");}
             }
+   
           let last_comprobation = content_between(ignore_content_between.0, ignore_content_between.1, scape_characters, "", &line_copy);  
           if last_comprobation.1{
             in_ignore = true;
@@ -3971,6 +3972,7 @@ pub mod remove_comments{
     /// And this occurs with any end delimiter and start delimiter
   fn nested_mode(content: &str, delimiter_start: &str, delimiter_end: &str, ignore_content_between: (&Vec<char>, &Vec<&str>), scape_characters:&Vec<char>, manage_close: ManageClose)-> Result<String, i32>{
        use crate::main_code::utilities::general;
+       use std::collections::VecDeque;
        if content.is_empty(){
         println!("Error: The content vector is empty");
         return Err(-1);
@@ -3979,74 +3981,25 @@ pub mod remove_comments{
         println!("Error: The start and end delimiters are the same.");
         return Err(-1);
        }
-       let mut new_content = String::new();
-       let mut in_block_comment = false;
-       let mut is_multiline = false;
-       let mut block_comment_level:usize = 0;
-       let mut end = 0;
-       let mut start = 0;
-        let mut line_num = 0;
-        let mut line_content = String::new();
-        let mut counter = 0;
-        let mut indexes:Vec<usize> = Vec::new();
-        let mut processed = false; 
-        let mut indexes_end: Vec<usize> = Vec::new();
-        let mut line_indexes_end: usize = 0;
-        let mut line_indexes_start: Vec<usize> = Vec::new();
-        let mut ignore_delimiter: bool = false;
-         if !ignore_content_between.0.is_empty() || !ignore_content_between.1.is_empty(){ignore_delimiter = true;}
-         let mut in_ignore = false;
-         let mut some_start_ignore: Vec<String> = Vec::new();
-         let mut delimiter_ignore = String::new();
-         let mut contains = false;
-        // Iterate through each line in the content
-        // This is a nested mode, so we must to handle nested comments
-    for line in content.lines(){
-         counter += 1;
-         contains = false;
-          let mut line_copy: String = line.to_string();
-
-         //If we are in ignore content, search the end of this at the actual line
-           if ignore_delimiter{ 
-          if in_ignore{
-            if let Some(mut end) = line_copy.find(&delimiter_ignore){
-              let mut not_found = false;
-              if end > 0{
-                if scape_characters.len() > 0{
-                  if scape_characters.contains(&line.to_string().chars().nth(end-1).unwrap()){
-                  line_copy.replace_range(..end+delimiter_ignore.len(), &str_of_n_str(" ", line_copy[..end+delimiter_ignore.len()].len()));
-                    loop {
-                      if let Some(end2) = line_copy.find(&delimiter_ignore){
-                        if scape_characters.contains(&line.to_string().chars().nth(end2-1).unwrap()){
-                          line_copy.replace_range(..end2+delimiter_ignore.len(), &str_of_n_str(" ", line_copy[..end2+delimiter_ignore.len()].len()));
-                        }else{
-                          end = end2;
-                          break;
-                        }
-                        
-                      }else{
-                        not_found = true;
-                        break;
-                      }
-                    }
-                  }
-                }
-              }
-              if !not_found{
-              in_ignore = false;
-              line_copy.replace_range(..end+delimiter_ignore.len(), &str_of_n_str(" ", line_copy[..end+delimiter_ignore.len()].len()));    
-              }               
-                  
-            }
-          }
-          //Else, check if the line contains some start ignore delimiter for process
-          if !in_ignore{
-            some_start_ignore.clear();
+      let mut new_content = String::new();
+      let mut block_comment_level:usize = 0;
+      let mut line_num = 0;
+      let mut line_content = String::new();
+      let mut counter = 0;
+      let mut end_indexes = VecDeque::new();
+      let mut start_indexes = VecDeque::new();
+      let mut ignore_delimiter: bool = false;
+      if !ignore_content_between.0.is_empty() || !ignore_content_between.1.is_empty(){ignore_delimiter = true;}
+      let mut in_ignore = false;
+      let mut start_ignore_demtrs: Vec<String> = Vec::new();
+      let mut delimiter_expected = String::new();
+      let mut contains = false;
+      if  start_ignore_demtrs.is_empty() && ignore_delimiter{
             let mut j = 0;
             if !ignore_content_between.0.is_empty(){
              while j <= ignore_content_between.0.len()-1{
               let mut sub_vec = general::sub_vec(&ignore_content_between.0, 2, j);
-              some_start_ignore.push(sub_vec[0].to_string());
+              start_ignore_demtrs.push(sub_vec[0].to_string());
               sub_vec.clear();
               j+=2;
               }
@@ -4055,292 +4008,196 @@ pub mod remove_comments{
              if !ignore_content_between.1.is_empty(){
              while j <= ignore_content_between.1.len()-1{
               let mut sub_vec = general::sub_vec(&ignore_content_between.1, 2, j);
-              some_start_ignore.push(sub_vec[0].to_string());
+              start_ignore_demtrs.push(sub_vec[0].to_string());
               sub_vec.clear();
               j+=2;
                } 
+              }
              }
-            if !some_start_ignore.is_empty(){
-              for element in &some_start_ignore{
+      // Iterate through each line in the content
+         // This is a single mode, so we don't need to handle nested comments
+         'next: for line in content.lines() {
+          counter += 1; // Increment the line counter
+          contains = false;
+          let mut search_again = true;
+          let mut search_again_st = true;
+           let mut line_copy= line.to_string(); // copy the line for handle his content
+          start_indexes.clear();
+          end_indexes.clear();
+           //If we are in ignore content, search the end of this at the actual line
+           if ignore_delimiter{ 
+            if in_ignore{
+              let mut end = line.len()+1;
+             if let Some(end2) = line_copy.find(&delimiter_expected){
+              end = end2;
+              in_ignore = false;
+              line_copy.replace_range(..end+delimiter_expected.len(), &str_of_n_str(" ", line_copy[..end+delimiter_expected.len()].len()));    
+              }
+              else if block_comment_level > 0{
+                  continue 'next;
+              }
+              else{new_content.push_str(line); new_content.push_str("\n");}            
+            }
+          }
+          if !in_ignore{
+            while (line_copy.contains(delimiter_start) || line_copy.contains(delimiter_end)) && (search_again || search_again_st){
+              if !start_ignore_demtrs.is_empty(){
+              for element in &start_ignore_demtrs{
               if line_copy.contains(element){
                 contains = true;
                 break;
               }
              }
             }
-           }
-          }
-          if !in_ignore{
-          // Check if the line contains the start or end delimiter
-        if line_copy.contains(delimiter_end) || line_copy.contains(delimiter_start){
-          // If the line contains the end delimiter, find all occurrences of it
-          // and store their indexes in the indexes_end vector
-          if line_copy.contains(delimiter_end){
-          indexes_end = general::all_appears_index(&line_copy, delimiter_end);
-          line_indexes_end = counter;
-          } else{ indexes_end.clear();}
-          // If the line contains the start delimiter, find all occurrences of it
-          // and store their indexes in the indexes vector
-           if line_copy.contains(delimiter_start){
-            let mut found_before = false;
-            if !in_block_comment && contains{
-              let search_first_start = content_between(ignore_content_between.0, ignore_content_between.1, scape_characters, delimiter_start, &line_copy);
-              in_ignore = search_first_start.1;
-              delimiter_ignore = search_first_start.0;
-              if search_first_start.2.len() == line.len() || in_ignore{
-                new_content.push_str(&line.to_string());
-                new_content.push('\n');
-                continue;
-              }
-              else{
-                found_before = true;
-                start = search_first_start.2.len();
-              }
+          if let Some(mut start) = line_copy.find(delimiter_start) && search_again_st{
+            if contains{
+              let ignore = content_between(ignore_content_between.0, ignore_content_between.1, scape_characters, delimiter_start, &line_copy);
+              if ignore.2.len() == line_copy.len(){
+                //If the start delimiter is into ignore content
+                 if ignore.1{
+                  in_ignore = true;
+                  delimiter_expected = ignore.0;
+                  line_content = line.to_string();
+                  line_num = counter;
+                  if !block_comment_level > 0{new_content.push_str(line); new_content.push_str("\n");}
+                  continue 'next;
+              }else{search_again_st = false; continue;}
+             }else{
+              line_copy.replace_range(start..start+delimiter_start.len(), &general::str_of_n_str(" ", delimiter_start.len()));
+              start = ignore.2.len();
+             }
             }
-             if !found_before {start = line_copy.find(delimiter_start).unwrap();}
-            line_num = counter;
+            if block_comment_level<=0{
             line_content = line.to_string();
-            // If a block comment is not already open, push the content before the start delimiter to the new content
-            if !in_block_comment{
-              new_content.push_str(&line[..start]);
-              let index_end = general::all_appears_index(&line_copy[..start], delimiter_end);
-              let mut i = 0;
-              // If the end delimiter is found before the start delimiter, remove the end delimiters from the indexes_end vector
-              while i < index_end.len(){
-                 indexes_end.remove(i);
-                 i += 1;
-              }
-              if found_before{line_copy.replace_range(..start, &general::str_of_n_str(" ", line_copy[..start].len()));}
+            line_num = counter;
+            new_content.push_str(&line[..start]);
             }
-            let indexes_start_in_line = general::all_appears_index(&line_copy, delimiter_start);
-            for i in indexes_start_in_line.iter(){
-              // Store the indexes of the start delimiters in the indexes vector
-              indexes.push(*i);
-              line_indexes_start.push(counter);
+          start_indexes.push_back(start);
+            line_copy.replace_range(start..start+delimiter_start.len(), &general::str_of_n_str(" ", delimiter_start.len()));
+            block_comment_level+=1;
+           }
+           //Search the end delimiter
+           if line_copy.contains(delimiter_end) && block_comment_level >0 && search_again{
+            if let Some(mut end_pos)=line_copy.find(delimiter_end){
+            if contains{
+              let ignore = content_between(ignore_content_between.0, ignore_content_between.1, scape_characters, delimiter_end, &line_copy);
+              if ignore.2.len() == line_copy.len(){
+                //If the end delimiter is into ignore content
+                 if ignore.1{
+                  in_ignore = true;
+                  delimiter_expected = ignore.0;
+                  line_content = line.to_string();
+                  line_num = counter;                  
+                  if !block_comment_level > 0{new_content.push_str(line); new_content.push_str("\n");};
+                  continue 'next;
+              }else{search_again = false; continue;}
+             }else{
+              line_copy.replace_range(end_pos..end_pos+delimiter_end.len(), &general::str_of_n_str(" ", delimiter_end.len()));
+              end_pos =ignore.2.len();
+             }
             }
-          } 
-         }
-         else{
-          processed = false;
-         }
-         // Next, we check if the line is not empty and if it contains the start delimiter
-         // If it does because we need to handle the block comment
-        if indexes.len() > 0 && indexes_end.len() > 0{
-          let mut indexes_to_delete:Vec<usize> = Vec::new();
-          // We need to check if the indexes_end are in the indexes vector
-          // If it does because we need to handle conflicts between, end delimiter and start delimter
-          // its occurs when the end delimiter and start delimiter superpose, like this '/*/' or this '*/*', 
-          //in this example the start delimiter are in the first and second character ('/*'), but the end delimiter
-          // are in the second and third character ('*/'), so, for avoid this problems the code priorize the end delimiter
-          // and remove the start delimiter from the vector indexes, therefore, this '/*/' are interpreting like a end delimiter
-          // and the case when the end delimiter has the same index than the start delimiter can't appear.
-          // The index to remove in the indexes vector is store into the vector indexes_to_delete
-          // And the line_indexes_start vector ensure this made until on indexes at the same line
-          for(i, value) in indexes.iter().enumerate(){
-            if line_indexes_start[i] == line_indexes_end{
-              if *value > 0{
-            if indexes_end.contains(&(*value+delimiter_start.len()-1))|| indexes_end.contains(&(*value-(delimiter_end.len()-1))){
-                if indexes_end.contains(&(*value+delimiter_start.len()-1)){
-                  line_copy = general::replace_index(&line_copy, " ", *value+1);
-                }
-                else{
-                  line_copy = general::replace_index(&line_copy, " ", *value);
-                }
-                indexes_to_delete.push(i);
-              }
-            }
+            end_indexes.push_back(end_pos);
+            line_copy.replace_range(end_pos..end_pos+delimiter_end.len(), &general::str_of_n_str(" ", delimiter_end.len()));
            }
           }
-          //This is use for remove the indexes that are in the indexes_to_delete vector
-          // We need to have this variable because in each remove the index decrement, so we need consider this decrement
-          let mut decr_index = 0;
-          // Here remove them index from the vector indexes
-          for i in indexes_to_delete.iter(){
-            indexes.remove(*i-decr_index);
-            line_indexes_start.remove(*i-decr_index);
-            decr_index += 1;
+         } 
+         if ignore_delimiter{
+          let last_comprobation = content_between(ignore_content_between.0, ignore_content_between.1, scape_characters, "", &line_copy);  
+          if last_comprobation.1{
+            in_ignore = true;
+            delimiter_expected = last_comprobation.0;
+            line_content = line.to_string();
+            line_num = counter;
           }
-          //Remove the delimiter found in content to ignore
-          if contains && !in_block_comment || contains && block_comment_level == 1{
-            //remove all before and the first start comment delimiter 
-            line_copy.replace_range(..start+delimiter_start.len(), &general::str_of_n_str(" ", line_copy[..start+delimiter_start.len()].len()));
+        }
+        {
+          let mut i = 0;
+          let mut j = 0;
+          'lp: while block_comment_level > 0{
             
-            let mut considered_indexes: Vec<usize> = Vec::new();//start delimiter indexes are be out of ignore content
-               if indexes_end.len() >0 && indexes.len() > 0{
-                //remove all before and the first end comment delimiter
-                line_copy.replace_range(..indexes_end[0]+delimiter_end.len(), &general::str_of_n_str(" ", line_copy[..indexes_end[0]+delimiter_end.len()].len()));
-                loop{
-                  if let Some(mut start_pos) = line_copy.find(delimiter_start){
-                    //Check if the start_pos index are in ignore content and fix this when it is
-                    //We no need manage case like this '/*hello */ "heilo /*"*/ /* */' because the content_between, return all the line if not found the delimiter start
-                    //or the string before the first appear of the start_delimtier and recognize this case in the line '"heilo/*"*/ /*"*/' and know the first appear if in the index 24 an not the index 18
-                    let verify_start = content_between(ignore_content_between.0, ignore_content_between.1, scape_characters,delimiter_start, &line_copy);
-                    //if not found some start delimiter
-                    if verify_start.2.len() == line_copy.len(){
-                      //upload in_ignore flag
-                      in_ignore = verify_start.1;
-                      delimiter_ignore = verify_start.0;
-                      break;
-                    }
-                    else{
-                      start_pos = verify_start.2.len();
-                      line_copy.replace_range(..start_pos+delimiter_start.len(), &general::str_of_n_str(" ", line_copy[..start_pos+delimiter_start.len()].len()));
-                      considered_indexes.push(start_pos);
-                    }
-                   }else{
-                    break;
-                   }
-                 }
-                 let size = considered_indexes.len();
-                 //Upload indexes vector 
-                 //remove all after the first start delimiter found or the level 1
-                 if size > 0{
-                 let mut n = 1;
-                 if !in_block_comment && block_comment_level == 0{
-                  while indexes.len() > 1{                    
-                    if line_indexes_start[n] == line_indexes_end{
-                      indexes.remove(n);
-                      line_indexes_start.remove(n);
-                      n= 1;
-                    }
-                    else{n+=1;}
-                   }
-                  }
-                  else if block_comment_level == 1{
-                    n = 0;
-                    while indexes.len() > 0{
-                    if line_indexes_start[n] == line_indexes_end{
-                      indexes.remove(n);
-                      line_indexes_start.remove(n);
-                      n=0;
-                    }
-                    n+=1;
-                    }
-                  }
-                 for n in considered_indexes{
-                  indexes.push(n);
-                  line_indexes_start.push(counter);
-                 }
-                }
-               }
-              }
-          let i = 0;// We need to use this index for the while loop
-         block_comment_level = indexes.len();// This is the number of block comments intialize in the line
-         // If the block comment level is greater than 0, we need to handle the block
-         if block_comment_level > 0 || in_block_comment{
-          // We need to handle the end delimiter, because we need to remove the block comment
-          // We need to check if the end delimiter is in the indexes_end vector
-          while indexes_end.len() > 0 && indexes.len() > 0{
-
-              // If the end delimiter is greater than the start delimiter, we need to handle the block comment
-              if indexes.len() > i+1{
-                // If the end delimiter is less than the next start delimiter, and not its a nested block comment, or we are not be in a block comment
-                // We need to push the content between the end delimiter and the next start delimiter to the new content
-                // And remove this level, from the vectors and block_comment_level counter
-                //Here we use indexes 0 or 1 because in each iterate we remove the index 0 of the vectors, and the level 1 or first level of block comment, manage down of this part
-                // We just made this comprobation the line becuase we just need make this in the same line, can't have content between comments in multiple lines
-               if indexes_end[i] < indexes[i+1] && !in_block_comment && line_indexes_start[i+1] == line_indexes_end{
-                let mut remove_end_between: Vec<usize> = Vec::new();
-                for (s, n) in indexes_end.iter().enumerate(){
-                  if *n < indexes[i+1] && *n > indexes_end[i]{
-                    remove_end_between.push(s);
-                  }
-                }
-                //remove all delimiter end between block comments for avoid problems
-                let mut removed = 0; //indexes removed for consider the decrement
-                for n in remove_end_between{
-                  indexes_end.remove(n-removed);
-                  removed+=1;
-                }
-                 new_content.push_str(&line[indexes_end[i]+delimiter_end.len()..indexes[i+1]]);
-                 indexes_end.remove(i);
-                 indexes.remove(i);
-                 line_indexes_start.remove(i);
-                  block_comment_level -= 1;
-                 
-                }
-                // If the end delimiter is greater than the next start delimiter
-                // we mark this as a in_block_comment, because we are in a nested block comment
-                // and in this iteration that end delimiter were the end delimiter for this nested block comment, 
-                //and now we can remove this, because this are be closed, and up to next leve of block comment.
-                else{
-                  in_block_comment = true;
-                  indexes_end.remove(i);
-                   indexes.remove(i);
-                   line_indexes_start.remove(i);
-                   block_comment_level -= 1;
-                 }
-               }
-               // If the indexes are equal 1 or i+1 but i is even 0, 
-               // that means that we are in the last layer of the block comments or the first block comment
-               // therefore, the end delimiter is the end of the block comment, and can copy the value after this
-               else if indexes.len() == 1 && indexes_end.len() >= 1 && block_comment_level == 1{
-                 new_content.push_str(&line[indexes_end[i]+delimiter_end.len()..]);
-                 new_content.push('\n');
-                 indexes_end.remove(i);
-                 indexes.remove(i);
-                  line_indexes_start.remove(i);
-                 block_comment_level -= 1;
-                 in_block_comment = false;
-                 is_multiline = false;
-                 processed = true;
-               }
-               // if not has more end delimiters this level of block comment its multi-line
-               else{
-                  in_block_comment = true;
-                  is_multiline = true;
-                 break;
-               }
+            if j == end_indexes.len(){
+              break;
+            }
+            if block_comment_level > start_indexes.len(){ 
+             while block_comment_level != start_indexes.len(){
+              if j>end_indexes.len()-1{break 'lp;}
+              j+=1;
+              block_comment_level-=1;
+             }
+            }
+            
+            loop{
+            let mut nested = 0;
+            if i <= start_indexes.len()-1 && !start_indexes.is_empty(){
+              while start_indexes[i] < end_indexes[j]{
+              nested += 1;
+              i+=1;
+              if i > start_indexes.len()-1{break;}
+             }
+            }
+             while nested != 0{
+              if j>end_indexes.len()-1{break 'lp;}
+            if i <= start_indexes.len()-1 && !start_indexes.is_empty(){
+              while start_indexes[i] < end_indexes[j]{
+              nested += 1;
+              i+=1;
+              if i > start_indexes.len()-1{break;}
+             }
+            }
+             j+=1;
+             nested-=1;
+              block_comment_level -=1;
+             }
+             if nested == 0 && !block_comment_level == 0 && !start_indexes.is_empty(){
+             if i <= start_indexes.len()-1{ new_content.push_str(&line[end_indexes[j]+delimiter_end.len()..start_indexes[i]]);}
+             else{new_content.push_str(&line[end_indexes[j]+delimiter_end.len()..start_indexes[i-1]]);}
+             }else if block_comment_level == 0 || i > start_indexes.len()-1{break 'lp;}
 
             }
           }
-          //Last verify of ignore delimiters
-          let last_verify = content_between(ignore_content_between.0, ignore_content_between.1, scape_characters, delimiter_start, &line_copy);
-          in_ignore = last_verify.1;
-          delimiter_ignore = last_verify.0;
+          if block_comment_level == 0{
+            if !end_indexes.is_empty(){
+              if j <= end_indexes.len()-1{new_content.push_str(&line[end_indexes[j]+delimiter_end.len()..]);}
+              else{new_content.push_str(&line[end_indexes[j-1]+delimiter_end.len()..]);}
+            }
+            else{new_content.push_str(line);}
+            new_content.push_str("\n");
+           } 
         }
-        if !in_block_comment && !processed{
-         new_content.push_str(&line.to_string());
-         new_content.push('\n');
-       }
-       }else{
-        new_content.push_str(&line.to_string());
-         new_content.push('\n');
-       }
-     }
-         match manage_close{
+
+          
+        }
+      }
+        match manage_close{
           ManageClose::Both=>{
                // if some ignore are open after process all the file, print an error
               if in_ignore{
-                println!("Error in the line: '{}': '{}'. missing close delimiter: {}", line_num, line_content, delimiter_ignore);
+                println!("Error in the line: '{}': '{}'. missing close delimiter: {}", line_num, line_content, delimiter_expected);
                 return Err(1);
               }
               // If a block comment is open at the end of the content, return an error
-              if in_block_comment || block_comment_level > 0{
+              if block_comment_level > 0{
                 println!("Error: Block comment without end delimiter in line '{}': '{}'\n MISSING COMMENTS TO CLOSE: {}", line_num, line_content, block_comment_level);
                 return Err(2);
               }
           }, 
           ManageClose::Comment =>{
             // If a block comment is open at the end of the content, return an error
-              if in_block_comment || block_comment_level > 0{
+              if block_comment_level > 0{
                 println!("Error: Block comment without end delimiter in line '{}': '{}'\n MISSING COMMENTS TO CLOSE: {}", line_num, line_content, block_comment_level);
                 return Err(2);
               }
           }, 
           ManageClose::Ignore  =>{
             if in_ignore{
-                println!("Error in the line: '{}': '{}'. missing close delimiter: {}", line_num, line_content, delimiter_ignore);
+                println!("Error in the line: '{}': '{}'. missing close delimiter: {}", line_num, line_content, delimiter_expected);
                 return Err(1);
               }
           }, 
           ManageClose::None=>{},
           _ => {panic!("¡FATAL ERROR!: The enum can be 'Ignore', 'Comment' or 'Both'");},
          };
-        return Ok(new_content);
-    
-        
-  
+        return Ok(new_content);  
   }
 
 //------------------------------------------------------------------------------------------
@@ -4676,7 +4533,7 @@ pub mod remove_comments{
         let vec_str:Vec<&str> = vec!["'", "'"];
         let vec_char:Vec<char> = vec![];
         let ignore = (&vec_char, &vec_str);
-        assert_eq!(Err(2), super::block_comments(str, "/*", "*/", ignore, &scape, ModeBlock::Single,ManageClose::Both));
+        assert_eq!(Err(1), super::block_comments(str, "/*", "*/", ignore, &scape, ModeBlock::Single,ManageClose::Both));
       }
 
       #[test]
@@ -4726,6 +4583,18 @@ pub mod remove_comments{
         let vec_char:Vec<char> = vec![];
         let ignore = (&vec_char, &vec_str);
         assert_eq!("Code before  nested comment */\n Code after\n".to_string(), super::block_comments(str, "/*", "*/", ignore, &scape, ModeBlock::Single,ManageClose::Both).unwrap());
+      }
+
+      #[test]
+      /// # [`super::block_comments`] Test 9
+      /// Use the nested mode
+      fn test_9_block_comments(){
+        let str = "Code before /*/* This is a block comment /*/ nested comment */\n/* still in comment'*/''/*\n*/ Code after*/";
+        let scape:Vec<char> = vec!['\\'];
+        let vec_str:Vec<&str> = vec!["'", "'"];
+        let vec_char:Vec<char> = vec![];
+        let ignore = (&vec_char, &vec_str);
+        assert_eq!(Err(1), super::block_comments(str, "/*", "*/", ignore, &scape, ModeBlock::Nested,ManageClose::Both));
       }
     
       
