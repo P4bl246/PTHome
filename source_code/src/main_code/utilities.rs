@@ -4075,7 +4075,7 @@ pub mod remove_comments{
           start_indexes.push_back(start);
             line_copy.replace_range(start..start+delimiter_start.len(), &general::str_of_n_str(" ", delimiter_start.len()));
             block_comment_level+=1;
-           }
+           }else if search_again_st{search_again_st = false;}
            //Search the end delimiter
            if line_copy.contains(delimiter_end) && block_comment_level >0 && search_again{
             if let Some(mut end_pos)=line_copy.find(delimiter_end){
@@ -4099,7 +4099,7 @@ pub mod remove_comments{
             end_indexes.push_back(end_pos);
             line_copy.replace_range(end_pos..end_pos+delimiter_end.len(), &general::str_of_n_str(" ", delimiter_end.len()));
            }
-          }
+          }else if search_again{search_again = false;}
          } 
          if ignore_delimiter{
           let last_comprobation = content_between(ignore_content_between.0, ignore_content_between.1, scape_characters, "", &line_copy);  
@@ -4128,29 +4128,40 @@ pub mod remove_comments{
             
             loop{
             let mut nested = 0;
-            if i <= start_indexes.len()-1 && !start_indexes.is_empty(){
+            if j>end_indexes.len()-1{break 'lp;}
+            if !start_indexes.is_empty(){
+              if i <= start_indexes.len()-1{
               while start_indexes[i] < end_indexes[j]{
               nested += 1;
               i+=1;
               if i > start_indexes.len()-1{break;}
              }
             }
+            }
              while nested != 0{
               if j>end_indexes.len()-1{break 'lp;}
-            if i <= start_indexes.len()-1 && !start_indexes.is_empty(){
+            if !start_indexes.is_empty(){
+              if i <= start_indexes.len()-1{
               while start_indexes[i] < end_indexes[j]{
               nested += 1;
               i+=1;
               if i > start_indexes.len()-1{break;}
              }
+            }
             }
              j+=1;
              nested-=1;
               block_comment_level -=1;
              }
-             if nested == 0 && !block_comment_level == 0 && !start_indexes.is_empty(){
-             if i <= start_indexes.len()-1{ new_content.push_str(&line[end_indexes[j]+delimiter_end.len()..start_indexes[i]]);}
-             else{new_content.push_str(&line[end_indexes[j]+delimiter_end.len()..start_indexes[i-1]]);}
+             if nested == 0 && block_comment_level != 0 && !start_indexes.is_empty(){
+             if i <= start_indexes.len()-1{ 
+              if j<= end_indexes.len()-1{new_content.push_str(&line[end_indexes[j]+delimiter_end.len()..start_indexes[i]]);}
+              else{new_content.push_str(&line[end_indexes[j-1]+delimiter_end.len()..start_indexes[i]]);}
+            }
+             else{
+              if j<= end_indexes.len()-1{new_content.push_str(&line[end_indexes[j]+delimiter_end.len()..start_indexes[i-1]]);}
+              else{new_content.push_str(&line[end_indexes[j-1]+delimiter_end.len()..start_indexes[i-1]]);}
+            }
              }else if block_comment_level == 0 || i > start_indexes.len()-1{break 'lp;}
 
             }
@@ -4589,13 +4600,26 @@ pub mod remove_comments{
       /// # [`super::block_comments`] Test 9
       /// Use the nested mode
       fn test_9_block_comments(){
-        let str = "Code before /*/* This is a block comment /*/ nested comment */\n/* still in comment'*/''/*\n*/ Code after*/";
+        let str = "Code before /*/* This is a block comment /*/ nested comment */\nbetween/* still in comment'*/'/*\n*/ Code after*/";
         let scape:Vec<char> = vec!['\\'];
         let vec_str:Vec<&str> = vec!["'", "'"];
         let vec_char:Vec<char> = vec![];
         let ignore = (&vec_char, &vec_str);
-        assert_eq!(Err(1), super::block_comments(str, "/*", "*/", ignore, &scape, ModeBlock::Nested,ManageClose::Both));
+        assert_eq!("Code before \nbetween\n", super::block_comments(str, "/*", "*/", ignore, &scape, ModeBlock::Nested,ManageClose::Both).unwrap());
       }
+      #[test]
+      /// # [`super::block_comments`] Test 10
+      /// Use the nested mode
+      fn test_10_block_comments(){
+        let str = "Code before /*/* This is a block comment /*/ nested comment */bt/*\nbetween/* still in comment'*/'\n*/ Code after*/";
+        let scape:Vec<char> = vec!['\\'];
+        let vec_str:Vec<&str> = vec!["'", "'"];
+        let vec_char:Vec<char> = vec![];
+        let ignore = (&vec_char, &vec_str);
+        assert_eq!("Code before bt\n", super::block_comments(str, "/*", "*/", ignore, &scape, ModeBlock::Nested,ManageClose::Both).unwrap());
+      }
+
+      
     
       
 
