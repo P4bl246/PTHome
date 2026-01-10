@@ -4113,6 +4113,67 @@ pub mod remove_comments{
         {
           let mut i = 0;
           let mut j = 0;
+          let mut brk = false;
+          if j == end_indexes.len(){
+              brk=true;
+            }
+         if !brk{  
+          if block_comment_level > start_indexes.len(){ 
+             while block_comment_level != start_indexes.len(){
+              if j>end_indexes.len()-1{brk = true; break;}
+              j+=1;
+              block_comment_level-=1;
+             } 
+           }
+           if j > end_indexes.len()-1{brk = true;}
+           while !brk && block_comment_level > 0{
+            let mut nested = 0;
+            if j>end_indexes.len()-1{break;}
+            if !start_indexes.is_empty(){
+              if i <= start_indexes.len()-1{
+              while start_indexes[i] < end_indexes[j]{
+              nested += 1;
+              i+=1;
+              if i > start_indexes.len()-1{break;}
+              }
+          
+            }
+          }
+          
+            if nested !=  0 {
+              while nested != 0{
+              if j>end_indexes.len()-1{brk = true; break;}
+               j+=1;
+                nested-=1;
+                block_comment_level -=1;
+              }
+              if nested == 0{
+                if block_comment_level != 0 && !start_indexes.is_empty(){
+                  if i <= start_indexes.len()-1{ 
+                    if j<= end_indexes.len()-1{new_content.push_str(&line[end_indexes[j]+delimiter_end.len()..start_indexes[i]]);}
+                    else{new_content.push_str(&line[end_indexes[j-1]+delimiter_end.len()..start_indexes[i]]);}
+                  }
+                  else{
+                    if j<= end_indexes.len()-1{new_content.push_str(&line[end_indexes[j]+delimiter_end.len()..start_indexes[i-1]]);}
+                    else{new_content.push_str(&line[end_indexes[j-1]+delimiter_end.len()..start_indexes[i-1]]);}
+                  }
+                } 
+               }
+              }
+             }
+            if block_comment_level == 0{
+               if !end_indexes.is_empty(){
+              if j <= end_indexes.len()-1{new_content.push_str(&line[end_indexes[j]+delimiter_end.len()..]);}
+              else{new_content.push_str(&line[end_indexes[j-1]+delimiter_end.len()..]);}
+              }
+              else{new_content.push_str(line);}
+              new_content.push_str("\n");
+            } 
+           }
+         }
+        } 
+      }
+          /* 
           'lp: while block_comment_level > 0{
             
             if j == end_indexes.len(){
@@ -4128,7 +4189,19 @@ pub mod remove_comments{
             
             loop{
             let mut nested = 0;
-            if j>end_indexes.len()-1{break 'lp;}
+            if j>end_indexes.len()-1{
+            if block_comment_level > 0 {
+              if i <= start_indexes.len()-1{ 
+              if j<= end_indexes.len()-1{new_content.push_str(&line[end_indexes[j]+delimiter_end.len()..start_indexes[i]]);}
+              else{new_content.push_str(&line[end_indexes[j-1]+delimiter_end.len()..start_indexes[i]]);}
+            }
+             else{
+              if j<= end_indexes.len()-1{new_content.push_str(&line[end_indexes[j]+delimiter_end.len()..start_indexes[i-1]]);}
+              else{new_content.push_str(&line[end_indexes[j-1]+delimiter_end.len()..start_indexes[i-1]]);}
+            }
+            }
+            break 'lp;
+          }
             if !start_indexes.is_empty(){
               if i <= start_indexes.len()-1{
               while start_indexes[i] < end_indexes[j]{
@@ -4165,20 +4238,8 @@ pub mod remove_comments{
              }else if block_comment_level == 0 || i > start_indexes.len()-1{break 'lp;}
 
             }
-          }
-          if block_comment_level == 0{
-            if !end_indexes.is_empty(){
-              if j <= end_indexes.len()-1{new_content.push_str(&line[end_indexes[j]+delimiter_end.len()..]);}
-              else{new_content.push_str(&line[end_indexes[j-1]+delimiter_end.len()..]);}
-            }
-            else{new_content.push_str(line);}
-            new_content.push_str("\n");
-           } 
-        }
+          }*/
 
-          
-        }
-      }
         match manage_close{
           ManageClose::Both=>{
                // if some ignore are open after process all the file, print an error
@@ -4210,6 +4271,7 @@ pub mod remove_comments{
          };
         return Ok(new_content);  
   }
+
 
 //------------------------------------------------------------------------------------------
   /// # `first_comprobation`
@@ -4619,7 +4681,19 @@ pub mod remove_comments{
         assert_eq!("Code before bt\n", super::block_comments(str, "/*", "*/", ignore, &scape, ModeBlock::Nested,ManageClose::Both).unwrap());
       }
 
-      
+      #[test]
+      /// # [`super::block_comments`] Test 11
+      /// Use the nested mode
+      fn test_11_block_comments(){
+        let str = "Code before /*/* This is a block comment /*/\n nested comment '*\n/'*/bt/*\nbetween/* still in comment'*/'\n*/ Code after*/";
+        let scape:Vec<char> = vec!['\\'];
+        let vec_str:Vec<&str> = vec!["'", "'"];
+        let vec_char:Vec<char> = vec![];
+        let ignore = (&vec_char, &vec_str);
+        assert_eq!("Code before bt\n", super::block_comments(str, "/*", "*/", ignore, &scape, ModeBlock::Nested,ManageClose::Both).unwrap());
+      }
+
+            
     
       
 
