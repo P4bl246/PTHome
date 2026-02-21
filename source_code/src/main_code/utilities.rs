@@ -3250,7 +3250,7 @@ pub mod remove_comments{
         return Some(new_content);
     }
 //------------------------------------------------------------------
-    /// # `content_between`
+
     /// process the line with comment delimiters, management the secuence
     /// # Arguments
     /// * `delimiters_array_char: &Vec<char>` - Array of chars to indicate pairs that indicate a start and end delimiter of a conent must be are ignored (can be empty)
@@ -3260,345 +3260,8 @@ pub mod remove_comments{
     /// * `line: &str` - line to process
     /// # Return
     /// A tuple with 3 elements 
-    /// * Elements:
-    /// - `0:String`. Is a void string if the start delimiter ignore are correctly closely in the same line, else is the start delimiter ignore not closed
-    /// - `1:bool`. Is `true` if the some ignore pair are be open but not closely, else its `false`
-    /// - `2:String`. Is the string result to the process
-    /// 
-    /// * Panic with a message indicate the error
-    /// ## Notes 
-    /// - This is use in the functions [`simple_comments`], [`single_mode`] and [`nested_mode`]
-    pub fn content_between(delimiters_array_char: &Vec<char>, delimiters_array_str: &Vec<&str>, scape_characters:&Vec<char>, delimiter: &str, line: &str) -> (String, bool, String){
-
-       if !first_comprobation(delimiters_array_char, delimiters_array_str, scape_characters, &[delimiter].to_vec()){
-        panic!("Error in the parameters");
-       }
-       let mut new_line2 = String::new();
-       let mut in_ignore = false;
-       let mut result:(String, bool, String);
-       // If the line contains a comment delimiter start to check this
-            let pos = line.find(delimiter).unwrap_or(0); //position of the comment delimiter
-             
-             new_line2 = line[..pos].to_string(); //content before the comment delimiter
-            let mut delimiters_array:Vec<String> = Vec::new();
-            if !delimiters_array_char.is_empty(){
-            for element in delimiters_array_char{
-              delimiters_array.push(element.to_string());
-             }
-            }
-            if !delimiters_array_str.is_empty(){
-              for element in delimiters_array_str{
-              delimiters_array.push(element.to_string());
-             }
-            }
-            // process the char array.
-            let result1 = process(in_ignore, &delimiters_array, scape_characters, line, pos, delimiter);
-            if !result1.1{
-                new_line2 = result1.2;
-                  result = ("".to_string(), false, new_line2.to_string());
-                 return result;
-             }
-            else{
-              result = (result1.0, result1.1, result1.2);
-            return result;
-             }
-          //if the line not contains some comment delimiter return the line
-          result = ("".to_string(), false, line.to_string());
-          return result;
-      
-    }
-//---------------------------------------------------------
-    /// # `process`
-    /// process a string for identify the content to ignore and identify the comments in this string
-    /// # Arguments
-    /// * `in_ignore:bool` - Flag to indicate if are be in ignore content
-    /// * `delimiters_array:&Vec<String>` - Array that contains the delimiters to indicate when the content are must be ignored (can be empty)
-    /// * `scape_characters:&Vec<char>` - A vector of chars for define the scape characters for ignore end delimiters  (can be empty)
-    /// * `line:&str` - Line to process
-    /// * `pos:usize` - Position of the comment delimiter in the line
-    /// * `delimiter:&str` - Comment delimiter 
-    /// # Return 
-    /// A tuple with 3 elements 
-    /// * Elements:
-    /// - `0:String`. Is a void string if the start delimiter ignore are correctly closely in the same line, else is the end delimiter expected for the close
-    /// - `1:bool`. Is `true` if the some ignore pair are be open but not closely, else its `false`
-    /// - `2:String`. Is the string result to the process
-    /// ## Notes
-    /// - This is use in the function [`content_between`] 
-
-    fn process(mut in_ignore:bool, delimiters_array:&Vec<String>, scape_characters:&Vec<char>, line:&str, mut pos:usize, delimiter:&str)->(String, bool, String){
-      use crate::main_code::utilities::general;
-      use std::collections::HashMap;
-      if !in_ignore{
-      let mut copy = line.to_string(); // create a mutable copy of the input line
-      let mut j = 0; // Use like a global counter 
-      let mut start_ignore_index:Vec<usize> = Vec::new();//Array of indexes by start ignore delimiters found
-      let mut end_ignore_index:Vec<usize> = Vec::new();// Array of indexes by end ignore delimiters found
-      let mut content_out_of_comment = line[..pos].to_string(); // String to contain the content before a delimiter comment
-      let mut some_start_ignore:Vec<String> = Vec::new(); // Array of strings, for store the start ignore delimiter
-      let mut removed = 0; // global variable for store some temporary value 
-      let mut without_end: Vec<usize> = Vec::new(); // Array for store the indexes of the ignore delimiters start without end delimiter
-      let mut expected: Vec<String> = Vec::new(); // Array for store the end delimiter for them indexes without end delimiter
-      let mut map_end = HashMap::new();
-        j= 0;//reset j
-        // Fill some_start_ignore
-        while j<= delimiters_array.len()-1{
-          let mut sub_vec = general::sub_vec(delimiters_array, 2, j);
-        some_start_ignore.push(sub_vec[0].to_string());
-        map_end.insert(sub_vec[0].to_string(), sub_vec[1].to_string());
-        j+=2;
-        }
-        let mut ignore_order: Vec<usize> = Vec::new(); //Array to store the order of ignore start delimiters like has a end delimiter ignore found
-         j= 0;//reset j
-         //Create an scope for local processing, phase of "IDENTIFY THE ORDER OF THE DELIMITERS AND FILTER THIS"
-         {
-          // get the order of the delimiters in the string
-          //iterate in the start delimiters for search this
-           for (n, i) in some_start_ignore.iter().enumerate(){
-            //iterate in all appears of this delimiter
-            while copy.contains(i){
-              let mut copy2 = copy.to_string();
-              let mut i2 = 0;
-              // Look the pos of the delimier
-              if let Some(pos_start) = copy2.find(i){
-                let mut new_copy = String::new();
-                let mut before_f = pos_start;
-                removed = i.len();
-                for (n, c) in copy2.chars().enumerate(){
-                  if i2<removed && n==before_f{
-                    new_copy.push(' ');
-                    i2+=1;
-                    before_f+=1;
-                  }
-                  else{
-                    new_copy.push(c);
-                  }
-                }
-                copy2 = new_copy.to_string();
-                i2 = 0;
-                // Search the pos of the end delimiter if have
-                 if let Some(mut pos_end) = copy2.find(map_end.get(i).unwrap()){
-                  start_ignore_index.push(pos_start);
-                  if scape_characters.len() >0{
-                    if pos_end>0{
-                    //check if the delimiter are after a scape character 
-                    if scape_characters.contains(&line.to_string().chars().nth(pos_end-1).unwrap()){
-                      let mut not_found = false;
-                      //remove the last value push in the vector
-                      copy2.replace_range(pos_start+i.len()..pos_end+map_end.get(i).unwrap().len(), &general::str_of_n_str(" ", copy2[pos_start+i.len()..pos_end+map_end.get(i).unwrap().len()].len()));
-                      loop{
-                        // Search the pos of the end delimiter if have
-                          if let Some(pos_end2) = copy2.find(map_end.get(i).unwrap()){
-                            //check if the delimiter are after a scape character 
-                            if scape_characters.contains(&line.to_string().chars().nth(pos_end2-1).unwrap()){
-                              copy2.replace_range(pos_start+i.len()..pos_end2+map_end.get(i).unwrap().len(), &general::str_of_n_str(" ", copy2[pos_start+i.len()..pos_end2+map_end.get(i).unwrap().len()].len()));
-                            }else{
-                              pos_end = pos_end2;
-                              break;
-                            }
-                          }else{
-                           not_found = true;
-                           break;
-                          }
-                      }
-                      if not_found{
-                        start_ignore_index.remove(start_ignore_index.len()-1); //remove the last value push in the vector
-                        //If not found end delimiter
-                        without_end.push(pos_start);
-                        expected.push(map_end.get(i).unwrap().clone()); 
-                        copy = copy2.to_string();
-                        continue;
-                      }
-
-                     }
-                    }
-                  }
-                  end_ignore_index.push(pos_end);
-                  removed = copy[pos_start..pos_end+map_end.get(i).unwrap().len()].len();
-                  let mut before = pos_start;
-                  let mut new_string = String::new();
-                  //replace this range  with spaces (' ') for avoid move indexes and edit the length of the string
-                    for (n, c) in copy2.chars().enumerate(){
-                      if i2<removed  && n== before{
-                        new_string.push(' ');  
-                        before += 1;
-                      i2+=1;
-                      }
-                      
-                      else{new_string.push(c)}
-                    }
-                   
-                  copy = new_string.to_string(); //upload copy
-                 }
-                 // if not have his end delimiter
-                 else{
-                 without_end.push(pos_start);
-                 expected.push(map_end.get(i).unwrap().clone()); 
-                 copy = copy2.to_string();
-                 }
-               }
-             }
-           }
-           //sort the indexes than less to greater 
-           start_ignore_index.sort();
-           end_ignore_index.sort();
-         }
-
-        let mut comment_appears:Vec<usize> = Vec::new();    
-        // Scope for process the indexes and comments "FILTER COMMENTS AND INDEXES" 
-        {   
-        let mut s = 0;
-        let mut comment_appears_first = general::all_appears_index(&copy, delimiter);
-        let mut copy_start = start_ignore_index.to_vec();
-        let mut copy_end = end_ignore_index.to_vec();
-        let mut index_remove_comment: Vec<usize> = Vec::new();
-        //remove comments into ignore content
-        while comment_appears_first.len() > 0{
-          if s>comment_appears_first.len()-1{break;}
-          if copy_start.len() <= 0 || copy_end.len() <= 0{
-               for i in &comment_appears_first{
-                 comment_appears.push(i.clone());
-                 }
-              break;
-            }
-          let mut index_removed = 0;
-          //if the comment is into an ignore content
-           for (l, n) in comment_appears_first.iter().enumerate(){
-            if *n  > copy_start[0] && *n  < copy_end[0]{
-              index_remove_comment.push(l);
-            }
-            else{
-              comment_appears.push(*n);
-              }
-            }
-            s += 1;
-            //remove indexes processed
-           if !index_remove_comment.is_empty(){
-            for n in &index_remove_comment{
-              comment_appears_first.remove((*n)-index_removed);
-              index_removed += 1;
-            }
-           }
-            if copy_start.len()-1 <= 0 || copy_end.len()-1 <= 0{
-              break;
-            }
-            copy_start.remove(0);
-            copy_end.remove(0);
-         }
-        }
-        // If the line contains all his comments delimiters into ignore content
-       if comment_appears.is_empty(){
-        copy = line.to_string();
-        let mut copy2= copy.to_string();
-           let mut contains = false;
-            for n in &some_start_ignore{
-                  if copy2.contains(n){
-                  contains = true;
-                  break;
-               }
-            }
-            //process the rest of the ignore delimiters pairs for identify if some are not closely
-            let mut sub_vec2:Vec<String> = Vec::new();
-
-            if contains{
-              let mut sub_vec_start = 0;
-              //search all remaining ignore delimiter pairs
-              while sub_vec_start <= delimiters_array.len()-1 && !in_ignore{
-                  copy2 = copy.to_string();
-                  sub_vec2 = general::sub_vec(&delimiters_array, 2, sub_vec_start);
-                  //search the start ignore delimiter and remove themm
-                  if let Some(ignore_start) = copy.find(&sub_vec2[0]){
-                      in_ignore=true;
-                      copy2 = copy2.replacen(&sub_vec2[0], &general::str_of_n_str(" ", sub_vec2[0].len()), 1);
-                      //search the end ignore delimiter and remove the content and the delimiters for the line copy
-                      if let Some(mut ignore_end) = copy2.find(&sub_vec2[1]){
-                        if scape_characters.len() >0{
-                          if ignore_end>0{
-                    //check if the delimiter are after a scape character 
-                          if scape_characters.contains(&line.to_string().chars().nth(ignore_end-1).unwrap()){
-                             let mut not_found = false;
-                      //remove the last value push in the vector
-                            copy2.replace_range(ignore_start+sub_vec2[0].len()..ignore_end+sub_vec2[1].len(), &general::str_of_n_str(" ", copy2[ignore_start+sub_vec2[0].len()..ignore_end+sub_vec2[1].len()].len()));
-                            loop{
-                        // Search the pos of the end delimiter if have
-                          if let Some(pos_end2) = copy2.find(&sub_vec2[1]){
-                            //check if the delimiter are after a scape character 
-                            if scape_characters.contains(&line.to_string().chars().nth(pos_end2-1).unwrap()){
-                            copy2.replace_range(ignore_start+sub_vec2[0].len()..pos_end2+sub_vec2[1].len(), &general::str_of_n_str(" ", copy2[ignore_start+sub_vec2[0].len()..pos_end2+sub_vec2[1].len()].len()));
-                            }else{
-                              ignore_end = pos_end2;
-                              break;
-                              }
-                            }else{
-                           not_found = true;
-                           break;
-                            }
-                          }
-                            if not_found{
-                              //If not found end delimiter
-                                continue;
-                              }
-
-                            }
-                          }
-                        }
-                      sub_vec_start = 0;
-                      in_ignore = false;
-                      copy.replace_range(ignore_start..ignore_end+sub_vec2[1].len(), &general::str_of_n_str(" ", copy[ignore_start..ignore_end+sub_vec2[1].len()].len()));
-                      }
-                    }
-                    else{
-                      sub_vec_start += 2;
-                    }
-                  }
-                let result = (sub_vec2[1].to_string(), in_ignore, line.to_string());
-                return result;
-              }
-              else{
-                let result = ("".to_string(), in_ignore, line.to_string());
-                return result;
-              }
-          }
-          //if the line has comments
-        else{
-          let mut comment_appears2 = comment_appears.to_vec();
-          // Check if the first start comment are into ignore content
-          for (i, n) in without_end.iter().enumerate(){
-            if *n < comment_appears2[0]{
-              let result = (expected[i].to_string(), true, line.to_string()); 
-              return result;
-            }
-          }
-          // Check if start delimiter ignore are into a comment or after of them
-          while !comment_appears2.is_empty(){
-            let mut index_rmv = 0;
-            let mut remove:Vec<usize> = Vec::new();
-            for (s, r) in start_ignore_index.iter().enumerate(){
-             if comment_appears2[0] < *r{
-              remove.push(s);
-             }
-            }
-            comment_appears2.remove(0);
-            for n in remove{   
-              start_ignore_index.remove(n-index_rmv);
-              end_ignore_index.remove(n-index_rmv);
-               index_rmv+=1;
-            }
-          }
-        }
- 
-            //upload the index of the pos
-        if !comment_appears.is_empty(){content_out_of_comment = line[..comment_appears[0]].to_string();}
-
-        let result = ("".to_string(), false, content_out_of_comment.to_string());
-        return result;
-      }else{
-        let result = ("".to_string(), true, line.to_string());
-        return result;
-      }
-        
-   }
-//------------------------------------------------------------------
+  
+   //------------------------------------------------------------------
     /// # `ModeBlock`
     /// An enum to specify the mode of block comment removal.
     /// # Variants
@@ -3636,9 +3299,9 @@ pub mod remove_comments{
     /// # Errors
     /// If the file cannot be read or written, the function will panic with an error message
     /// # Return
-    /// * `Err(2)` - If there is a block comment without an end delimiter.
-    /// * `Err(1)` - If there is a ignore content without close
-    /// * `Err(-1)` - If some parameter are corrupted
+    /// * `Err(1)` - If some parameter are corrupted
+    /// * `Err(2)` - If there is a ignore content without close
+    /// * `Err(3)` - If there is a block comment without an end delimiter.
     /// * `Ok(String)` - If the block comments were successfully removed.
     
     pub fn block_comments(content: &str, start_delimiter: &str, end_delimiter: &str, ignore_content_between: (&Vec<char>, &Vec<&str>), scape_characters:&Vec<char>, mode: ModeBlock, manage_close: ManageClose) -> Result<String, i32>{
@@ -3683,13 +3346,24 @@ pub mod remove_comments{
     ///   - `Comment`: Ensure the block comment are correctly close.
     ///       * Return a error message indicate the line content, and number of line where start the block comment with missing close.
     ///   - `None`: Not make verification. Not recomended 
-
     pub enum ManageClose{
     Both,
     Comment,
     Ignore, 
     None
    }
+    /// # `RemovalError`
+    /// Enum para representar errores durante la eliminación de comentarios.
+    /// # Variants
+    /// * `InvalidDelimiters` - Indica que los delimitadores de inicio y fin son iguales o inválidos.
+    /// * `UnclosedComment { line: usize, depth: usize }` - Indica que un comentario de bloque no fue cerrado correctamente. Contiene el número de línea donde comenzó el comentario y la profundidad de anidamiento.
+    /// * `UnclosedIgnore { line: usize, expected: String }` - Indica que un contenido ignorado no fue cerrado correctamente. Contiene el número de línea donde comenzó el contenido ignorado y el delimitador esperado para cerrarlo.
+    pub enum RemovalError {
+    InvalidDelimiters,
+    UnclosedComment { line: usize, depth: usize },
+    UnclosedIgnore { line: usize, expected: String },
+    }
+
     /// # `single_mode`
     /// Removes block comments in single mode from a line.
     /// # Arguments
@@ -3704,9 +3378,9 @@ pub mod remove_comments{
     /// Returns a `Result<String, i32>`:
     /// * `Ok(String)` - If the block comments were successfully removed, returns a `String` with the content without block comments.
     /// * `Err(i32)` - If there is an error, returns an `i32` error code:
-    ///   - `-1` - If the start and end delimiters are the same or content vector is empty.
+    ///   - `1` - If the start and end delimiters are the same or content vector is empty.
     ///   - `2` - If the block comment are not closed and arrive to the end of content, with an error message indicating the line number and content of the line.
-    ///   - `1` - If some ignore start delimiter are not closed and arrive to the end of the content.
+    ///   - `3` - If some ignore start delimiter are not closed and arrive to the end of the content.
  fn single_mode(content: &str, delimiter_start: &str, delimiter_end: &str, ignore_content_between: (&Vec<char>, &Vec<&str>),scape_characters:&Vec<char>, manage_close: ManageClose) -> Result<String, i32>{
       use crate::main_code::utilities::{general, remove_comments::ManageClose};
         if delimiter_start == delimiter_end{
@@ -3718,143 +3392,7 @@ pub mod remove_comments{
             return Err(-1);
         }
 
-        let mut line_content = String::new();//buffer for store the line when start the block comment
-         let mut block_open = false; // flag to indicate if a block comment is open
-         let mut new_content = String::new(); // buffer for store the new content without block comments
-         let mut counter = 0;// counter for the line number
-         let mut line_num = 0;// line number where the block comment starts
-         let mut in_ignore = false; //flag to indicate if we are in ignore_conntent
-         let mut contains = false; // flag to indicate if the line contains some ignore delimiter
-         let mut ignore_delimiter = false; //flag to indicate if have some ignore_delimiter 
-         let mut delimiter_expected = String::new(); // To store the delimiter ignore expected if in_ignore is true
-         let mut start_ignore_demtrs:Vec<String> = Vec::new(); // To store all the start ignore delimiters
-         if !ignore_content_between.0.is_empty() || !ignore_content_between.1.is_empty(){ignore_delimiter = true;}
-         if  start_ignore_demtrs.is_empty() && ignore_delimiter{
-            let mut j = 0;
-            if !ignore_content_between.0.is_empty(){
-             while j <= ignore_content_between.0.len()-1{
-              let mut sub_vec = general::sub_vec(&ignore_content_between.0, 2, j);
-              start_ignore_demtrs.push(sub_vec[0].to_string());
-              sub_vec.clear();
-              j+=2;
-              }
-             }
-             j= 0;
-             if !ignore_content_between.1.is_empty(){
-             while j <= ignore_content_between.1.len()-1{
-              let mut sub_vec = general::sub_vec(&ignore_content_between.1, 2, j);
-              start_ignore_demtrs.push(sub_vec[0].to_string());
-              sub_vec.clear();
-              j+=2;
-               } 
-              }
-             }
-         // Iterate through each line in the content
-         // This is a single mode, so we don't need to handle nested comments
-         'next: for line in content.lines() {
-          counter += 1; // Increment the line counter
-          contains = false;
-          let mut end_pos = line.len()+1;
-           let mut line_copy= line.to_string(); // copy the line for handle his content
-           //If we are in ignore content, search the end of this at the actual line
-           if ignore_delimiter{ 
-            if in_ignore{
-              let mut end = line.len()+1;
-             if let Some(end2) = line_copy.find(&delimiter_expected){
-              end = end2;
-              in_ignore = false;
-              line_copy.replace_range(..end+delimiter_expected.len(), &str_of_n_str(" ", line_copy[..end+delimiter_expected.len()].len()));    
-              }
-              else if block_open{
-                  continue 'next;
-              }
-              else{new_content.push_str(line); new_content.push_str("\n");}            
-            }
-          }
-          if !in_ignore{
-          //Else, check if the line contains some start ignore delimiter for process
-
-            while line_copy.contains(delimiter_start) || block_open{
-              if !start_ignore_demtrs.is_empty(){
-              for element in &start_ignore_demtrs{
-              if line_copy.contains(element){
-                contains = true;
-                break;
-              }
-             }
-            }
-            if !block_open{
-              if let Some(mut start_pos) = line_copy.find(delimiter_start){
-               if contains{
-                let ignore_it = content_between (ignore_content_between.0, ignore_content_between.1, scape_characters, delimiter_start, &line_copy);
-               if ignore_it.2.len() == line_copy.len(){
-                 //If the start delimiter is into ignore content
-                 if ignore_it.1{
-                  in_ignore = true;
-                  delimiter_expected = ignore_it.0;
-                  line_content = line.to_string();
-                  line_num = counter;
-                  if end_pos == line.len()+1{new_content.push_str(line); new_content.push_str("\n");}
-                  else{new_content.push_str(&line[end_pos+delimiter_end.len()..]); new_content.push_str("\n");}
-                  continue 'next;
-                  }else{break;}
-                 }else{start_pos = ignore_it.2.len();}
-                }
-
-                  block_open = true;
-                  line_num = counter;
-                  line_content = line.to_string();
-                  if end_pos == line.len()+1{
-                    new_content.push_str(&line[..start_pos]);
-                    line_copy.replace_range(..start_pos+delimiter_start.len(), &str_of_n_str(" ", line_copy[..start_pos+delimiter_start.len()].len()));
-                  }
-                  else{
-                    new_content.push_str(&line[end_pos+delimiter_end.len()..start_pos]);
-                    line_copy.replace_range(end_pos+delimiter_end.len()..start_pos+delimiter_start.len(), &str_of_n_str(" ", line_copy[end_pos+delimiter_end.len()..start_pos+delimiter_start.len()].len()));
-                  }
-                  continue;
-                
-               }
-              }
-              else if block_open{
-                if let Some(end) = line_copy.find(delimiter_end){
-                  end_pos = end;
-                 if contains{ 
-                  let ignore_it = content_between (ignore_content_between.0, ignore_content_between.1, scape_characters, delimiter_end, &line_copy);
-                  if ignore_it.2.len() == line_copy.len(){
-                    //If the end delimiter is into ignore content
-                    if ignore_it.1{
-                      in_ignore = true;
-                      delimiter_expected = ignore_it.0;
-                      line_num = counter;
-                      line_content = line.to_string();
-                      
-                      continue 'next;
-                    }else{break;}
-                }else {end_pos = ignore_it.2.len();}
-              }
-                  block_open = false;
-                  line_copy.replace_range(..end_pos+delimiter_end.len(), &str_of_n_str(" ", line_copy[..end_pos+delimiter_end.len()].len()));
-                  continue;
-              }
-              else {continue 'next;}
-            }    
-          }
-          if !block_open{
-            if end_pos != line.len()+1{new_content.push_str(&line[end_pos+delimiter_end.len()..]); new_content.push_str("\n");}
-            else{new_content.push_str(&line); new_content.push_str("\n");}
-            }
-   
-          let last_comprobation = content_between(ignore_content_between.0, ignore_content_between.1, scape_characters, "", &line_copy);  
-          if last_comprobation.1{
-            in_ignore = true;
-            delimiter_expected = last_comprobation.0;
-            line_content = line.to_string();
-            line_num = counter;
-          }
-           }
-          
-          }
+        
           match manage_close{
           ManageClose::Both=>{
                // if some ignore are open after process all the file, print an error
@@ -3889,19 +3427,6 @@ pub mod remove_comments{
     }
 
 //------------------------------------------------------------------------------------------
-    /// # `RemovalError`
-    /// Enum para representar errores durante la eliminación de comentarios.
-    #[derive(Debug, PartialEq)]
-    pub enum RemovalError {
-        /// Delimitadores inválidos (vacíos o iguales)
-        InvalidDelimiters,
-        /// Comentario no cerrado al final del contenido
-        UnclosedComment { line: usize, depth: usize },
-        /// Delimitador de ignore no cerrado
-        UnclosedIgnore { line: usize, expected: String },
-    }
-
-//------------------------------------------------------------------------------------------
     /// # `LexerState`
     /// Estados de la máquina de estados del lexer de comentarios.
     /// 
@@ -3932,32 +3457,26 @@ pub mod remove_comments{
 
 //------------------------------------------------------------------------------------------
     /// # `CommentLexer`
-    /// Lexer de un solo paso para eliminar comentarios de bloque anidados.
+    /// Lexer for removing block comments with dynamic delimiters and with O(n) time complexity and O(1) spacial complexity.
     /// 
-    /// Este lexer procesa el input caracter por caracter usando una máquina de estados,
-    /// lo que permite manejar correctamente:
-    /// - Comentarios anidados
-    /// - Delimitadores dentro de strings (dinámicos según ignore_delimiters)
-    /// - Secuencias de escape (dinámicas según escape_chars)
-    /// 
-    /// ## Complejidad
-    /// - Tiempo: O(n) - un solo paso
-    /// - Espacio: O(1) - sin almacenamiento de índices
-    /// 
-    /// ## Enfoque
-    /// En lugar de hardcodear `"` y `'` como delimitadores de strings, este lexer
-    /// acepta cualquier conjunto de delimitadores definidos por el usuario a través
-    /// de `ignore_delimiters`. Esto permite parsear lenguajes con sintaxis no estándar
-    /// (ej: backticks en JS, % en LaTeX, etc.)
+    /// # Fields
+    /// * `chars` - An iterator over the characters of the input string.
+    /// * `state` - The current state of the lexer (Code, InComment, InString).
+    /// * `output` - The resulting string after comment removal.
+    /// * `delimiter_start` - The starting delimiter for block comments.
+    /// * `delimiter_end` - The ending delimiter for block comments.
+    /// * `ignore_delimiters` - A vector of characters that mark the start/end of content to ignore (e.g., string delimiters).
+    /// * `escape_chars` - A vector of characters that escape the next character.
+    /// * `line_num` - The current line number.
+    /// * `line_start` - The starting index of the current line for error reporting.
     struct CommentLexer<'a> {
         chars: std::iter::Peekable<std::str::Chars<'a>>,
         state: LexerState,
         output: String,
         delimiter_start: &'a str,
         delimiter_end: &'a str,
-        /// Caracteres que delimitan contenido a ignorar (ej: comillas para strings)
-        ignore_delimiters: &'a Vec<char>,
-        /// Caracteres de escape (ej: '\' para secuencias como \")
+        ignore_delimiters: &'a Vec<String>,
+        ignore_del_len: Vec<usize>,
         escape_chars: &'a Vec<char>,
         line_num: usize,
         line_start: usize,
@@ -3976,9 +3495,17 @@ pub mod remove_comments{
             input: &'a str, 
             delimiter_start: &'a str, 
             delimiter_end: &'a str,
-            ignore_delimiters: &'a Vec<char>,
+            ignore_delimiters: &'a Vec<String>,
             escape_chars: &'a Vec<char>
         ) -> Self {
+          let mut j = 0;
+          let mut ignore_del_len = Vec::new();
+          while j <= ignore_delimiters.len(){
+            if j < ignore_delimiters.len(){
+              ignore_del_len.push((ignore_delimiters[j].len(), j));
+            }
+            j +=1; 
+          }
             CommentLexer {
                 chars: input.chars().peekable(),
                 state: LexerState::Code,
@@ -3986,6 +3513,7 @@ pub mod remove_comments{
                 delimiter_start,
                 delimiter_end,
                 ignore_delimiters,
+                ignore_del_len,
                 escape_chars,
                 line_num: 1,
                 line_start: 0,
@@ -3995,7 +3523,6 @@ pub mod remove_comments{
         /// Procesa el input completo y retorna el resultado
         fn process(&mut self) -> Result<String, RemovalError> {
             while let Some(c) = self.chars.next() {
-                // Rastrear números de línea para error reporting
                 if c == '\n' {
                     self.line_num += 1;
                 }
@@ -4019,13 +3546,19 @@ pub mod remove_comments{
         /// Maneja caracteres cuando estamos en código normal
         fn handle_code(&mut self, c: char) -> Result<(), RemovalError> {
             // Detectar inicio de contenido a ignorar (strings, etc.)
-            // Usamos ignore_delimiters en lugar de hardcodear " y '
-            if self.ignore_delimiters.contains(&c) {
+            let mut buffer = String::new();
+            let mut j = 0;
+            if !self.ignore_delimiters.is_empty(){
+             while buffer.len() <= self.ignore_del_len[j] && j <= self.ignore_del_len.len(){
+              buffer.push(c);
+             }
+              
+            if self.ignore_delimiters.contains(&c.to_string()) {
                 self.state = LexerState::InString { delimiter: c };
                 self.output.push(c);
                 return Ok(());
             }
-
+          }
             // Detectar inicio de comentario
             if c == self.delimiter_start.chars().nth(0).unwrap() {
                 if self.matches_delimiter_start() {
@@ -4072,9 +3605,7 @@ pub mod remove_comments{
         /// Maneja caracteres cuando estamos dentro de un string
         fn handle_string(&mut self, c: char, delimiter: char) -> Result<(), RemovalError> {
             self.output.push(c);
- usando escape_chars dinámicos
-            // En lugar de hardcodear '\', usamos lo que el usuario especificó
-            if self.escape_chars.contains(&c)scape sequences
+            if self.escape_chars.contains(&c)
             if c == '\\' {
                 if let Some(&next_char) = self.chars.peek() {
                     self.chars.next();
@@ -4150,7 +3681,7 @@ pub mod remove_comments{
                         depth: *depth,
                     })
                 }
-                _ => Ok(self.output.clone()),
+                _ => Ok(self.output),
             }
         }
     }

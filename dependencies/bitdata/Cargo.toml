@@ -1,0 +1,12 @@
+[package]
+name = "bitdata"
+version = "0.1.0"
+edition = "2024"
+description = "BitData is a high-performance bit-level data structure for efficient storage and manipulation"
+
+categories = ["data-structures", "hardware-support"]     # Arrays, listas, árboles, bits.   # Embebidos, microcontroladores.
+keywords = ["bitfield", "bitset", "bitvector", "bitvec", "bit", "low-level"]
+
+[dependencies]
+bitvec = "1.0"
+
