@@ -431,7 +431,7 @@ use std::hint::black_box;
 /*
  */
 #[cfg(test)]
-#[test] 
+#[test]
 fn test_n() {
        let runs = 5usize;
     println!("=== Benchmark: DataB vs BitVec ===\n");
@@ -461,7 +461,7 @@ fn test_n() {
     bench_u64(1_000, runs);
     bench_u64(10_000, runs);
 
-    // Test 6: u64 pushes (128-bit typed)
+    // Test 6: u128 pushes (128-bit typed)
     println!("\nTEST 6: Push u128 (128-bit native type)");
     bench_u128(1_000, runs);
     bench_u128(10_000, runs);

@@ -423,4 +423,3 @@ macro_rules! derive_sizeof {
 pub fn size_of<T: SizeOfT + ?Sized>(value: &T) -> usize {
     value.size_of_t()
 }
-

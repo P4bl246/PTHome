@@ -111,7 +111,7 @@ macro_rules! derive_write{
         fn write<T>(&self, slf:&mut DataB, vars:&Vars, write_strategy:&BytesSlice<T>)->Result<(),AllocErr>{
           if vars.size == 0{return Ok(());}
           let mut vars2 = vars.clone();
-          let raw = *self as *const u8;
+          let raw = self as *const $ty as *const u8;
           let size = bits_to_bytes(vars.size)?;
           let sz = sub(size, 1);
           unsafe{
@@ -150,13 +150,13 @@ macro_rules! derive_write{
                 let byte = u16::from_be_bytes([*get_as_be_bytes(raw, sz,_i).unwrap_or(raw.add(sz as usize)),
                  *get_as_be_bytes(raw,sz, _i.checked_sub(1).unwrap_or(size as usize)).unwrap_or(&0x00u8)]);
                 byte.write(slf, &vars2, write_strategy)?;
-                _i-=1;
+                _i=sub(_i,1);
               }
               #[cfg(not(target_endian = "little"))]
               for mut _i in 0..=n as usize{
                 let byte  = u16::from_be_bytes([*get_raw(raw, sz, _i).unwrap_or(0x00), *get_raw(raw, sz, sum(_i, 1)?).unwrap_or(0x00)]);
                 byte.write(slf, &vars2, write_strategy)?;
-                _i+=1;
+                _i=sum(_i,1)?;
               }
               let rest = sub(vars.size, bytes_to_bits(n)?);
               if rest > 0{
@@ -178,13 +178,13 @@ macro_rules! derive_write{
                 let byte = u32::from_be_bytes([*raw.add(_i), *get_raw(raw, sz, _i.checked_sub(1).unwrap_or(size as usize)).unwrap_or(&0x00u8), 
                 *get_raw(raw, sz,_i.checked_sub(2).unwrap_or(size as usize)).unwrap_or(&0x00u8), *get_raw(raw, sz,_i.checked_sub(3).unwrap_or(size as usize)).unwrap_or(&0x00u8)]);
                 byte.write(slf, &vars2, write_strategy)?;
-                _i-=3;
+                _i=sub(_i,3);
               }
               #[cfg(not(target_endian = "little"))]
               for mut _i in 0..n as usize{
                 let byte = u32::from_be_bytes([raw[_i], *get_raw(raw, sz, sum(_i, 1)?).unwrap_or(0x00), *get_raw(raw, sz, sum(_i, 2)?).unwrap_or(0x00), *get_raw(raw, sz, sum(_i, 3)?).unwrap_or(0x00)]);
                 byte.write(slf, &vars2, write_strategy)?;
-                _i+=3;
+                _i=sum(_i,3)?;
               }
               let rest = sub(vars.size, bytes_to_bits(n)?);
               if rest > 0{
@@ -210,7 +210,7 @@ macro_rules! derive_write{
                 *get_raw(raw, sz, _i.checked_sub(4).unwrap_or(size as usize)).unwrap_or(&0x00u8),*get_raw(raw, sz, _i.checked_sub(5).unwrap_or(size as usize)).unwrap_or(&0x00u8),
                 *get_raw(raw, sz, _i.checked_sub(6).unwrap_or(size as usize)).unwrap_or(&0x00u8),*get_raw(raw, sz, _i.checked_sub(7).unwrap_or(size as usize)).unwrap_or(&0x00u8)]);
                 byte.write(slf, &vars2, write_strategy)?;
-                _i-=7;
+                _i=sub(_i,7);
               }
               #[cfg(not(target_endian = "little"))]
               for mut _i in 0..=n as usize{
@@ -218,7 +218,7 @@ macro_rules! derive_write{
                 *get_raw(raw, sz, sum(_i, 3)?).unwrap_or(0x00),*get_raw(raw, sz, sum(_i, 4)?).unwrap_or(0x00),*get_raw(raw, sz, sum(_i, 5)?).unwrap_or(0x00),
                 *get_raw(raw, sz, sum(_i, 6)?).unwrap_or(0x00),*get_raw(raw, sz, sum(_i, 7)?).unwrap_or(0x00)]);
                 byte.write(slf, &vars2, write_strategy)?;
-                _i+=7;
+                _i=sum(_i,7)?;
               }
               let rest = sub(vars.size, bytes_to_bits(n)?);
               if rest > 0{
@@ -283,7 +283,7 @@ macro_rules! derive_pushoptimized{
           if check_num(*v, bytes_to_bits(std::mem::size_of_val(self) as u64)?){*v=bytes_to_bits(std::mem::size_of_val(self) as u64)?}
             size=*v;
             }
-               let arr = (*self as *const $ty) as *const u8;
+               let arr = (self as *const $ty) as *const u8;
                let s = bits_to_bytes(size)?;
                unsafe{
              match size{
@@ -1339,7 +1339,7 @@ macro_rules! derive_pushoptimized{
     }
     //add 1 byte if the bit where start to insert the value is greather than 0
     if byte_overflow{
-      t_size = t_size.wrapping_add(1);
+      t_size = sum(t_size,1)?;
     }
     Ok(t_size)
  }
