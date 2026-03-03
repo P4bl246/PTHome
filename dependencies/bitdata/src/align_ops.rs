@@ -1,7 +1,8 @@
  
  use crate::enums::{Aligned, AllocErr, BytesSlice, TypedPtr};
  use crate::ops::{check_num, sub};
- pub fn padding_to_align(t_size:u64, align_with:u64)->Option<u64>{
+ #[inline]
+ pub fn padding_to_align(t_size:usize, align_with:usize)->Option<usize>{
     if !check_num(align_with, 2){return None;}
     let align = sub(align_with,1);
     let padding = sub(align_with, multiple_of(t_size, align)) & align;
@@ -10,7 +11,8 @@
     }
     None
  }
- pub fn sel_aligning_with_memory(t_size:u64, mem_align:Aligned)->Aligned{
+ #[inline]
+ pub fn sel_aligning_with_memory(t_size:usize, mem_align:Aligned)->Aligned{
    match mem_align{
     Aligned::Bits64=>{
       if t_size <=1{return Aligned::Bits8;}
@@ -27,11 +29,13 @@
    }
    mem_align
  }
- pub fn aligned_with_memory(ptr:u64, offset:u64)->Result<Aligned, AllocErr>{
-    if check_num(ptr, u64::MAX-offset){return Err(AllocErr::ArithmeticOverflow);}
+ #[inline]
+ pub fn aligned_with_memory(ptr:usize, offset:usize)->Result<Aligned, AllocErr>{
+    if check_num(ptr, usize::MAX-offset){return Err(AllocErr::ArithmeticOverflow);}
     let addr = ptr.wrapping_add(offset);
     Ok(aligned_with(addr))
  }
+ #[inline]
  pub fn transform_pointer<T, U>(sel:&BytesSlice<U>, ptr:*mut T)->TypedPtr<U>{
     match *sel{
       BytesSlice::_8=>TypedPtr::U8(ptr as *mut u8),
@@ -59,12 +63,13 @@
  /// ```
  /// 
  /// # Returns
- /// * `u64` - The result of the bitwise AND operation if `num` is a multiple of `of`, otherwise the original `num`.
- pub fn multiple_of(num:u64, of:u64)->u64{
+ /// * `usize` - The result of the bitwise AND operation if `num` is a multiple of `of`, otherwise the original `num`.
+ #[inline(always)]
+ pub fn multiple_of(num:usize, of:usize)->usize{
     num & of
  }
-
- pub fn aligned_with(value:u64)->Aligned{
+ #[inline]
+ pub fn aligned_with(value:usize)->Aligned{
     match multiple_of(value, 7){
      0=>{return Aligned::Bits64;},
      4=>{return Aligned::Bits32;},

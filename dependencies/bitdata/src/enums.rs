@@ -47,9 +47,9 @@
  #[repr(C)]
 pub enum OverFlowStrategy{
   RemainingData(*mut u8),
-  Alternative(u64),
-  BitStart(u64),
-  LazyFail(u64)
+  Alternative(usize),
+  BitStart(usize),
+  LazyFail(usize)
 }
  
  /// This enum defines the possible errors that can occur during memory allocation or data manipulation.
@@ -61,7 +61,7 @@ pub enum OverFlowStrategy{
  /// The `Overflow` variant contains an `OverFlowStrategy` which provides information about how to handle the overflow situation.
  /// 
  /// - `OutOfBounds`: This error indicates that an out-of-bounds access occurred. 
- /// The `OutOfBounds` variant contains a `u64` value which represents the out-of-bounds address or index that was accessed.
+ /// The `OutOfBounds` variant contains a `usize` value which represents the out-of-bounds address or index that was accessed.
  ///
  /// - `ArithmeticOverflow`: This error indicates that an arithmetic overflow occurred if the calculation could generate an arithmetic overflow . 
  /// This can occur when the result of a calculation exceeds the maximum value that can be represented by the data type being used.
@@ -78,7 +78,7 @@ pub enum OverFlowStrategy{
 pub enum AllocErr{
     AllocationFailed,
     Overflow(OverFlowStrategy),
-    OutOfBounds(u64),
+    OutOfBounds(usize),
     ArithmeticOverflow,
     RemainingDataStrategyErr,
     UnrecognizedInstruction

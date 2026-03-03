@@ -1,6 +1,6 @@
- use std::ops::{BitAnd, BitOr};
  use crate::enums::AllocErr;
- const BYTE_LENGTH:u64 = 8;
+ use crate::traits::{SecureSume, SecureSub, SecureShift, And, Or};
+ const BYTE_LENGTH:usize = 8;
  use crate::align_ops::multiple_of;
  /// # `mult`
  /// Multiplies two numbers, if either of them is a multiple of 2, it will use bit shifting to perform the multiplication, otherwise it will return an error.
@@ -19,12 +19,12 @@
  /// ```
  /// 
  /// # Returns
- /// * `Ok(u64)` - The result of the multiplication if successful.
+ /// * `Ok(usize)` - The result of the multiplication if successful.
  /// * `Err(AllocErr)` - An error if neither factor is a multiple of 2.
  #[inline(always)]
- pub fn mult(factor_1:u64, factor_2:u64)->Result<u64, AllocErr>{
-    if multiple_of(factor_2, 1) == 0{return Ok(shift(factor_1, factor_2.trailing_zeros() as u64, false));}
-    if multiple_of(factor_1, 1) == 0 {return Ok(shift(factor_2, factor_1.trailing_zeros() as u64, false));}
+ pub fn mult(factor_1:usize, factor_2:usize)->Result<usize, AllocErr>{
+    if multiple_of(factor_2, 1) == 0{return Ok(shift(factor_1, factor_2.trailing_zeros() as usize, false));}
+    if multiple_of(factor_1, 1) == 0 {return Ok(shift(factor_2, factor_1.trailing_zeros() as usize, false));}
      Err(AllocErr::UnrecognizedInstruction)
  }
  //-----------------------------------------------------------
@@ -46,15 +46,28 @@
  /// ```
  /// 
  /// # Returns
- /// * `Ok(u64)` - The result of the division if successful.
+ /// * `Ok(usize)` - The result of the division if successful.
  /// * `Err(AllocErr)` - An error if the divisor is not a multiple of 2.
  #[inline(always)]
- pub fn div(dividend:u64, divisor:u64)->Result<u64, AllocErr>{
+ pub fn div(dividend:usize, divisor:usize)->Result<usize, AllocErr>{
     if multiple_of(divisor, 1) != 0{return  Err(AllocErr::UnrecognizedInstruction);}
-     Ok(shift(dividend, divisor.trailing_zeros() as u64, true))
+     Ok(shift(dividend, divisor.trailing_zeros() as usize, true))
  }
  
  //----------------------------------------------------------
+ macro_rules! impland{
+    ($($ty:ty), +)=>{
+        $(
+            impl And for $ty{
+                type Output = $ty;
+                fn and(&self, val_2:Self::Output)->Self::Output{
+                    return *self & val_2;
+                }
+            }
+        )*
+    };
+ }
+ impland!(u8, u16, u32, u64, usize, u128, i8, i16, i32, i64, isize, i128);
  /// # `and`
  /// Performs a bitwise AND operation between two values of the same type.
  /// 
@@ -74,11 +87,25 @@
  /// # Returns
  /// * `T` - The result of the bitwise AND operation between `left` and `right`.
  #[inline(always)]
- pub fn and<T>(left:T, right:T)->T
- where T:BitAnd<Output = T>{
-  left&right
+ pub fn and<T:And<Output=T>>(left:T, right:T)->T{
+  left.and(right)
  }
+
+
  //----------------------------------------------------------
+ macro_rules! impland{
+    ($($ty:ty), +)=>{
+        $(
+            impl Or for $ty{
+                type Output = $ty;
+                fn or(&self, val_2:Self::Output)->Self::Output{
+                    return *self | val_2;
+                }
+            }
+        )*
+    };
+ }
+ impland!(u8, u16, u32, u64, usize, u128, i8, i16, i32, i64, isize, i128);
  /// # `or`
  /// Performs a bitwise OR operation between two values of the same type.
  /// 
@@ -98,21 +125,12 @@
  /// # Returns
  /// * `T` - The result of the bitwise OR operation between `left` and `right`.
  #[inline(always)]
- pub fn or<T>(left:T, right:T)->T
- where T: BitOr<Output = T>{
-  left|right
+ pub fn or<T:Or<Output = T>>(left:T, right:T)->T{
+  left.or(right)
  }
  //----------------------------------------------------------
 
-  /// # `SecureShift`
-  /// A trait that provides a secure way to perform bit shifting operations on various integer types.
-  /// The `secure_sh` method takes a shift amount and a boolean indicating the direction of the shift (right or left) 
-  /// and returns the result of the shift operation. If the shift amount is greater than or equal to the number of 
-  /// bits in the type, it returns 0 to prevent undefined behavior.
-  pub trait SecureShift{
-    type Output;
-    fn secure_sh(&self, shift: Self::Output, to_right:bool)->Self::Output;
-}
+
 macro_rules! impl_secureshift{
     ($($ty:ty),*) => {
         $(
@@ -130,7 +148,7 @@ macro_rules! impl_secureshift{
 }
 
 impl_secureshift!(
-    u8, u16, u32, u64, usize, i8, i16, i32, i64, isize, u128, i128
+    u8, u16, u32, usize, u64, i8, i16, i32, i64, isize, u128, i128
 );
  /// # `shift`
  /// Performs a secure bit shift operation on a value of type `T` by a specified number of bits in either direction (left or right).
@@ -164,62 +182,7 @@ impl_secureshift!(
  {
   value.secure_sh(shift, to_right)
  }
- //----------------------------------------------------------
- /// # `bits_to_bytes`
- /// Converts a given number of bits to bytes, ensuring that the conversion does not result in an arithmetic overflow.
- /// The function takes a `bit_size` as input and checks if it exceeds the maximum allowed value for conversion. If it does,
- /// it returns an error; otherwise, it performs the conversion by dividing the total number of bits 
- /// plus 8 (to account for any partial byte), by the number of bits in a byte.
- /// 
- /// # Arguments
- /// * `bit_size` - The number of bits to be converted to bytes.
- /// 
- /// # Example
- /// ```rust
- /// use bitdata::ops::bits_to_bytes;
- /// let result = bits_to_bytes(16);
- /// assert_eq!(result, Ok(3));
- /// let result = bits_to_bytes(0xFFFFFFFFFFFFFFF7);
- /// assert_eq!(result, Err(AllocErr::ArithmeticOverflow));
- /// let result = bits_to_bytes(0);
- /// assert_eq!(result, Ok(1));
- /// ```
- /// 
- /// # Returns
- /// * `Ok(u64)` - The number of bytes corresponding to the given number of bits if the conversion is successful.
- /// * `Err(AllocErr)` - An error indicating an arithmetic overflow if the input exceeds the maximum allowed value for conversion.
- #[inline(always)]
- pub fn bits_to_bytes(bit_size:u64)->Result<u64, AllocErr>{
-  Ok(div(sum(bit_size,BYTE_LENGTH)?, BYTE_LENGTH)?)
- }
- //----------------------------------------------------------
- /// # `bytes_to_bits`
- /// Converts a given number of bytes to bits, ensuring that the conversion does not result in an arithmetic overflow.
- /// The function takes a `byte_size` as input and checks if it exceeds the maximum allowed value for conversion. If it does,
- /// it returns an error; otherwise, it performs the conversion by multiplying the number of bytes by the number of bits in a byte.
- /// 
- /// # Arguments 
- /// * `byte_size` - The number of bytes to be converted to bits.
- ///
- /// # Example
- /// ```rust
- /// use bitdata::ops::bytes_to_bits;
- /// let result = bytes_to_bits(2);
- /// assert_eq!(result, Ok(16));
- /// let result = bytes_to_bits(0x1FFFFFFFFFFFFFFF);
- /// assert_eq!(result, Err(AllocErr::ArithmeticOverflow));
- /// let result = bytes_to_bits(0);
- /// assert_eq!(result, Ok(0));
- /// ```
- /// 
- /// # Returns
- /// * `Ok(u64)` - The number of bits corresponding to the given number of bytes if the conversion is successful.
- /// * `Err(AllocErr)` - An error indicating an arithmetic overflow if the input exceeds the maximum allowed value for conversion.
- #[inline(always)]
- pub fn bytes_to_bits(byte_size:u64)->Result<u64, AllocErr>{
-   if check_num(byte_size, 0x1FFFFFFFFFFFFFFF){return Err(AllocErr::ArithmeticOverflow);};
-  Ok(mult(byte_size, BYTE_LENGTH)?)
- }
+ 
  //----------------------------------------------------------
  /// # `check_num`
  /// Checks if a given number is greater than or equal to a specified maximum value, returning a boolean result.
@@ -251,10 +214,7 @@ impl_secureshift!(
  //----------------------------------------------------------
 
    /// # `SecureSub`
-  pub trait SecureSub{
-    type Output;
-    fn secure_sub(&self, sustrahend: Self::Output)->Self::Output;
-}
+
 macro_rules! impl_securesubsigned{
     ($($ty:ty),*) => {
         $(
@@ -287,7 +247,7 @@ macro_rules! impl_securesubunsigned{
 }
 
 impl_securesubunsigned!(
-    u8, u16, u32, u64, usize, u128
+    u8, u16, u32, usize, u64, u128
 );
  /// # `sub`
  /// Performs a subtraction operation between two unsigned 64-bit integers, ensuring that the result does not underflow.
@@ -310,16 +270,12 @@ impl_securesubunsigned!(
  /// ```
  /// 
  /// # Returns
- /// * `u64` - The result of the subtraction if no underflow occurs, otherwise 0.
+ /// * `usize` - The result of the subtraction if no underflow occurs, otherwise 0.
  #[inline(always)]
  pub fn sub<T:SecureSub<Output=T>>(minuend:T, subtrahend:T)->T{
     minuend.secure_sub(subtrahend)
  }
 //----------------------------------------------------------
- pub trait SecureSume{
-    type Output;
-    fn secure_sum(&self, addend: Self::Output)->Result<Self::Output, AllocErr>;
- }
 
 macro_rules! impl_securesume{
     ($($ty:ty),*) => {
@@ -334,7 +290,7 @@ macro_rules! impl_securesume{
         )*
     };
  }
-impl_securesume!(u8, u16, u32, u64, usize, i8, i16, i32, i64, isize, f32, f64, u128, i128);
+impl_securesume!(u8, u16, u32, usize, u64, i8, i16, i32, i64, isize, f32, f64, u128, i128);
  /// # `sum`
  /// Performs a secure addition operation between two values of the same type, ensuring that the result does not overflow.
  /// 
@@ -347,7 +303,7 @@ impl_securesume!(u8, u16, u32, u64, usize, i8, i16, i32, i64, isize, f32, f64, u
  /// use bitdata::ops::sum;
  /// let result = sum(5u64, 10u64);
  /// assert_eq!(result, Ok(15u64));
- /// let result = sum(u64::MAX, 1u64);
+ /// let result = sum(usize::MAX, 1u64);
  /// assert_eq!(result, Err(AllocErr::ArithmeticOverflow));
  /// ```
  /// 
@@ -359,67 +315,4 @@ impl_securesume!(u8, u16, u32, u64, usize, i8, i16, i32, i64, isize, f32, f64, u
  where T: SecureSume<Output=T>{
     augend.secure_sum(addend)
  }
- //----------------------------------------------------------
- /// # `byte_from_bits`
- /// Calculates the byte index and optionally the bit index within that byte for a given bit index, ensuring that the calculations do not result in an arithmetic overflow.
- /// 
- /// # Arguments
- /// * `bit` - The bit index for which to calculate the byte and bit indices.
- /// * `bit_byte` - A boolean indicating whether to calculate the bit index within the byte (true) or not (false).
- /// 
- /// # Example
- /// ```rust
- /// use bitdata::ops::byte_from_bits;
- /// let result = byte_from_bits(10, true);
- /// assert_eq!(result, Ok((2, Some(2))));
- /// let result = byte_from_bits(10, false);
- /// assert_eq!(result, Ok((2, None)));
- /// ```
- /// 
- /// # Returns
- /// * `Ok((u64, Option<u64>))` - A tuple containing the byte index and an optional bit index within that byte if the calculations are successful.
- /// * `Err(AllocErr)` - An error if the calculations result in an arithmetic overflow.
-pub fn byte_from_bits(bit:u64, bit_byte:bool) -> Result<(u64, Option<u64>), AllocErr>{
-     let byte = bits_to_bytes(bit)?; // gets the byte where the bit is allocated
-     if bit_byte{
-     let mut bit_i = bit;
-     if bit_i >= BYTE_LENGTH{bit_i = bit - (bytes_to_bits(byte)?-BYTE_LENGTH); }// gets the number of the bit where start to push the value inside the byte
-      return Ok((byte, Some(bit_i)));
-     }
-     Ok((byte, None))
- }
 //----------------------------------------------------------
- pub trait SizeOfT{
-    fn size_of_t(&self)->usize;
- }
-
-macro_rules! impl_sizeof {
-    ($($ty:ty),*) => {
-        $(
-            impl SizeOfT for $ty {     
-                fn size_of_t(&self) -> usize {
-                    std::mem::size_of_val(self)
-                }
-            }
-        )*
-    };
-}
-
-impl_sizeof!(u8, u16, u32, u64, usize, u128, i8, i16, i32, i64, isize, i128, f32, f64, bool, char, ());
-
-#[macro_export]
-macro_rules! derive_sizeof {
-    ($($ty:ty),*) => { 
-        $(
-            impl SizeOfT for $ty {
-                fn size_of_t(&self) -> usize {
-                    std::mem::size_of_val(self)
-                }
-            }
-        )*
-    };
-}
-
-pub fn size_of<T: SizeOfT + ?Sized>(value: &T) -> usize {
-    value.size_of_t()
-}

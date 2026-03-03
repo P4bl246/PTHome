@@ -11,7 +11,8 @@ use crate::ops::*;
 use crate::bit_ops::*;
 use crate::push_ops::*;
 use crate::align_ops::*;
-pub const BYTE_LENGTH:u64 = 8;
+use crate::raw_ptr_ops::*;
+pub const BYTE_LENGTH:usize = 8;
 
 fn new_alloc(size:usize)->Option<*mut u8>{
   unsafe{
@@ -24,62 +25,49 @@ fn new_alloc(size:usize)->Option<*mut u8>{
           }
  }
 
-/*
+
   trait ReadOptimized{
-    fn read_from_buffer<T>(&self, slf:&DataB, bit_start_index:u64, bit_len:u64, manage_overflow:bool)->Result<(&[T], u64), AllocErr>;
+    fn read_from_buffer<T>(&self, bit_start_index:usize, bit_len:usize, into:&mut [T],manage_overflow:bool)->Result<(&[T], usize), AllocErr>;
  }
 
- impl ReadOptimized for u8{
-    fn read_from_buffer<T>(&self, slf:&DataB, bit_start_index:u64, bit_len:u64, manage_overflow:bool)->Result<(&[T], u64), AllocErr>{
+ impl ReadOptimized for DataB{
+    fn read_from_buffer<T>(&self,bit_start_index:usize, bit_len:usize, into:&mut [T], manage_overflow:bool)->Result<(&[T], usize), AllocErr>{
       let vars = Vars::new(bit_len);
-      if let Err(e) = vars.init(slf, bit_start_index, manage_overflow){
+      if let Err(e) = vars.init(self, bit_start_index, into, manage_overflow){
         return Err(e);
       }
-      let mut result = [];
-      let padding = 0;
-      match sel_read_strategy(slf.get_vec(), slf.get_size() as u64, vars.offset, vars.len_bytes)?{
-        
-        BytesSlice::_8=>{
-          let chunk = unsafe{std::slice::from_raw_parts(slf.get_vec().offset(vars.offset as isize), vars.len_bytes as usize)};
-          for i in 0..vars.array_len as usize{
-            let carry = bit_filter(*chunk.get(i+1).unwrap_or(&0x00u8), 0xFF, sub(BYTE_LENGTH, vars.bit) as u8, true);
-            result[i] = or(shift(chunk[i], vars.bit as u8, false), carry);
-          }
-          result[result.len()-1] = bit_filter(u64::from_be_bytes([result[result.len()-1], 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]),
-           0xFFFFFFFFFFFFFFFF, sub(64,sub(vars.len, bytes_to_bits(vars.len_bytes)?)), false).to_be_bytes()[0];
-           
-          padding = sub(vars.len, bytes_to_bits(vars.len_bytes)?);
-        },
-        BytesSlice::_16=>{},
-        BytesSlice::_32=>{},
-        BytesSlice::_64=>{}
-      }
+     let read = 
       Ok((result, padding));
     }
  }
 
  struct Vars{
-  offset:u64,
-  bit:u64,
-  len:u64,
-  len_bytes:u64,
-  array_len:u64
+  offset:usize,
+  bit:usize,
+  no_zero_bit:bool,
+  len:usize,
+  len_bytes:usize,
+  array_len:usize
  }
  impl Vars{
-  fn new(bit_len:u64)->Self{
+  fn new(bit_len:usize)->Self{
     Vars{
       offset:0,
       bit:0,
       len:bit_len,
+      no_zero_bit:false,
       len_bytes:0,
       array_len:0
     }
   }
-  fn init(&mut self, slf:&DataB, bit_start_index:u64, manage_overflow:bool)->Result<(), AllocErr>{
+  fn init<T>(&mut self, slf:&DataB, bit_start_index:usize, into:&mut [T], manage_overflow:bool)->Result<(), AllocErr>{
     let f=byte_from_bits(bit_start_index, true)?;
-    self.offset = f.0;
-    self.bit = f.1.unwrap();
-    if let Err(e) = manage_read_overflow(slf.get_size() as u64,self.offset, self.bit, self.len){
+    self.offset = sub(f.0,1);
+    match f.1.unwrap(){
+      0=>{},
+      _=>{self.bit = f.1.unwrap(); self.no_zero_bit = true;}
+    }
+    if let Err(e) = manage_read_overflow(slf.get_size(),self.offset, self.bit, self.len){
       match e{
         AllocErr::OutOfBounds(n)=>{
           return Err(AllocErr::OutOfBounds(n));
@@ -89,6 +77,11 @@ fn new_alloc(size:usize)->Option<*mut u8>{
             match s{
               OverFlowStrategy::LazyFail(n)=>{
                 self.len = n;
+                self.len_bytes = bits_to_bytes(self.len)?;
+                self.array_len = bits_to_bytes(self.len)?;
+                if self.array_len > into.len() {
+                  self.array_len = into.len();
+                }
                 return Ok(());
               },
               _=>{return Err(AllocErr::UnrecognizedInstruction);}
@@ -101,15 +94,18 @@ fn new_alloc(size:usize)->Option<*mut u8>{
     }
     self.len_bytes = bits_to_bytes(sum(self.len, self.bit)?)?;
     self.array_len = bits_to_bytes(self.len)?;
+    if self.array_len > into.len() {
+      self.array_len = into.len();
+    }
     Ok(())
   }
  }
- fn manage_read_overflow(buffer_len:u64, offset:u64, bit:u64, len:u64)->Result<(), AllocErr>{
-  let n = bytes_to_bits(offset)?;
-  let size = bytes_to_bits(buffer_len)?;
-  if n > buffer_len{
+ fn manage_read_overflow(buffer_len:usize, offset:usize, bit:usize, len:usize)->Result<(), AllocErr>{
+  if offset > buffer_len{
     return Err(AllocErr::OutOfBounds(buffer_len));
   }
+   let n = bytes_to_bits(offset)?;
+  let size = bytes_to_bits(buffer_len)?;
   let n2 = sum(n, bit)?;
   if sum(n2,len)? > size{
     return Err(AllocErr::Overflow(OverFlowStrategy::LazyFail(sub(n2, size))));
@@ -117,10 +113,10 @@ fn new_alloc(size:usize)->Option<*mut u8>{
   Ok(())
  }
 
- fn sel_read_strategy<T>(ptr:*mut T,ptr_size:u64, offset:u64, len:u64)->Result<BytesSlice, AllocErr>{
-  if check_num(offset, u64::MAX-ptr_size){return Err(AllocErr::ArithmeticOverflow);}
+ fn sel_read_strategy<T>(ptr:*mut T,ptr_size:usize, offset:usize, len:usize)->Result<BytesSlice::<u8>, AllocErr>{
+  if check_num(offset, usize::MAX-ptr_size){return Err(AllocErr::ArithmeticOverflow);}
     else if check_num(offset, ptr_size){return Err(AllocErr::OutOfBounds(ptr_size));}
-    let addr = ptr as u64;
+    let addr = ptr as usize;
     match sel_aligning_with_memory(len,aligned_with_memory(addr, offset)?){
       Aligned::Bits8=>Ok(BytesSlice::_8),
       Aligned::Bits16=>Ok(BytesSlice::_16),
@@ -128,7 +124,7 @@ fn new_alloc(size:usize)->Option<*mut u8>{
       Aligned::Bits64=>Ok(BytesSlice::_64)
     }
   }
-*/
+
 /// # `DataB`
 /// A structure for store data at bit level.
 /// 
@@ -140,7 +136,7 @@ fn new_alloc(size:usize)->Option<*mut u8>{
 #[derive(Default, Clone, Debug, PartialEq, Eq)]
 
 pub struct DataB{
-    ptr: u64,
+    ptr: usize,
     vec: *mut u8,
     size: usize,
 }
@@ -274,7 +270,7 @@ impl DataB{
     /// let chunk = db.ptr();
     /// assert_eq!(chunk, 0);
     /// ```
-    pub fn ptr(&self)->u64{
+    pub fn ptr(&self)->usize{
       self.ptr
     }
 
@@ -316,7 +312,7 @@ impl DataB{
     /// # Returns
     /// * `Ok(())` - if the warm-up process completes successfully.
     /// * `Err(AllocErr)` - if there is an error during the warm-up process, such as an unrecognized instruction or an out-of-bounds access.
-    pub fn warm_up(&self, since_bit:u64, to_bit:u64)->Result<(),AllocErr>{
+    pub fn warm_up(&self, since_bit:usize, to_bit:usize)->Result<(),AllocErr>{
       let since = byte_from_bits(since_bit, false)?.0;
       let to = byte_from_bits(to_bit, false)?.0;
        if since > to {return Err(AllocErr::UnrecognizedInstruction);}
@@ -356,14 +352,14 @@ impl DataB{
     /// # Returns
     /// * A tuple containing:
     ///  * `Result<(), AllocErr>` - indicating whether the push operation was successful or if an error occurred.
-    /// * `Option<u64>` - an optional value indicating the size in bits that was actually pushed, which will changed from the requested size if is greather 
+    /// * `Option<usize>` - an optional value indicating the size in bits that was actually pushed, which will changed from the requested size if is greather 
     /// than the length of the value.
     /// 
     /// # IMPORTANT
     /// The `push` method insterts the datas in big-endian order, meaning that the most significant bits of the value will be pushed first, starting 
     /// from the specified bit index. If the `size_in_bits` parameter is provided and is less than the actual size of the value in bits, only the most 
     /// significant bits up to the specified size will be pushed into the data block.
-  pub fn push<T:PushOptimized>(&mut self, bit_index:u64, value:T, size_in_bits:Option<u64>, manage_overflow:Option<OverFlow>)->(Result<(), AllocErr>, Option<u64>){
+  pub fn push<T:PushOptimized>(&mut self, bit_index:usize, value:T, size_in_bits:Option<usize>, manage_overflow:Option<OverFlow>)->(Result<(), AllocErr>, Option<usize>){
       let mut n = size_in_bits;
       let res = value.push_at_buffer(self, bit_index, &mut n, manage_overflow);
      if n!=size_in_bits{
@@ -402,8 +398,8 @@ impl DataB{
     /// db.move_ptr(8192); // Attempt to move the pointer beyond the block size (1024 bytes = 8192 bits)
     /// assert_eq!(db.ptr(), 8192); // Pointer should be capped at the block size
     /// ```
-   pub fn move_ptr(&mut self, bit: u64) {
-    if bit > (self.size*8)as u64{self.ptr = (self.size*8)as u64;}
+   pub fn move_ptr(&mut self, bit: usize) {
+    if bit > (self.size*8){self.ptr = (self.size*8);}
     else{self.ptr=bit;}
    }
 
@@ -485,7 +481,7 @@ fn bench_1bit(n: usize, runs: usize) {
         let start = Instant::now();
         let mut db = DataB::new((n / 8) + 8).expect("alloc");
         for i in 0..n {
-            let _ = db.push(i as u64, black_box(1u8), Some(1), None);
+            let _ = db.push(i, black_box(1u8), Some(1), None);
         }
         black_box(db.ptr());
         db.deallocate();
@@ -514,7 +510,7 @@ fn bench_u8(n: usize, runs: usize) {
         let start = Instant::now();
         let mut db = DataB::new(n + 8).expect("alloc");
         for i in 0..n {
-            let _ = db.push(i as u64, black_box((i & 0xFF) as u8), None, None);
+            let _ = db.push(i, black_box((i & 0xFF) as u8), None, None);
         }
         black_box(db.ptr());
         db.deallocate();
@@ -552,7 +548,7 @@ fn bench_u16(n: usize, runs: usize) {
         let start = Instant::now();
         let mut db = DataB::new((n * 2)+ 8).expect("alloc");
         for i in 0..n {
-            let _ = db.push(i as u64, black_box((i & 0xFFFF) as u16), Some(16), None);
+            let _ = db.push(i, black_box((i & 0xFFFF) as u16), Some(16), None);
         }
         black_box(db.ptr());
         db.deallocate();
@@ -584,7 +580,7 @@ fn bench_u32(n: usize, runs: usize) {
         let start = Instant::now();
         let mut db = DataB::new((n * 4) + 8).expect("alloc");
         for i in 0..n {
-            let _ = db.push(i as u64, black_box(i as u32), Some(32), None);
+            let _ = db.push(i, black_box(i as u32), Some(32), None);
         }
         black_box(db.ptr());
         db.deallocate();
@@ -616,7 +612,7 @@ fn bench_u64(n: usize, runs: usize) {
         let start = Instant::now();
         let mut db = DataB::new((n * 8) + 8).expect("alloc");
         for i in 0..n {
-            let _ = db.push(i as u64, black_box(i as u64), Some(64), None);
+            let _ = db.push(i, black_box(i as u64), Some(64), None);
         }
         black_box(db.ptr());
         db.deallocate();
@@ -625,7 +621,7 @@ fn bench_u64(n: usize, runs: usize) {
         let start = Instant::now();
         let mut bv: BitVec = BitVec::with_capacity(n * 64);
         for i in 0..n {
-            let val = i as u64;
+            let val = i;
             for b in 0u32..64 {
                 bv.push(((val >> b) & 1) == 1);
             }
@@ -649,7 +645,7 @@ fn bench_24bit(n: usize, runs: usize) {
         let mut db = DataB::new((n * 3) + 8).expect("alloc");
         for i in 0..n {
             let val = (i & 0xFFFFFF) as u32;
-            let _ = db.push(i as u64, black_box(val), Some(24), None);
+            let _ = db.push(i, black_box(val), Some(24), None);
         }
         black_box(db.ptr());
         db.deallocate();
@@ -682,10 +678,10 @@ fn bench_mixed(n: usize, runs: usize) {
         let mut db = DataB::new(n * 2 + 8).expect("alloc");
         for i in 0..n {
             match i % 4 {
-                0 => { let _ = db.push(i as u64, black_box((i & 0xFFF) as u16), Some(12), None); },
-                1 => { let _ = db.push(i as u64, black_box((i & 0xFFFF) as u16), Some(16), None); },
-                2 => { let _ = db.push(i as u64, black_box((i & 0xFFFFFF) as u32), Some(24), None); },
-                _ => { let _ = db.push(i as u64, black_box(i as u32), Some(32), None); },
+                0 => { let _ = db.push(i, black_box((i & 0xFFF) as u16), Some(12), None); },
+                1 => { let _ = db.push(i, black_box((i & 0xFFFF) as u16), Some(16), None); },
+                2 => { let _ = db.push(i, black_box((i & 0xFFFFFF) as u32), Some(24), None); },
+                _ => { let _ = db.push(i , black_box(i as u32), Some(32), None); },
             }
         }
         black_box(db.ptr());
@@ -696,10 +692,10 @@ fn bench_mixed(n: usize, runs: usize) {
         let mut bv: BitVec = BitVec::with_capacity(n * 21); // avg of 12,16,24,32
         for i in 0..n {
             let (val, bits) = match i % 4 {
-                0 => ((i & 0xFFF) as u64, 12u32),
-                1 => ((i & 0xFFFF) as u64, 16u32),
-                2 => ((i & 0xFFFFFF) as u64, 24u32),
-                _ => (i as u64, 32u32),
+                0 => ((i & 0xFFF), 12u32),
+                1 => ((i & 0xFFFF), 16u32),
+                2 => ((i & 0xFFFFFF), 24u32),
+                _ => (i, 32u32),
             };
             for b in 0..bits {
                 bv.push(((val >> b) & 1) == 1);
@@ -723,7 +719,7 @@ fn bench_u128(n:usize, runs:usize){
         let start = Instant::now();
         let mut db = DataB::new((n * 16) + 8).expect("alloc");
         for i in 0..n {
-            let _ = db.push(i as u64, black_box(i as u128), Some(128), None);
+            let _ = db.push(i, black_box(i as u128), Some(128), None);
         }
         black_box(db.ptr());
         db.deallocate();
